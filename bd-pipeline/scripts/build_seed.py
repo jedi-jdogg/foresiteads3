@@ -92,6 +92,22 @@ def map_stage(text):
     return 'new'
 
 
+def norm_referrer(r):
+    r = (r or '').strip()
+    low = r.lower()
+    if 'santiago' in low:
+        return 'Santiago'
+    if 'matt frary' in low:
+        return 'Matt Frary'
+    if 'kyle' in low and 'sye' in low:
+        return 'Kyle Sye'
+    if 'naser' in low or 'colab' in low:
+        return 'Naser (Colab)'
+    if 'morgan' in low:
+        return 'Morgan Salcido'
+    return r[:40]
+
+
 def parse_money(s):
     if not s:
         return None
@@ -280,8 +296,8 @@ def upsert(rec, source):
     t = (rec.get('type') or '').strip()
     if t in ('customer', 'partner', 'referral_source') and d['type'] == 'prospect':
         d['type'] = t
-    if rec.get('referrer') and not d['referrer']:
-        d['referrer'] = rec['referrer'].strip()
+    if rec.get('referrer') and (not d['referrer'] or d['referrer'] in ('Calendly', 'Inbound / email', 'Email', 'Outbound', 'List', 'Platform signup')):
+        d['referrer'] = norm_referrer(rec['referrer'])
     if rec.get('owner') and not d['owner']:
         d['owner'] = rec['owner'].strip()
     # stage: most advanced wins, except explicit lost/customer from platform truth handled later
@@ -358,27 +374,66 @@ for fname, src in (('gmail_pipeline.json', 'gmail:pipeline'), ('gmail_other.json
         upsert(r, src)
 
 # 3. Calendly events -> meetings on matching deals (or new deals)
+CAL_SKIP_DOMAINS = TEAM_DOMAINS | {'lightyourbooks.com', 'karralaw.com', 'buink.biz', 'distinctelements.com'}
+CAL_SKIP_EMAILS = {'markhon17@hotmail.com'}
+FREE_MAIL = ('gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com', 'msn.com', 'proton.me', 'protonmail.com', 'aol.com')
+REFERRER_HINTS = [('santiago', 'Santiago'), ('morgan', 'Morgan Salcido'), ('chad tongco', 'Chad Tongco'), ('kyle sye', 'Kyle Sye'), ('kyle', 'Kyle Sye'), ('naser', 'Naser (Colab)'), ('vorhaus', 'Mike Vorhaus'), ('braden', 'Braden Pollock'), ('anmat', 'AnMat'), ('kristen', 'Kristen')]
+
+
+def pretty_domain(dom):
+    base = dom.split('.')[0]
+    base = re.sub(r'[-_]+', ' ', base)
+    return base.title() if base else dom
+
+
+EXCLUDED_INVESTORS = []
 cal = load(os.path.join(SRC, 'calendly.json'), {})
-for ev in cal.get('events', []) if isinstance(cal, dict) else []:
+cal_events = cal.get('events', []) if isinstance(cal, dict) else []
+cal_by_email = collections.defaultdict(list)
+for ev in cal_events:
     if (ev.get('status') or 'active') != 'active':
         continue
-    date = (ev.get('start_time') or '')[:10]
     for inv in ev.get('invitees', []) or []:
-        email = (inv.get('email') or '').lower()
-        dom = domain_of(email)
-        if not email or dom in TEAM_DOMAINS:
-            continue
-        company = inv.get('company_guess') or inv.get('company') or dom.split('.')[0].title()
-        if dom.endswith(('gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com')):
-            company = inv.get('company') or inv.get('company_guess') or (inv.get('name') or email)
-        rec = {
-            'company': company, 'contacts': [{'name': inv.get('name', ''), 'email': email}],
-            'meetings': [{'date': date, 'name': ev.get('name', 'Calendly meeting'), 'who': inv.get('name', '')}],
-            'interest': inv.get('qa', ''), '_stage': 'call_scheduled' if date >= TODAY else 'discovery',
-            'last_contact_date': date if date <= TODAY else '', 'last_from': 'them' if date <= TODAY else '',
-            'referrer': 'Calendly', 'tags': ['calendly'],
-        }
-        upsert(rec, 'calendly')
+        email = (inv.get('email') or '').lower().strip()
+        if email:
+            cal_by_email[email].append((ev, inv))
+for email, items in cal_by_email.items():
+    dom = domain_of(email)
+    if dom in CAL_SKIP_DOMAINS or email in CAL_SKIP_EMAILS:
+        continue
+    if re.search(r'(capital|partners|fund|ventures|equity|invest|\.vc$|holdings)', dom) and not find_key(pretty_domain(dom), [{'email': email}], dom)[0]:
+        EXCLUDED_INVESTORS.append(f'{email} ({dom})')
+        continue
+    items.sort(key=lambda x: x[0].get('start_time', ''))
+    last_ev, last_inv = items[-1]
+    qa = ' | '.join(sorted({(i.get('qa') or '').strip() for _, i in items if i.get('qa')}))
+    name = (last_inv.get('name') or '').strip()
+    if dom.endswith(FREE_MAIL):
+        company = f"{name or email} (individual)"
+        website = ''
+    else:
+        company = pretty_domain(dom)
+        website = dom
+    referrer = ''
+    low = qa.lower()
+    for k, v in REFERRER_HINTS:
+        if k in low:
+            referrer = v
+            break
+    dates = [e.get('start_time', '')[:10] for e, _ in items]
+    last_date = max(dates)
+    upcoming = last_date >= TODAY
+    stage = 'call_scheduled' if upcoming else ('discovery' if days_between(last_date, TODAY) <= 120 else 'stalled')
+    rec = {
+        'company': company, 'website': website, 'contacts': [{'name': name, 'email': email}],
+        'meetings': [{'date': e.get('start_time', '')[:10], 'name': e.get('name', 'Calendly meeting'), 'who': (i.get('name') or '')} for e, i in items],
+        'interest': qa[:600], '_stage': stage, 'referrer': referrer or 'Calendly',
+        'last_contact_date': '' if upcoming and len(items) == 1 else max([d for d in dates if d <= TODAY] or ['']),
+        'last_from': '',
+        'tags': ['calendly'] + (['calendly-only-old'] if stage == 'stalled' else []),
+        'summary': f"{len(items)} Calendly meeting{'s' if len(items) > 1 else ''} ({', '.join(sorted(set(dates)))})" + (': booked via ' + referrer if referrer else ''),
+    }
+    upsert(rec, 'calendly')
 
 # 4. Foresite platform truth: active subscription => customer; canceled => lost/churned customer
 plat = load(os.path.join(DATA, 'foresite_platform.json'), {})
@@ -469,6 +524,8 @@ lines += ['## Customers & onboarding', '', '| Company | Stage | Plan | Next acti
 for d in cust:
     lines.append(f"| {d['company']} | {d['stage']} | {d.get('plan','')} | {d['next_action'][:90]} |")
 lines += ['', '## Lost / churned', '', ', '.join(d['company'] for d in lost) or 'none', '']
+if EXCLUDED_INVESTORS:
+    lines += ['', '## Calendly invitees left out as likely investors', '', ', '.join(sorted(set(EXCLUDED_INVESTORS))), '']
 with open(os.path.join(REPORTS, f'{TODAY}-bd-pipeline.md'), 'w') as f:
     f.write('\n'.join(lines))
 

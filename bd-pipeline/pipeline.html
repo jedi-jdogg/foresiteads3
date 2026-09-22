@@ -270,7 +270,7 @@ const DEFAULT_TEAM = {
 const S = {
   view: 'overview', deals: {}, activity: [], team: null, db: null, mcp: null, downloads: null,
   readOnly: false, filters: {q:'', priority:'', stage:'', owner:'', type:'', source:''}, sort:{key:'score',dir:'desc'},
-  drawer: null, modal: null, gmailOk: null, tableScope: 'open'
+  drawer: null, modal: null, gmailOk: null, tableScope: 'active'
 };
 const $ = (sel, root=document) => root.querySelector(sel);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -303,6 +303,7 @@ function suggestPriority(d){ const s = scoreDeal(d); if(!(STAGE[d.stage]||STAGE.
 // ---------- data access ----------
 function allDeals(){ return Object.values(S.deals).filter(d=>!d.archived); }
 function openDeals(){ return allDeals().filter(d => (STAGE[d.stage]||STAGE.new).open); }
+function activeDeals(){ return openDeals().filter(d => d.stage!=='stalled'); }
 function customers(){ return allDeals().filter(d => !(STAGE[d.stage]||STAGE.new).open && d.stage!=='lost'); }
 function prio(d){ return d.priority || suggestPriority(d); }
 const PR = {high:0, medium:1, low:2};
@@ -361,20 +362,20 @@ function render(){
 }
 
 function renderOverview(el){
-  const open = openDeals(); const t = today();
+  const open = openDeals(); const active = activeDeals(); const stalled = open.filter(d=>d.stage==='stalled'); const t = today();
   const hi = open.filter(d=>prio(d)==='high'), md = open.filter(d=>prio(d)==='medium');
   const overdue = open.filter(d=>d.due_date && d.due_date < t);
   const stale = open.filter(d=>d.last_contact && daysBetween(d.last_contact,t) > 30 && d.stage!=='stalled');
   const meetings = allDeals().flatMap(d=>(d.meetings||[]).filter(m=>m.date>=t && m.date <= addDays(t,14)).map(m=>({...m, deal:d}))).sort((a,b)=>a.date<b.date?-1:1);
   const cust = customers();
-  $('#viewSub').textContent = `${open.length} open deals · ${cust.length} customers & partners · as of ${fmtDate(t)}`;
+  $('#viewSub').textContent = `${active.length} active deals · ${stalled.length} in nurture · ${cust.length} customers & partners · as of ${fmtDate(t)}`;
   const stageCounts = STAGES.filter(s=>s.open).map(s=>({s, n: open.filter(d=>(d.stage||'new')===s.id).length}));
   const max = Math.max(1, ...stageCounts.map(x=>x.n));
   const srcCounts = Object.entries(open.reduce((m,d)=>{ const k=d.referrer||d.source||'Unknown'; m[k]=(m[k]||0)+1; return m; },{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const smax = Math.max(1, ...srcCounts.map(x=>x[1]));
   el.innerHTML = `
   <div class="tiles">
-    <div class="tile" data-go="table" data-scope="open"><div class="l">Open deals</div><div class="v">${open.length}</div><div class="d">${STAGES.filter(s=>s.open).length} stages</div></div>
+    <div class="tile" data-go="table" data-scope="active"><div class="l">Active deals</div><div class="v">${active.length}</div><div class="d">+ ${stalled.length} stalled / nurture</div></div>
     <div class="tile hi" data-go="actions" data-prio="high"><div class="l">High priority</div><div class="v">${hi.length}</div><div class="d">${hi.filter(d=>d.next_action).length} with a next action</div></div>
     <div class="tile md" data-go="actions" data-prio="medium"><div class="l">Medium priority</div><div class="v">${md.length}</div><div class="d">${open.length-hi.length-md.length} low</div></div>
     <div class="tile ${overdue.length?'hi':''}" data-go="actions"><div class="l">Overdue follow-ups</div><div class="v">${overdue.length}</div><div class="d">${stale.length} quiet &gt;30 days</div></div>
@@ -447,7 +448,7 @@ async function completeAction(id){
 }
 
 function renderTable(el){
-  const scope = S.tableScope; const base = scope==='open'?openDeals():scope==='customers'?customers():scope==='lost'?allDeals().filter(d=>d.stage==='lost'):allDeals();
+  const scope = S.tableScope; const base = scope==='open'?openDeals():scope==='active'?activeDeals():scope==='stalled'?openDeals().filter(d=>d.stage==='stalled'):scope==='customers'?customers():scope==='lost'?allDeals().filter(d=>d.stage==='lost'):allDeals();
   const f = S.filters; const q = f.q.toLowerCase();
   let list = base.filter(d => (!q || [d.company,d.summary,d.interest,d.next_action,d.notes,d.referrer,d.website,(d.contacts||[]).map(c=>c.name+' '+c.email).join(' ')].join(' ').toLowerCase().includes(q)) && (!f.priority||prio(d)===f.priority) && (!f.stage||d.stage===f.stage) && (!f.owner||d.owner===f.owner) && (!f.type||d.type===f.type) && (!f.source||(d.referrer||d.source||'Unknown')===f.source));
   const key = S.sort.key, dir = S.sort.dir==='asc'?1:-1;
@@ -458,7 +459,7 @@ function renderTable(el){
   $('#viewSub').textContent = `${list.length} of ${base.length} shown. Click a column to sort, a row to edit.`;
   const th = (k,l) => `<th data-k="${k}" class="${key===k?'sorted':''}">${l}${key===k?(dir>0?' ↑':' ↓'):''}</th>`;
   el.innerHTML = `<div class="filters">
-    <div class="chips">${[['open','Open'],['customers','Customers & partners'],['lost','Lost'],['all','Everything']].map(([k,l])=>`<span class="chip ${scope===k?'on':''}" data-scope="${k}">${l}</span>`).join('')}</div>
+    <div class="chips">${[['active','Active'],['stalled','Stalled / nurture'],['open','All open'],['customers','Customers & partners'],['lost','Lost'],['all','Everything']].map(([k,l])=>`<span class="chip ${scope===k?'on':''}" data-scope="${k}">${l}</span>`).join('')}</div>
     <input type="search" id="fq" placeholder="Search company, contact, notes…" value="${esc(f.q)}">
     <select id="fp"><option value="">Any priority</option>${PRIORITIES.map(p=>`<option ${f.priority===p?'selected':''} value="${p}">${p}</option>`).join('')}</select>
     <select id="fs"><option value="">Any stage</option>${STAGES.map(s=>`<option ${f.stage===s.id?'selected':''} value="${s.id}">${s.label}</option>`).join('')}</select>
@@ -486,7 +487,7 @@ function renderTableBodyOnly(){ const q=$('#fq'); const pos=q?q.selectionStart:0
 
 function renderBoard(el){
   const open = allDeals().filter(d=>d.stage!=='lost'); $('#viewSub').textContent = 'Drag a card to move it to another stage. The move is saved and logged.';
-  el.innerHTML = `<div class="board">${STAGES.filter(s=>s.id!=='lost').map(s=>{ const items = sortDeals(open.filter(d=>(d.stage||'new')===s.id)); return `<div class="col" data-stage="${s.id}"><h3><span>${s.label}</span><span class="num">${items.length}</span></h3>${items.map(d=>`<div class="kcard" draggable="true" data-id="${d.id}"><div class="co"><span>${esc(d.company)}</span><span class="pill ${prio(d)}">${prio(d)}</span></div><div class="na">${esc(d.next_action||suggestAction(d))}</div><div class="m"><span>${esc(d.owner||'')}</span><span>${ago(d.last_contact)}</span>${d.due_date?`<span>${dueLabel(d)}</span>`:''}</div></div>`).join('')}</div>`; }).join('')}</div>`;
+  el.innerHTML = `<div class="board">${STAGES.filter(s=>s.id!=='lost').map(s=>{ const items = sortDeals(open.filter(d=>(d.stage||'new')===s.id)); return `<div class="col" data-stage="${s.id}"><h3><span>${s.label}</span><span class="num">${items.length}</span></h3>${items.slice(0,40).map(d=>`<div class="kcard" draggable="true" data-id="${d.id}"><div class="co"><span>${esc(d.company)}</span><span class="pill ${prio(d)}">${prio(d)}</span></div><div class="na">${esc(d.next_action||suggestAction(d))}</div><div class="m"><span>${esc(d.owner||'')}</span><span>${ago(d.last_contact)}</span>${d.due_date?`<span>${dueLabel(d)}</span>`:''}</div></div>`).join('')}${items.length>40?`<div class="hint" style="padding:6px 4px">+ ${items.length-40} more in the All deals table</div>`:''}</div>`; }).join('')}</div>`;
   el.querySelectorAll('.kcard').forEach(c=>{ c.ondragstart=e=>{e.dataTransfer.setData('text/plain',c.dataset.id);}; c.onclick=()=>openDeal(c.dataset.id); });
   el.querySelectorAll('.col').forEach(col=>{ col.ondragover=e=>{e.preventDefault(); col.classList.add('over');}; col.ondragleave=()=>col.classList.remove('over'); col.ondrop=e=>{ e.preventDefault(); col.classList.remove('over'); const id=e.dataTransfer.getData('text/plain'); const d=S.deals[id]; if(!d||d.stage===col.dataset.stage) return; const from=STAGE[d.stage]?.label; d.stage=col.dataset.stage; if(!STAGE[d.stage].open){ d.next_action = d.stage==='won'?'Kick off onboarding: access, tracking, first campaign':''; } saveDeal(d, `Stage: ${from} → ${STAGE[d.stage].label}`, 'stage'); }; });
 }
