@@ -1,0 +1,727 @@
+<title>Foresite BD Pipeline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F5F7F5; --surface:#FFFFFF; --surface-2:#EEF2EF; --ink:#152420; --ink-2:#4B5B56; --muted:#7A8A85; --line:#DCE3DF; --line-2:#C9D3CE;
+  --accent:#0E7C6B; --accent-ink:#FFFFFF; --accent-soft:#DDF1EC; --accent-soft-ink:#0B5F52;
+  --hi:#B4340B; --hi-soft:#FBE7DE; --hi-ink:#8A2607;
+  --md:#9A6A00; --md-soft:#FBF0D2; --md-ink:#6E4B00;
+  --lo:#5B6B76; --lo-soft:#E6ECF0; --lo-ink:#3E4C55;
+  --ok:#1F7A3D; --ok-soft:#DDF3E3;
+  --shadow:0 10px 30px rgba(21,36,32,.12);
+  --r:10px; --font-display:'Sora',system-ui,sans-serif; --font-body:'IBM Plex Sans',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#0E1513; --surface:#151E1B; --surface-2:#1C2724; --ink:#E6ECE9; --ink-2:#B2BFBA; --muted:#7F8E89; --line:#263230; --line-2:#334240;
+  --accent:#3DB79F; --accent-ink:#06211C; --accent-soft:#153A34; --accent-soft-ink:#8FDCCB;
+  --hi:#F0714A; --hi-soft:#3B1F16; --hi-ink:#FFB59C;
+  --md:#E0B145; --md-soft:#3A2F12; --md-ink:#F4D58B;
+  --lo:#98A8B3; --lo-soft:#22303A; --lo-ink:#C5D1D9;
+  --ok:#4FC076; --ok-soft:#173424;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1513; --surface:#151E1B; --surface-2:#1C2724; --ink:#E6ECE9; --ink-2:#B2BFBA; --muted:#7F8E89; --line:#263230; --line-2:#334240;
+  --accent:#3DB79F; --accent-ink:#06211C; --accent-soft:#153A34; --accent-soft-ink:#8FDCCB;
+  --hi:#F0714A; --hi-soft:#3B1F16; --hi-ink:#FFB59C;
+  --md:#E0B145; --md-soft:#3A2F12; --md-ink:#F4D58B;
+  --lo:#98A8B3; --lo-soft:#22303A; --lo-ink:#C5D1D9;
+  --ok:#4FC076; --ok-soft:#173424;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--font-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100%}
+.side{background:var(--surface);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 6px}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--font-display);font-weight:700}
+.brand b{font-family:var(--font-display);font-weight:600;font-size:15px;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 10px;cursor:pointer;color:var(--ink-2)}
+nav button:hover{background:var(--surface-2)}
+nav button.on{background:var(--accent-soft);color:var(--accent-soft-ink);font-weight:600}
+nav .cnt{font-family:var(--font-mono);font-size:11px;color:var(--muted);background:var(--surface-2);border-radius:99px;padding:1px 7px}
+nav button.on .cnt{background:transparent;color:inherit}
+.side .foot{margin-top:auto;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+.status{display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--md)} .dot.bad{background:var(--hi)}
+main{padding:22px 28px 60px;min-width:0}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.topbar h1{font-size:22px;font-weight:600}
+.topbar .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:500;line-height:1.2}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.ghost{background:transparent}
+.btn.small{padding:5px 9px;font-size:12px}
+.btn.danger{color:var(--hi);border-color:var(--hi)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.banner{border:1px solid var(--line-2);background:var(--surface-2);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:center;font-size:13px}
+.banner.warn{border-color:var(--md);background:var(--md-soft);color:var(--md-ink)}
+.banner.bad{border-color:var(--hi);background:var(--hi-soft);color:var(--hi-ink)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;cursor:pointer}
+.tile:hover{border-color:var(--accent)}
+.tile .l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile .v{font-family:var(--font-display);font-size:28px;font-weight:600;margin-top:4px;line-height:1.1}
+.tile .d{font-size:12px;color:var(--ink-2);margin-top:4px}
+.tile.hi .v{color:var(--hi)} .tile.md .v{color:var(--md)} .tile.ok .v{color:var(--ok)}
+.grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.card h2{font-size:15px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card h2 small{font-family:var(--font-body);font-weight:400;color:var(--muted);font-size:12px}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:150px 1fr 34px;align-items:center;gap:10px;font-size:12.5px;cursor:pointer}
+.bar:hover .lbl{color:var(--accent)}
+.bar .lbl{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .trk{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bar .fil{height:100%;background:var(--accent);border-radius:0 3px 3px 0;min-width:2px;transition:width .3s}
+.bar .n{text-align:right;color:var(--ink-2)}
+.list{display:flex;flex-direction:column;gap:0}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:0}
+.row:hover .co{color:var(--accent)}
+.row .co{font-weight:600}
+.row .why{color:var(--ink-2);font-size:12.5px;margin-top:2px}
+.row .meta{font-size:11.5px;color:var(--muted);white-space:nowrap;text-align:right}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap;line-height:1.5}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.high{background:var(--hi-soft);color:var(--hi-ink)}
+.pill.medium{background:var(--md-soft);color:var(--md-ink)}
+.pill.low{background:var(--lo-soft);color:var(--lo-ink)}
+.tag{display:inline-block;border:1px solid var(--line-2);border-radius:6px;padding:1px 7px;font-size:11px;color:var(--ink-2);background:var(--surface)}
+.tag.stage{background:var(--surface-2);white-space:nowrap}
+.tag.type-customer{border-color:var(--ok);color:var(--ok)}
+.tag.type-partner{border-color:var(--accent);color:var(--accent)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters input,.filters select{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:7px 10px;min-width:0}
+.filters input[type=search]{flex:1 1 220px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap;user-select:none;position:sticky;top:0;background:var(--surface)}
+th.sorted{color:var(--accent)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+td .co{font-weight:600} td .sub{color:var(--muted);font-size:12px}
+td.na{max-width:320px}
+.overdue{color:var(--hi);font-weight:600}
+.due-soon{color:var(--md);font-weight:600}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:260px;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:start}
+.col{background:var(--surface-2);border-radius:var(--r);padding:10px;min-height:120px}
+.col h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);display:flex;justify-content:space-between;padding:4px 4px 10px}
+.col.over{outline:2px dashed var(--accent)}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:grab}
+.kcard:active{cursor:grabbing}
+.kcard .co{font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.kcard .na{font-size:12px;color:var(--ink-2);margin-top:4px}
+.kcard .m{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+.group{margin-bottom:22px}
+.group h2{font-size:15px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+.act input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.act .co{font-weight:600;cursor:pointer} .act .co:hover{color:var(--accent)}
+.act .na{margin-top:2px}
+.act .why{font-size:12px;color:var(--muted);margin-top:3px}
+.act .r{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap}
+.feed .item{display:grid;grid-template-columns:130px 1fr;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+.feed .item:first-child{border-top:0}
+.feed .t{color:var(--muted);font-size:12px}
+.feed .k{font-weight:600}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,18,16,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:50;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.drawer header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.drawer header h2{font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer .body{overflow:auto;padding:18px 20px 30px;display:flex;flex-direction:column;gap:16px}
+.drawer footer{border-top:1px solid var(--line);padding:12px 20px;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.f input,.f select,.f textarea{border:1px solid var(--line-2);background:var(--bg);border-radius:8px;padding:8px 10px;width:100%}
+.f textarea{min-height:70px;resize:vertical}
+.f.wide{grid-column:1/-1}
+.hint{font-size:12px;color:var(--muted)}
+.contacts .c{display:grid;grid-template-columns:1fr 1.2fr 1fr auto;gap:6px;margin-bottom:6px}
+.contacts .c input{border:1px solid var(--line-2);background:var(--bg);border-radius:8px;padding:7px 9px;min-width:0}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.threads .th{padding:8px 0;border-top:1px solid var(--line);font-size:12.5px}
+.threads .th:first-child{border-top:0}
+.threads .th b{display:block}
+.threads .th .s{color:var(--ink-2)}
+.threads .th .d{color:var(--muted);font-size:11.5px}
+.history .h{padding:7px 0;border-top:1px solid var(--line);font-size:12.5px;display:grid;grid-template-columns:110px 1fr;gap:10px}
+.history .h:first-child{border-top:0}
+.history .h .t{color:var(--muted);font-size:11.5px}
+/* modal */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(10,18,16,.5)}
+.modal .box{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);width:min(760px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.modal header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.modal header h2{font-size:16px;font-weight:600}
+.modal .body{padding:16px 20px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.modal footer{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line-2);border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer;background:var(--surface)}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-soft-ink)}
+.msg{font-size:12.5px;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+.msg.ok{background:var(--ok-soft)} .msg.bad{background:var(--hi-soft);color:var(--hi-ink)} .msg.warn{background:var(--md-soft);color:var(--md-ink)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:13px;z-index:80;box-shadow:var(--shadow)}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.team .m{display:grid;grid-template-columns:1fr 1.3fr 1fr auto;gap:6px;margin-bottom:6px}
+.team .m input{border:1px solid var(--line-2);background:var(--bg);border-radius:8px;padding:7px 9px;min-width:0}
+.legend{font-size:12px;color:var(--muted);margin-top:8px}
+.score{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--line-2);border-radius:4px;padding:0 5px}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px 16px;gap:10px}
+  nav{flex-direction:row;overflow-x:auto;gap:4px}
+  nav button{white-space:nowrap;padding:7px 10px}
+  .side .foot{display:none}
+  main{padding:16px 16px 60px}
+  .grid2{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr}
+  .contacts .c,.team .m{grid-template-columns:1fr 1fr}
+  .bar{grid-template-columns:110px 1fr 30px}
+  .row{grid-template-columns:auto 1fr}
+  .row .meta{grid-column:2;text-align:left;white-space:normal}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="mark">F</div><div><b>Foresite BD</b><small>Pipeline</small></div></div>
+    <nav id="nav"></nav>
+    <div class="foot">
+      <div class="status"><span class="dot" id="dbDot"></span><span id="dbStatus">Connecting to saved data…</span></div>
+      <div class="status"><span class="dot" id="mailDot"></span><span id="mailStatus">Gmail: checking…</span></div>
+      <div id="lastSync"></div>
+    </div>
+  </aside>
+  <main>
+    <div class="topbar">
+      <div><h1 id="viewTitle">Overview</h1><div class="sub" id="viewSub"></div></div>
+      <div class="actions">
+        <button class="btn" id="btnExport" hidden>Export CSV</button>
+        <button class="btn" id="btnTeam">Send team update</button>
+        <button class="btn primary" id="btnNew">+ New deal</button>
+      </div>
+    </div>
+    <div id="banners"></div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="overlay"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+'use strict';
+// ---------- constants ----------
+const STAGES = [
+  {id:'new', label:'New lead', open:true, w:5},
+  {id:'intro', label:'Intro sent', open:true, w:10},
+  {id:'call_scheduled', label:'Call scheduled', open:true, w:25},
+  {id:'discovery', label:'Call done / discovery', open:true, w:30},
+  {id:'proposal', label:'Proposal / contract sent', open:true, w:40},
+  {id:'negotiating', label:'NDA / negotiating', open:true, w:42},
+  {id:'won', label:'Closed won / onboarding', open:false, w:0},
+  {id:'customer', label:'Active customer', open:false, w:0},
+  {id:'stalled', label:'Stalled / nurture', open:true, w:8},
+  {id:'lost', label:'Closed lost', open:false, w:0},
+];
+const STAGE = Object.fromEntries(STAGES.map(s=>[s.id,s]));
+const PRIORITIES = ['high','medium','low'];
+const TYPES = ['prospect','customer','partner','referral_source'];
+const TYPE_LABEL = {prospect:'Prospect', customer:'Customer', partner:'Partner', referral_source:'Referral source'};
+const VIEWS = [
+  {id:'overview', label:'Overview'},
+  {id:'actions', label:'Next actions'},
+  {id:'table', label:'All deals'},
+  {id:'board', label:'Board'},
+  {id:'customers', label:'Customers & partners'},
+  {id:'activity', label:'Activity'},
+  {id:'settings', label:'Team & settings'},
+];
+const GMAIL = 'Gmail';
+const CALENDLY_URL = 'https://calendly.com/quimbi';
+const DEFAULT_TEAM = {
+  members: [
+    {name:'Jonathan Shroyer', email:'jonathan@foresiteads.com', role:'CEO'},
+    {name:'Arun Bordoloi', email:'arun@foresiteads.com', role:'Team'},
+  ],
+  signature: 'Jonathan Shroyer\nFounder & CEO, Foresite Ads\njonathan@foresiteads.com · ForesiteAds.com · calendly.com/quimbi',
+  cc: ''
+};
+
+// ---------- state ----------
+const S = {
+  view: 'overview', deals: {}, activity: [], team: null, db: null, mcp: null, downloads: null,
+  readOnly: false, filters: {q:'', priority:'', stage:'', owner:'', type:'', source:''}, sort:{key:'score',dir:'desc'},
+  drawer: null, modal: null, gmailOk: null, tableScope: 'open'
+};
+const $ = (sel, root=document) => root.querySelector(sel);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = () => new Date().toISOString().slice(0,10);
+const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const fmtDate = d => { if(!d) return '—'; const x = new Date(d + (d.length===10?'T12:00:00':'')); return isNaN(x) ? d : x.toLocaleDateString(undefined,{month:'short',day:'numeric',year: x.getFullYear()!==new Date().getFullYear()?'numeric':undefined}); };
+const ago = d => { if(!d) return 'no contact logged'; const n = daysBetween(d, today()); return n<=0?'today':n===1?'yesterday':n<30?`${n}d ago`:n<365?`${Math.round(n/30)}mo ago`:`${Math.round(n/365)}y ago`; };
+const uid = () => 'd_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+let toastT; function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 3200); }
+
+// ---------- scoring (suggested priority) ----------
+function parseMoney(s){ if(!s) return null; const m = String(s).replace(/,/g,'').match(/\$?\s*([\d.]+)\s*(k|m|mm|b)?/i); if(!m) return null; let v=parseFloat(m[1]); const u=(m[2]||'').toLowerCase(); if(u==='k') v*=1e3; else if(u==='m'||u==='mm') v*=1e6; else if(u==='b') v*=1e9; return v; }
+function scoreDeal(d){
+  const st = STAGE[d.stage] || STAGE.new;
+  if(!st.open) return 0;
+  let s = st.w;
+  const rev = parseMoney(d.revenue_hint) || 0;
+  const spend = Number(d.est_monthly_spend)||0;
+  if (spend >= 100000 || rev >= 20e6) s += 22; else if (spend >= 25000 || rev >= 5e6) s += 16; else if (rev >= 1e6 || spend>0) s += 9; else s += 6;
+  if (d.last_contact){ const n = daysBetween(d.last_contact, today()); s += n<=7?15:n<=30?10:n<=90?4:0; if(n>120 && d.stage!=='stalled') s -= 5; }
+  if (d.last_from === 'them') s += 10;
+  const upcoming = (d.meetings||[]).some(m => m.date >= today());
+  if (upcoming) s += 18;
+  if (d.due_date && d.due_date < today()) s += 4;
+  if (d.type === 'partner') s += 6;
+  return Math.max(0, Math.round(s));
+}
+function suggestPriority(d){ const s = scoreDeal(d); if(!(STAGE[d.stage]||STAGE.new).open) return 'low'; return s>=60?'high':s>=38?'medium':'low'; }
+
+// ---------- data access ----------
+function allDeals(){ return Object.values(S.deals).filter(d=>!d.archived); }
+function openDeals(){ return allDeals().filter(d => (STAGE[d.stage]||STAGE.new).open); }
+function customers(){ return allDeals().filter(d => !(STAGE[d.stage]||STAGE.new).open && d.stage!=='lost'); }
+function prio(d){ return d.priority || suggestPriority(d); }
+const PR = {high:0, medium:1, low:2};
+function sortDeals(list){ return list.slice().sort((a,b)=> (PR[prio(a)]-PR[prio(b)]) || ((a.due_date||'9999') > (b.due_date||'9999') ? 1 : (a.due_date||'9999') < (b.due_date||'9999') ? -1 : 0) || (scoreDeal(b)-scoreDeal(a))); }
+
+async function saveDeal(d, activityText, type='edit'){
+  d.updated_at = new Date().toISOString();
+  d.score = scoreDeal(d); d.suggested_priority = suggestPriority(d);
+  S.deals[d.id] = d; render();
+  if (S.readOnly || !S.db){ toast('Not connected to saved data, change kept in this tab only'); return; }
+  try { await S.db.doc('deals/'+d.id).set(d); if(activityText) await logActivity(d, type, activityText); }
+  catch(e){ console.error(e); toast('Save failed: ' + (e.message||e.code||'unknown error')); }
+}
+async function logActivity(d, type, text){
+  const a = {ts:new Date().toISOString(), deal_id:d?.id||null, company:d?.company||'', type, text, by:'you'};
+  if (!S.db) { S.activity.unshift(a); return; }
+  try { await S.db.collection('activity').add(a); } catch(e){ console.error(e); }
+}
+
+// ---------- boot ----------
+function setStatus(el, dot, text, cls){ $(el).textContent = text; $(dot).className = 'dot ' + (cls||''); }
+async function boot(){
+  render();
+  const use = window.claude && window.claude.use ? (n)=>window.claude.use(n) : async()=>null;
+  const [db, mcp, downloads] = await Promise.all([use('db'), use('mcp'), use('downloads')]);
+  S.db = db; S.mcp = mcp; S.downloads = downloads; $('#btnExport').hidden = !downloads;
+  if (!db){
+    S.readOnly = true; setStatus('#dbStatus','#dbDot','Saved data unavailable (read-only snapshot)','warn');
+    try { const r = await fetch('seed.json'); if(r.ok){ const seed = await r.json(); (seed.deals||[]).forEach(d=>S.deals[d.id]=d); S.activity = seed.activity||[]; S.team = seed.team||DEFAULT_TEAM; } } catch(e){ console.warn(e); }
+    if(!S.team) S.team = DEFAULT_TEAM;
+    render(); addBanner('warn','Saved data is not reachable in this view. You are looking at the last exported snapshot and edits will not persist. Open the artifact in claude.ai to edit.');
+  } else {
+    setStatus('#dbStatus','#dbDot','Saved data: live','ok');
+    db.collection('deals').onSnapshot(snap => { const next={}; snap.docs.forEach(x=>{ next[x.id] = Object.assign({id:x.id}, x.data()); }); S.deals = next; $('#lastSync').textContent = 'Synced ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); render(); }, e => { console.error(e); addBanner('bad','Live updates stopped: '+(e.message||e.code)+'. Reload the page.'); });
+    db.collection('activity').orderBy('ts','desc').limit(300).onSnapshot(snap => { S.activity = snap.docs.map(x=>Object.assign({id:x.id}, x.data())); if(S.view==='activity'||S.drawer) render(); }, e=>console.error(e));
+    db.doc('settings/team').onSnapshot(snap => { S.team = snap.exists ? snap.data() : DEFAULT_TEAM; if(S.view==='settings') render(); }, e=>console.error(e));
+  }
+  if (!mcp){ S.gmailOk = false; setStatus('#mailStatus','#mailDot','Gmail: not available in this view','bad'); }
+  else {
+    try { const lt = await mcp.listTools(GMAIL); const srv = lt.servers.find(s=>s.server===GMAIL); if(!srv){ S.gmailOk=false; setStatus('#mailStatus','#mailDot','Gmail: add the connector in claude.ai Settings → Connectors','bad'); } else if (srv.authStatus==='needs_reauth'){ S.gmailOk=false; setStatus('#mailStatus','#mailDot','Gmail: reconnect in claude.ai Settings → Connectors','warn'); } else { S.gmailOk=true; setStatus('#mailStatus','#mailDot','Gmail: ready (asks permission on first send)','ok'); } }
+    catch(e){ S.gmailOk = null; setStatus('#mailStatus','#mailDot','Gmail: status unknown, will ask on first send','warn'); }
+  }
+}
+function addBanner(cls, text){ const b=document.createElement('div'); b.className='banner '+cls; b.innerHTML = `<span>${esc(text)}</span>`; $('#banners').appendChild(b); }
+
+// ---------- render ----------
+function render(){
+  const nav = $('#nav'); const open = openDeals();
+  const counts = {overview:'', actions: open.filter(d=>d.next_action).length, table: allDeals().length, board: open.length, customers: customers().length, activity: S.activity.length, settings:''};
+  nav.innerHTML = VIEWS.map(v=>`<button class="${S.view===v.id?'on':''}" data-view="${v.id}">${v.label}${counts[v.id]!==''?`<span class="cnt">${counts[v.id]}</span>`:''}</button>`).join('');
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{ S.view=b.dataset.view; try{localStorage.setItem('bd.view',S.view)}catch(e){} render(); });
+  const v = VIEWS.find(x=>x.id===S.view); $('#viewTitle').textContent = v.label;
+  const el = $('#view');
+  ({overview: renderOverview, actions: renderActions, table: renderTable, board: renderBoard, customers: renderCustomers, activity: renderActivity, settings: renderSettings})[S.view](el);
+  renderOverlay();
+}
+
+function renderOverview(el){
+  const open = openDeals(); const t = today();
+  const hi = open.filter(d=>prio(d)==='high'), md = open.filter(d=>prio(d)==='medium');
+  const overdue = open.filter(d=>d.due_date && d.due_date < t);
+  const stale = open.filter(d=>d.last_contact && daysBetween(d.last_contact,t) > 30 && d.stage!=='stalled');
+  const meetings = allDeals().flatMap(d=>(d.meetings||[]).filter(m=>m.date>=t && m.date <= addDays(t,14)).map(m=>({...m, deal:d}))).sort((a,b)=>a.date<b.date?-1:1);
+  const cust = customers();
+  $('#viewSub').textContent = `${open.length} open deals · ${cust.length} customers & partners · as of ${fmtDate(t)}`;
+  const stageCounts = STAGES.filter(s=>s.open).map(s=>({s, n: open.filter(d=>(d.stage||'new')===s.id).length}));
+  const max = Math.max(1, ...stageCounts.map(x=>x.n));
+  const srcCounts = Object.entries(open.reduce((m,d)=>{ const k=d.referrer||d.source||'Unknown'; m[k]=(m[k]||0)+1; return m; },{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const smax = Math.max(1, ...srcCounts.map(x=>x[1]));
+  el.innerHTML = `
+  <div class="tiles">
+    <div class="tile" data-go="table" data-scope="open"><div class="l">Open deals</div><div class="v">${open.length}</div><div class="d">${STAGES.filter(s=>s.open).length} stages</div></div>
+    <div class="tile hi" data-go="actions" data-prio="high"><div class="l">High priority</div><div class="v">${hi.length}</div><div class="d">${hi.filter(d=>d.next_action).length} with a next action</div></div>
+    <div class="tile md" data-go="actions" data-prio="medium"><div class="l">Medium priority</div><div class="v">${md.length}</div><div class="d">${open.length-hi.length-md.length} low</div></div>
+    <div class="tile ${overdue.length?'hi':''}" data-go="actions"><div class="l">Overdue follow-ups</div><div class="v">${overdue.length}</div><div class="d">${stale.length} quiet &gt;30 days</div></div>
+    <div class="tile" data-go="customers"><div class="l">Meetings, next 14 days</div><div class="v">${meetings.length}</div><div class="d">${meetings[0]?esc(meetings[0].deal.company)+' · '+fmtDate(meetings[0].date):'nothing booked'}</div></div>
+    <div class="tile ok" data-go="customers"><div class="l">Customers & partners</div><div class="v">${cust.length}</div><div class="d">${cust.filter(d=>d.stage==='won').length} onboarding</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Do next <small>top of the list by priority, then due date</small></h2>
+      <div class="list">${sortDeals(open.filter(d=>d.next_action)).slice(0,8).map(d=>`<div class="row" data-open="${d.id}"><span class="pill ${prio(d)}">${prio(d)}</span><div><div class="co">${esc(d.company)}</div><div class="why">${esc(d.next_action)}</div></div><div class="meta">${dueLabel(d)}<br>${esc(d.owner||'')}</div></div>`).join('') || '<div class="empty">No next actions set. Open a deal and add one.</div>'}</div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px"><h2>Pipeline by stage <small>open deals</small></h2>
+        <div class="bars">${stageCounts.map(x=>`<div class="bar" data-stage="${x.s.id}"><span class="lbl">${x.s.label}</span><div class="trk"><div class="fil" style="width:${(x.n/max*100).toFixed(1)}%"></div></div><span class="n num">${x.n}</span></div>`).join('')}</div>
+      </div>
+      <div class="card"><h2>Where deals come from <small>referrer or source</small></h2>
+        <div class="bars">${srcCounts.map(x=>`<div class="bar" data-src="${esc(x[0])}"><span class="lbl">${esc(x[0])}</span><div class="trk"><div class="fil" style="width:${(x[1]/smax*100).toFixed(1)}%;opacity:.75"></div></div><span class="n num">${x[1]}</span></div>`).join('')||'<div class="empty">No sources yet</div>'}</div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Overdue & quiet <small>needs a touch</small></h2>
+      <div class="list">${sortDeals([...new Set([...overdue, ...stale])]).slice(0,8).map(d=>`<div class="row" data-open="${d.id}"><span class="pill ${prio(d)}">${prio(d)}</span><div><div class="co">${esc(d.company)}</div><div class="why">${esc(STAGE[d.stage]?.label||'')} · last contact ${ago(d.last_contact)}${d.last_from?` (${d.last_from==='us'?'we wrote last':'they wrote last'})`:''}</div></div><div class="meta">${dueLabel(d)}</div></div>`).join('')||'<div class="empty">Nothing overdue. Nice.</div>'}</div>
+    </div>
+    <div class="card"><h2>Upcoming meetings <small>from Calendly & email</small></h2>
+      <div class="list">${meetings.slice(0,8).map(m=>`<div class="row" data-open="${m.deal.id}"><span class="tag">${fmtDate(m.date)}</span><div><div class="co">${esc(m.deal.company)}</div><div class="why">${esc(m.name||'Meeting')}${m.who?' · '+esc(m.who):''}</div></div><div class="meta">${esc(m.deal.owner||'')}</div></div>`).join('')||'<div class="empty">No meetings in the next two weeks. Add one on a deal, or share <a href="'+CALENDLY_URL+'" target="_blank" rel="noopener">calendly.com/quimbi</a>.</div>'}</div>
+    </div>
+  </div>
+  <div class="legend">Priority is suggested from stage, deal size, recency, who spoke last and upcoming meetings, and can be overridden per deal. High ≥ 60, medium ≥ 38.</div>`;
+  el.querySelectorAll('[data-go]').forEach(t=>t.onclick=()=>{ S.view=t.dataset.go; if(t.dataset.prio){S.filters.priority=t.dataset.prio;} if(t.dataset.scope) S.tableScope=t.dataset.scope; render(); });
+  el.querySelectorAll('[data-open]').forEach(r=>r.onclick=()=>openDeal(r.dataset.open));
+  el.querySelectorAll('.bar[data-stage]').forEach(b=>b.onclick=()=>{ S.view='table'; S.filters={q:'',priority:'',stage:b.dataset.stage,owner:'',type:'',source:''}; render(); });
+  el.querySelectorAll('.bar[data-src]').forEach(b=>b.onclick=()=>{ S.view='table'; S.filters={q:'',priority:'',stage:'',owner:'',type:'',source:b.dataset.src}; render(); });
+}
+function addDays(d, n){ const x = new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+function dueLabel(d){ if(!d.due_date) return '<span class="hint">no due date</span>'; const n = daysBetween(today(), d.due_date); if(n<0) return `<span class="overdue">${-n}d overdue</span>`; if(n===0) return '<span class="due-soon">due today</span>'; if(n<=3) return `<span class="due-soon">due in ${n}d</span>`; return 'due ' + fmtDate(d.due_date); }
+
+function renderActions(el){
+  const open = openDeals(); $('#viewSub').textContent = 'Every open deal with a next action, grouped by priority. Tick one when it is done to log it and set the next step.';
+  const groups = PRIORITIES.map(p=>({p, items: sortDeals(open.filter(d=>prio(d)===p))}));
+  const f = S.filters.priority;
+  el.innerHTML = `<div class="filters"><div class="chips">${['','high','medium','low'].map(p=>`<span class="chip ${f===p?'on':''}" data-p="${p}">${p||'All'}</span>`).join('')}</div><span class="hint">${open.filter(d=>!d.next_action).length} open deals have no next action yet</span></div>` +
+    groups.filter(g=>!f||g.p===f).map(g=>`<div class="group"><h2><span class="pill ${g.p}">${g.p}</span> ${g.items.length} deals</h2>${g.items.map(d=>`
+      <div class="act"><input type="checkbox" id="done_${d.id}" title="Mark done" data-done="${d.id}" ${d.next_action?'':'disabled'}>
+        <div><span class="co" data-open="${d.id}">${esc(d.company)}</span> <span class="tag stage">${esc(STAGE[d.stage]?.label||'')}</span> ${d.type&&d.type!=='prospect'?`<span class="tag type-${d.type}">${TYPE_LABEL[d.type]}</span>`:''}
+          <div class="na">${d.next_action?esc(d.next_action):'<span class="hint">No next action. Suggested: '+esc(suggestAction(d))+'</span>'}</div>
+          <div class="why">${esc(d.summary||d.interest||'')}</div></div>
+        <div class="r"><span>${dueLabel(d)}</span><span>${esc(d.owner||'unassigned')} · ${ago(d.last_contact)}</span><span class="score">score ${scoreDeal(d)}</span><button class="btn small" data-email="${d.id}">Email</button></div>
+      </div>`).join('')||'<div class="empty">None</div>'}</div>`).join('');
+  el.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{S.filters.priority=c.dataset.p; render();});
+  el.querySelectorAll('[data-open]').forEach(r=>r.onclick=()=>openDeal(r.dataset.open));
+  el.querySelectorAll('[data-email]').forEach(b=>b.onclick=()=>openEmail({dealId:b.dataset.email}));
+  el.querySelectorAll('[data-done]').forEach(c=>c.onchange=()=>{ if(c.checked) completeAction(c.dataset.done); });
+}
+function suggestAction(d){
+  switch(d.stage){
+    case 'new': return 'Send intro email with the one-pager and offer a 20-minute call';
+    case 'intro': return d.last_from==='them' ? 'Reply and propose two call times' : 'Follow up on the intro (2nd touch) with a proof point';
+    case 'call_scheduled': return 'Confirm the call, send agenda and pull their ad accounts / store for review';
+    case 'discovery': return 'Send recap with 90-day plan and proposal';
+    case 'proposal': return 'Nudge on the contract; offer to walk through terms live';
+    case 'negotiating': return 'Close open terms; get signature and kickoff date';
+    case 'stalled': return 'Re-engage with a new result or seasonal angle (BFCM, Q4)';
+    default: return 'Check in';
+  }
+}
+async function completeAction(id){
+  const d = S.deals[id]; if(!d) return;
+  const done = d.next_action;
+  openModal('complete', {deal:d, done});
+}
+
+function renderTable(el){
+  const scope = S.tableScope; const base = scope==='open'?openDeals():scope==='customers'?customers():scope==='lost'?allDeals().filter(d=>d.stage==='lost'):allDeals();
+  const f = S.filters; const q = f.q.toLowerCase();
+  let list = base.filter(d => (!q || [d.company,d.summary,d.interest,d.next_action,d.notes,d.referrer,d.website,(d.contacts||[]).map(c=>c.name+' '+c.email).join(' ')].join(' ').toLowerCase().includes(q)) && (!f.priority||prio(d)===f.priority) && (!f.stage||d.stage===f.stage) && (!f.owner||d.owner===f.owner) && (!f.type||d.type===f.type) && (!f.source||(d.referrer||d.source||'Unknown')===f.source));
+  const key = S.sort.key, dir = S.sort.dir==='asc'?1:-1;
+  const val = d => key==='priority'?PR[prio(d)]*-1:key==='score'?scoreDeal(d):key==='stage'?STAGES.findIndex(s=>s.id===d.stage):key==='last_contact'?(d.last_contact||''):key==='due_date'?(d.due_date||'9999'):key==='company'?(d.company||'').toLowerCase():(d[key]||'');
+  list.sort((a,b)=>{ const x=val(a), y=val(b); return (x>y?1:x<y?-1:0)*dir; });
+  const owners = [...new Set(allDeals().map(d=>d.owner).filter(Boolean))].sort();
+  const sources = [...new Set(allDeals().map(d=>d.referrer||d.source||'Unknown'))].sort();
+  $('#viewSub').textContent = `${list.length} of ${base.length} shown. Click a column to sort, a row to edit.`;
+  const th = (k,l) => `<th data-k="${k}" class="${key===k?'sorted':''}">${l}${key===k?(dir>0?' ↑':' ↓'):''}</th>`;
+  el.innerHTML = `<div class="filters">
+    <div class="chips">${[['open','Open'],['customers','Customers & partners'],['lost','Lost'],['all','Everything']].map(([k,l])=>`<span class="chip ${scope===k?'on':''}" data-scope="${k}">${l}</span>`).join('')}</div>
+    <input type="search" id="fq" placeholder="Search company, contact, notes…" value="${esc(f.q)}">
+    <select id="fp"><option value="">Any priority</option>${PRIORITIES.map(p=>`<option ${f.priority===p?'selected':''} value="${p}">${p}</option>`).join('')}</select>
+    <select id="fs"><option value="">Any stage</option>${STAGES.map(s=>`<option ${f.stage===s.id?'selected':''} value="${s.id}">${s.label}</option>`).join('')}</select>
+    <select id="fo"><option value="">Any owner</option>${owners.map(o=>`<option ${f.owner===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
+    <select id="ft"><option value="">Any type</option>${TYPES.map(t=>`<option ${f.type===t?'selected':''} value="${t}">${TYPE_LABEL[t]}</option>`).join('')}</select>
+    <select id="fsrc"><option value="">Any source</option>${sources.map(o=>`<option ${f.source===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
+    <button class="btn small ghost" id="fclear">Clear</button>
+  </div>
+  <div class="tablewrap"><table><thead><tr>${th('priority','Priority')}${th('company','Company')}${th('stage','Stage')}<th>Contact</th>${th('owner','Owner')}${th('revenue_hint','Size')}${th('last_contact','Last contact')}<th>Next action</th>${th('due_date','Due')}${th('score','Score')}</tr></thead>
+  <tbody>${list.map(d=>`<tr data-open="${d.id}"><td><span class="pill ${prio(d)}">${prio(d)}</span>${d.priority&&d.priority!==suggestPriority(d)?`<div class="hint">suggested ${suggestPriority(d)}</div>`:''}</td>
+    <td><div class="co">${esc(d.company)}</div><div class="sub">${esc(d.referrer?('via '+d.referrer):(d.source||''))}${d.type&&d.type!=='prospect'?' · '+TYPE_LABEL[d.type]:''}</div></td>
+    <td><span class="tag stage">${esc(STAGE[d.stage]?.label||d.stage||'')}</span></td>
+    <td>${(d.contacts||[]).slice(0,2).map(c=>`<div>${esc(c.name||c.email)}</div>`).join('')||'<span class="hint">—</span>'}</td>
+    <td>${esc(d.owner||'')}</td><td>${esc(d.revenue_hint||(d.est_monthly_spend?('$'+Number(d.est_monthly_spend).toLocaleString()+'/mo'):''))}</td>
+    <td>${fmtDate(d.last_contact)}<div class="sub">${d.last_from?(d.last_from==='us'?'we wrote last':'they wrote last'):''}</div></td>
+    <td class="na">${esc(d.next_action||'')}</td><td>${dueLabel(d)}</td><td class="num">${scoreDeal(d)}</td></tr>`).join('')||'<tr><td colspan="10" class="empty">No deals match.</td></tr>'}</tbody></table></div>`;
+  el.querySelectorAll('[data-scope]').forEach(c=>c.onclick=()=>{S.tableScope=c.dataset.scope; render();});
+  $('#fq',el).oninput = e=>{ S.filters.q=e.target.value; renderTableBodyOnly(); };
+  ['fp','fs','fo','ft','fsrc'].forEach((id,i)=>{ $('#'+id,el).onchange = e=>{ S.filters[['priority','stage','owner','type','source'][i]]=e.target.value; render(); }; });
+  $('#fclear',el).onclick=()=>{S.filters={q:'',priority:'',stage:'',owner:'',type:'',source:''}; render();};
+  el.querySelectorAll('th[data-k]').forEach(h=>h.onclick=()=>{ if(S.sort.key===h.dataset.k) S.sort.dir=S.sort.dir==='asc'?'desc':'asc'; else S.sort={key:h.dataset.k, dir: h.dataset.k==='company'?'asc':'desc'}; render(); });
+  el.querySelectorAll('tbody tr[data-open]').forEach(r=>r.onclick=()=>openDeal(r.dataset.open));
+}
+function renderTableBodyOnly(){ const q=$('#fq'); const pos=q?q.selectionStart:0; renderTable($('#view')); const q2=$('#fq'); if(q2){ q2.focus(); q2.setSelectionRange(pos,pos);} }
+
+function renderBoard(el){
+  const open = allDeals().filter(d=>d.stage!=='lost'); $('#viewSub').textContent = 'Drag a card to move it to another stage. The move is saved and logged.';
+  el.innerHTML = `<div class="board">${STAGES.filter(s=>s.id!=='lost').map(s=>{ const items = sortDeals(open.filter(d=>(d.stage||'new')===s.id)); return `<div class="col" data-stage="${s.id}"><h3><span>${s.label}</span><span class="num">${items.length}</span></h3>${items.map(d=>`<div class="kcard" draggable="true" data-id="${d.id}"><div class="co"><span>${esc(d.company)}</span><span class="pill ${prio(d)}">${prio(d)}</span></div><div class="na">${esc(d.next_action||suggestAction(d))}</div><div class="m"><span>${esc(d.owner||'')}</span><span>${ago(d.last_contact)}</span>${d.due_date?`<span>${dueLabel(d)}</span>`:''}</div></div>`).join('')}</div>`; }).join('')}</div>`;
+  el.querySelectorAll('.kcard').forEach(c=>{ c.ondragstart=e=>{e.dataTransfer.setData('text/plain',c.dataset.id);}; c.onclick=()=>openDeal(c.dataset.id); });
+  el.querySelectorAll('.col').forEach(col=>{ col.ondragover=e=>{e.preventDefault(); col.classList.add('over');}; col.ondragleave=()=>col.classList.remove('over'); col.ondrop=e=>{ e.preventDefault(); col.classList.remove('over'); const id=e.dataTransfer.getData('text/plain'); const d=S.deals[id]; if(!d||d.stage===col.dataset.stage) return; const from=STAGE[d.stage]?.label; d.stage=col.dataset.stage; if(!STAGE[d.stage].open){ d.next_action = d.stage==='won'?'Kick off onboarding: access, tracking, first campaign':''; } saveDeal(d, `Stage: ${from} → ${STAGE[d.stage].label}`, 'stage'); }; });
+}
+
+function renderCustomers(el){
+  const list = sortDeals(customers()); const partners = allDeals().filter(d=>d.type==='partner'||d.type==='referral_source');
+  $('#viewSub').textContent = 'Signed customers, onboarding accounts, partners and referral sources. Expansion and referrals start here.';
+  const block = (title, items, sub) => `<div class="card" style="margin-bottom:16px"><h2>${title} <small>${sub}</small></h2><div class="list">${items.map(d=>`<div class="row" data-open="${d.id}"><span class="tag ${d.type?'type-'+d.type:''}">${esc(d.type==='customer'||!d.type?STAGE[d.stage]?.label:TYPE_LABEL[d.type])}</span><div><div class="co">${esc(d.company)}</div><div class="why">${esc(d.plan||d.summary||d.interest||'')}${d.next_action?' · <b>Next:</b> '+esc(d.next_action):''}</div></div><div class="meta">${esc(d.owner||'')}<br>${ago(d.last_contact)}</div></div>`).join('')||'<div class="empty">None yet</div>'}</div></div>`;
+  el.innerHTML = block('Customers', list.filter(d=>d.type!=='partner'&&d.type!=='referral_source'), `${list.length} accounts`) + block('Partners & referral sources', partners, `${partners.length} relationships`);
+  el.querySelectorAll('[data-open]').forEach(r=>r.onclick=()=>openDeal(r.dataset.open));
+}
+
+function renderActivity(el){
+  $('#viewSub').textContent = 'Everything logged from this tool: edits, stage moves, emails sent and notes.';
+  el.innerHTML = `<div class="card feed">${S.activity.slice(0,300).map(a=>`<div class="item"><div class="t">${new Date(a.ts).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div><div>${a.deal_id?`<span class="k" data-open="${a.deal_id}" style="cursor:pointer">${esc(a.company)}</span> · `:''}<span class="tag">${esc(a.type)}</span> ${esc(a.text)}</div></div>`).join('')||'<div class="empty">No activity yet.</div>'}</div>`;
+  el.querySelectorAll('[data-open]').forEach(r=>r.onclick=()=>openDeal(r.dataset.open));
+}
+
+function renderSettings(el){
+  const t = S.team || DEFAULT_TEAM;
+  $('#viewSub').textContent = 'Who receives team updates, and the signature used on outgoing emails.';
+  el.innerHTML = `<div class="card" style="max-width:820px"><h2>Team members <small>recipients for "Send team update"</small></h2>
+    <div class="team" id="teamList">${(t.members||[]).map((m,i)=>`<div class="m"><input placeholder="Name" value="${esc(m.name)}" data-i="${i}" data-f="name"><input placeholder="Email" value="${esc(m.email)}" data-i="${i}" data-f="email"><input placeholder="Role" value="${esc(m.role||'')}" data-i="${i}" data-f="role"><button class="btn small ghost" data-rm="${i}">Remove</button></div>`).join('')}</div>
+    <button class="btn small" id="addMember">+ Add member</button>
+    <div class="f" style="margin-top:16px"><label>Email signature</label><textarea id="sig">${esc(t.signature||'')}</textarea></div>
+    <div class="f" style="margin-top:12px"><label>Always CC (comma separated, optional)</label><input id="cc" value="${esc(t.cc||'')}"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center"><button class="btn primary" id="saveTeam">Save settings</button><span class="hint">Saved for everyone who opens this page.</span></div>
+  </div>
+  <div class="card" style="max-width:820px;margin-top:16px"><h2>How priority is scored</h2>
+    <div class="hint" style="line-height:1.7">Stage weight (new 5 → contract sent 40, negotiating 42) + size (revenue &gt; $20M or spend &gt; $100K/mo +22; &gt; $5M or &gt; $25K/mo +16; &gt; $1M +9; unknown +6) + recency (≤7d +15, ≤30d +10, ≤90d +4, &gt;120d −5) + they wrote last +10 + meeting booked +18 + overdue action +4 + partner +6. High ≥ 60, medium ≥ 38, low otherwise. Closed deals score 0. Override any deal's priority in its drawer; the suggestion stays visible.</div>
+  </div>`;
+  const draft = JSON.parse(JSON.stringify(t));
+  el.querySelectorAll('.team input').forEach(inp=>inp.oninput=()=>{ draft.members[+inp.dataset.i][inp.dataset.f]=inp.value; });
+  el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ draft.members.splice(+b.dataset.rm,1); S.team=draft; render(); });
+  $('#addMember',el).onclick=()=>{ draft.members.push({name:'',email:'',role:''}); S.team=draft; render(); };
+  $('#saveTeam',el).onclick=async()=>{ draft.signature=$('#sig').value; draft.cc=$('#cc').value; draft.members=draft.members.filter(m=>m.email||m.name); S.team=draft; if(S.db&&!S.readOnly){ try{ await S.db.doc('settings/team').set(draft); toast('Settings saved'); }catch(e){ toast('Save failed: '+(e.message||e.code)); } } else toast('Not connected: kept in this tab only'); };
+}
+
+// ---------- drawer (deal detail) ----------
+function openDeal(id){ S.drawer = {id, draft: JSON.parse(JSON.stringify(S.deals[id]))}; renderOverlay(); }
+function newDeal(){ const d = {id:uid(), company:'', website:'', type:'prospect', contacts:[{name:'',email:'',title:''}], source:'manual', referrer:'', owner:'Jonathan', stage:'new', priority:'', revenue_hint:'', est_monthly_spend:'', summary:'', interest:'', last_contact:today(), last_from:'', next_action:'', due_date:'', notes:'', tags:[], meetings:[], links:[], created_at:new Date().toISOString(), isNew:true}; S.drawer={id:d.id, draft:d}; renderOverlay(); }
+function renderOverlay(){
+  const ov = $('#overlay');
+  if (!S.drawer && !S.modal){ ov.innerHTML=''; return; }
+  let html = '';
+  if (S.drawer) html += drawerHTML(S.drawer.draft);
+  if (S.modal) html += modalHTML(S.modal);
+  ov.innerHTML = html; wireDrawer(); wireModal();
+}
+function drawerHTML(d){
+  const sp = suggestPriority(d), sc = scoreDeal(d);
+  const acts = S.activity.filter(a=>a.deal_id===d.id).slice(0,20);
+  return `<div class="scrim" data-close="drawer"></div><div class="drawer" role="dialog" aria-label="Deal details">
+  <header><h2>${d.isNew?'New deal':esc(d.company||'Untitled')}</h2><div style="display:flex;gap:6px"><button class="btn small" id="dEmail" ${d.isNew?'disabled':''}>Email contact</button><button class="btn small ghost" data-close="drawer">Close</button></div></header>
+  <div class="body">
+    <div class="fgrid">
+      <div class="f"><label>Company</label><input data-f="company" value="${esc(d.company)}"></div>
+      <div class="f"><label>Website</label><input data-f="website" value="${esc(d.website||'')}" placeholder="example.com"></div>
+      <div class="f"><label>Type</label><select data-f="type">${TYPES.map(t=>`<option value="${t}" ${d.type===t?'selected':''}>${TYPE_LABEL[t]}</option>`).join('')}</select></div>
+      <div class="f"><label>Owner</label><input data-f="owner" value="${esc(d.owner||'')}" list="ownersList"><datalist id="ownersList">${[...new Set(allDeals().map(x=>x.owner).filter(Boolean))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist></div>
+      <div class="f"><label>Stage</label><select data-f="stage">${STAGES.map(s=>`<option value="${s.id}" ${d.stage===s.id?'selected':''}>${s.label}</option>`).join('')}</select></div>
+      <div class="f"><label>Priority <span class="hint">(suggested: ${sp}, score ${sc})</span></label><select data-f="priority"><option value="" ${!d.priority?'selected':''}>Use suggested (${sp})</option>${PRIORITIES.map(p=>`<option value="${p}" ${d.priority===p?'selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="f"><label>Referrer / source</label><input data-f="referrer" value="${esc(d.referrer||'')}" placeholder="Santiago, Calendly, website…"></div>
+      <div class="f"><label>Revenue / size hint</label><input data-f="revenue_hint" value="${esc(d.revenue_hint||'')}" placeholder="$5M rev, 70% DTC"></div>
+      <div class="f"><label>Est. monthly ad spend ($)</label><input data-f="est_monthly_spend" type="number" value="${esc(d.est_monthly_spend||'')}"></div>
+      <div class="f"><label>Plan / offer</label><input data-f="plan" value="${esc(d.plan||'')}" placeholder="Ads Only 10%, Adtech+5%…"></div>
+      <div class="f"><label>Last contact</label><input data-f="last_contact" type="date" value="${esc(d.last_contact||'')}"></div>
+      <div class="f"><label>Who wrote last</label><select data-f="last_from"><option value="" ${!d.last_from?'selected':''}>unknown</option><option value="us" ${d.last_from==='us'?'selected':''}>we did</option><option value="them" ${d.last_from==='them'?'selected':''}>they did</option></select></div>
+      <div class="f wide"><label>Next action</label><input data-f="next_action" value="${esc(d.next_action||'')}" placeholder="${esc(suggestAction(d))}"></div>
+      <div class="f"><label>Due date</label><input data-f="due_date" type="date" value="${esc(d.due_date||'')}"></div>
+      <div class="f"><label>Tags (comma separated)</label><input data-f="tags" value="${esc((d.tags||[]).join(', '))}"></div>
+      <div class="f wide"><label>Summary (what has happened)</label><textarea data-f="summary">${esc(d.summary||'')}</textarea></div>
+      <div class="f wide"><label>What they want / interest</label><textarea data-f="interest" style="min-height:48px">${esc(d.interest||'')}</textarea></div>
+      <div class="f wide"><label>Notes</label><textarea data-f="notes">${esc(d.notes||'')}</textarea></div>
+    </div>
+    <div><div class="section-title">Contacts <button class="btn small ghost" id="addContact">+ Add</button></div>
+      <div class="contacts" id="contacts">${(d.contacts||[]).map((c,i)=>`<div class="c"><input placeholder="Name" value="${esc(c.name||'')}" data-ci="${i}" data-cf="name"><input placeholder="Email" value="${esc(c.email||'')}" data-ci="${i}" data-cf="email"><input placeholder="Title" value="${esc(c.title||'')}" data-ci="${i}" data-cf="title"><button class="btn small ghost" data-crm="${i}" title="Remove">×</button></div>`).join('')}</div></div>
+    <div><div class="section-title">Meetings <button class="btn small ghost" id="addMeeting">+ Add</button></div>
+      <div class="contacts" id="meetings">${(d.meetings||[]).map((m,i)=>`<div class="c"><input type="date" value="${esc(m.date||'')}" data-mi="${i}" data-mf="date"><input placeholder="Meeting name" value="${esc(m.name||'')}" data-mi="${i}" data-mf="name"><input placeholder="With" value="${esc(m.who||'')}" data-mi="${i}" data-mf="who"><button class="btn small ghost" data-mrm="${i}" title="Remove">×</button></div>`).join('')||'<div class="hint">No meetings recorded</div>'}</div></div>
+    ${(d.links||[]).length||(d.thread_urls||[]).length?`<div><div class="section-title">Links</div><div class="hint" style="display:flex;flex-direction:column;gap:3px;margin-top:6px">${(d.links||[]).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label||l.url)}</a>`).join('')}${(d.thread_urls||[]).slice(0,6).map((u,i)=>`<a href="${esc(u)}" target="_blank" rel="noopener">Gmail thread ${i+1}</a>`).join('')}</div></div>`:''}
+    <div><div class="section-title">Inbox check <button class="btn small ghost" id="checkInbox" ${S.mcp?'':'disabled'}>Search Gmail for this contact</button></div><div class="threads" id="threads"><div class="hint">Finds the latest threads with these contacts, to confirm who wrote last.</div></div></div>
+    <div><div class="section-title">History</div><div class="history">${acts.map(a=>`<div class="h"><span class="t">${new Date(a.ts).toLocaleDateString([], {month:'short',day:'numeric'})} · ${esc(a.type)}</span><span>${esc(a.text)}</span></div>`).join('')||'<div class="hint">Nothing logged yet</div>'}</div></div>
+  </div>
+  <footer><div style="display:flex;gap:8px">${d.isNew?'':'<button class="btn small danger" id="dArchive">Archive</button>'}<button class="btn small" id="dNote">Add note</button></div><div style="display:flex;gap:8px"><button class="btn ghost" data-close="drawer">Cancel</button><button class="btn primary" id="dSave">${S.readOnly?'Save (this tab only)':'Save'}</button></div></footer></div>`;
+}
+function wireDrawer(){
+  const dr = $('.drawer'); if(!dr) return; const d = S.drawer.draft;
+  document.querySelectorAll('[data-close="drawer"]').forEach(x=>x.onclick=()=>{ S.drawer=null; renderOverlay(); });
+  dr.querySelectorAll('[data-f]').forEach(inp=>inp.oninput = inp.onchange = ()=>{ const f=inp.dataset.f; d[f] = f==='tags' ? inp.value.split(',').map(s=>s.trim()).filter(Boolean) : inp.value; });
+  dr.querySelectorAll('[data-ci]').forEach(inp=>inp.oninput=()=>{ d.contacts[+inp.dataset.ci][inp.dataset.cf]=inp.value; });
+  dr.querySelectorAll('[data-crm]').forEach(b=>b.onclick=()=>{ d.contacts.splice(+b.dataset.crm,1); renderOverlay(); });
+  $('#addContact',dr).onclick=()=>{ (d.contacts=d.contacts||[]).push({name:'',email:'',title:''}); renderOverlay(); };
+  dr.querySelectorAll('[data-mi]').forEach(inp=>inp.oninput=()=>{ d.meetings[+inp.dataset.mi][inp.dataset.mf]=inp.value; });
+  dr.querySelectorAll('[data-mrm]').forEach(b=>b.onclick=()=>{ d.meetings.splice(+b.dataset.mrm,1); renderOverlay(); });
+  $('#addMeeting',dr).onclick=()=>{ (d.meetings=d.meetings||[]).push({date:today(),name:'',who:''}); renderOverlay(); };
+  $('#dSave',dr).onclick=async()=>{ if(!d.company.trim()){ toast('Give the deal a company name'); return; } const prev=S.deals[d.id]; const changes=[]; if(prev){ if(prev.stage!==d.stage) changes.push(`Stage: ${STAGE[prev.stage]?.label} → ${STAGE[d.stage]?.label}`); if((prev.priority||'')!==(d.priority||'')) changes.push(`Priority: ${prev.priority||'suggested'} → ${d.priority||'suggested'}`); if((prev.next_action||'')!==(d.next_action||'')) changes.push(`Next action: ${d.next_action||'(cleared)'}`); if((prev.owner||'')!==(d.owner||'')) changes.push(`Owner: ${d.owner}`); } const isNew=d.isNew; delete d.isNew; d.contacts=(d.contacts||[]).filter(c=>c.name||c.email); d.meetings=(d.meetings||[]).filter(m=>m.date); if(d.est_monthly_spend==='') delete d.est_monthly_spend; S.drawer=null; await saveDeal(d, isNew?'Deal created':(changes.join(' · ')||'Details edited'), isNew?'created':changes.some(c=>c.startsWith('Stage'))?'stage':'edit'); toast(isNew?'Deal added':'Saved'); };
+  const arch = $('#dArchive',dr); if(arch) arch.onclick=()=>{ openModal('archive', {deal:d}); };
+  $('#dNote',dr).onclick=()=>openModal('note', {deal:d});
+  $('#dEmail',dr).onclick=()=>{ openEmail({dealId:d.id}); };
+  $('#checkInbox',dr).onclick=()=>checkInbox(d);
+}
+async function checkInbox(d){
+  const box = $('#threads'); const emails = (d.contacts||[]).map(c=>c.email).filter(Boolean);
+  if(!emails.length){ box.innerHTML='<div class="msg warn">Add a contact email first.</div>'; return; }
+  if(!S.mcp){ box.innerHTML='<div class="msg warn">Gmail is not available in this view.</div>'; return; }
+  box.innerHTML='<div class="hint">Searching Gmail…</div>';
+  const q = '(' + emails.map(e=>`from:${e} OR to:${e}`).join(' OR ') + ') newer_than:1y';
+  try {
+    const r = await S.mcp.callTool(GMAIL, 'search_threads', {query:q, pageSize:8});
+    const p = r.payload || {}; const threads = p.threads || [];
+    if(!threads.length){ box.innerHTML='<div class="msg">No threads with these addresses in the last year.</div>'; return; }
+    box.innerHTML = threads.map(t=>{ const msgs = t.messages||t.relatedMessages||[]; const last = msgs[msgs.length-1]||{}; const subj = last.subject||t.subject||'(no subject)'; const from = (last.sender&&(last.sender.emailAddress||last.sender.email||last.sender))||''; const date = last.date||last.internalDate||''; const url = t.viewUrl||last.viewUrl||''; return `<div class="th"><b>${esc(subj)}</b><span class="s">${esc(last.snippet||t.snippet||'')}</span><div class="d">${esc(String(from))} · ${esc(String(date).slice(0,10))} ${url?`· <a href="${esc(url)}" target="_blank" rel="noopener">open</a>`:''} <span class="hint">(preview shows the oldest messages of the thread)</span></div></div>`; }).join('');
+  } catch(e){ box.innerHTML = `<div class="msg bad">${esc(gmailErrorText(e))}</div>`; }
+}
+function gmailErrorText(e){
+  const code = e && e.code; const srv = (e&&e.server)||GMAIL;
+  switch(code){
+    case 'needs_reauth': return `Reconnect ${srv} in claude.ai Settings → Connectors, then try again.`;
+    case 'server_not_connected': case 'selection_required': return `Add or choose the ${srv} connector in claude.ai Settings → Connectors.`;
+    case 'not_in_manifest': return `${srv} is turned off for this page. Allow it when asked, or enable it in the page's connector settings.`;
+    case 'blocked_by_policy': case 'approval_required': return `Your organization's policy does not allow this ${srv} action from a page.`;
+    case 'tool_error': return `${srv} reported an error: ${e.message||''}`;
+    case 'server_unavailable': case 'rate_limited': return `${srv} is temporarily unavailable. Wait a moment and try again.`;
+    case 'cancelled': return 'Cancelled.';
+    default: return (e&&e.message) || 'Something went wrong talking to ' + srv + '.';
+  }
+}
+
+// ---------- modals: complete / archive / note / email ----------
+function openModal(kind, data){ S.modal = {kind, data}; renderOverlay(); }
+function closeModal(){ S.modal=null; renderOverlay(); }
+function modalHTML(m){
+  const d = m.data.deal;
+  if (m.kind==='complete') return `<div class="modal"><div class="box"><header><h2>Done: ${esc(d.company)}</h2><button class="btn small ghost" data-close="modal">Close</button></header><div class="body">
+    <div class="msg ok">Completed: ${esc(m.data.done)}</div>
+    <div class="f"><label>Outcome note (optional)</label><input id="mNote" placeholder="e.g. Sent contract, they'll review by Friday"></div>
+    <div class="fgrid"><div class="f"><label>New stage</label><select id="mStage">${STAGES.map(s=>`<option value="${s.id}" ${d.stage===s.id?'selected':''}>${s.label}</option>`).join('')}</select></div><div class="f"><label>Due date for next action</label><input id="mDue" type="date" value="${addDays(today(),3)}"></div></div>
+    <div class="f"><label>Next action</label><input id="mNext" value="${esc(suggestAction(d))}"></div>
+    <div class="f"><label>Last contact</label><input id="mLast" type="date" value="${today()}"></div>
+  </div><footer><span class="hint">Logged to the deal history.</span><div style="display:flex;gap:8px"><button class="btn ghost" data-close="modal">Cancel</button><button class="btn primary" id="mSave">Save</button></div></footer></div></div>`;
+  if (m.kind==='archive') return `<div class="modal"><div class="box"><header><h2>Archive ${esc(d.company)}?</h2><button class="btn small ghost" data-close="modal">Close</button></header><div class="body"><div class="f"><label>Mark as</label><select id="aStage"><option value="lost">Closed lost</option><option value="stalled">Stalled / nurture (keep visible)</option></select></div><div class="f"><label>Reason</label><input id="aReason" placeholder="No budget until Q1, went with agency, no response…"></div></div><footer><span class="hint">Lost deals stay searchable under "Lost".</span><div style="display:flex;gap:8px"><button class="btn ghost" data-close="modal">Cancel</button><button class="btn danger" id="aSave">Archive</button></div></footer></div></div>`;
+  if (m.kind==='note') return `<div class="modal"><div class="box"><header><h2>Note on ${esc(d.company)}</h2><button class="btn small ghost" data-close="modal">Close</button></header><div class="body"><div class="f"><label>Note</label><textarea id="nText" placeholder="Call notes, what they said, what we promised…"></textarea></div><label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="nTouch" checked> Also set last contact to today</label></div><footer><span></span><div style="display:flex;gap:8px"><button class="btn ghost" data-close="modal">Cancel</button><button class="btn primary" id="nSave">Add note</button></div></footer></div></div>`;
+  if (m.kind==='email') return emailHTML(m.data);
+  return '';
+}
+function wireModal(){
+  const mo = $('.modal'); if(!mo) return; const m = S.modal; const d = m.data.deal;
+  mo.querySelectorAll('[data-close="modal"]').forEach(x=>x.onclick=closeModal);
+  if (m.kind==='complete') $('#mSave',mo).onclick=async()=>{ const note=$('#mNote').value.trim(); const st=$('#mStage').value; const from=d.stage; d.stage=st; d.next_action=$('#mNext').value.trim(); d.due_date=$('#mDue').value; d.last_contact=$('#mLast').value||d.last_contact; d.last_from='us'; closeModal(); await saveDeal(d, `Done: ${m.data.done}${note?' — '+note:''}${from!==st?` · Stage → ${STAGE[st].label}`:''}${d.next_action?` · Next: ${d.next_action}`:''}`, 'done'); toast('Logged'); };
+  if (m.kind==='archive') $('#aSave',mo).onclick=async()=>{ const st=$('#aStage').value; const why=$('#aReason').value.trim(); d.stage=st; if(st==='lost'){ d.priority='low'; d.next_action=''; d.due_date=''; } S.drawer=null; closeModal(); await saveDeal(d, `${st==='lost'?'Closed lost':'Moved to stalled'}${why?': '+why:''}`, 'stage'); };
+  if (m.kind==='note') $('#nSave',mo).onclick=async()=>{ const t=$('#nText').value.trim(); if(!t) return; if($('#nTouch').checked){ d.last_contact=today(); } closeModal(); await saveDeal(d, t, 'note'); if(S.drawer) S.drawer.draft=JSON.parse(JSON.stringify(S.deals[d.id]||d)); toast('Note added'); };
+  if (m.kind==='email') wireEmail(mo, m.data);
+}
+
+// ---------- email composer ----------
+const PROSPECT_TEMPLATES = {
+  intro: {label:'Intro', subject:'Foresite × {company}: turn ad spend into profit', body:`Hi {first},\n\nI'm the founder of Foresite Ads. We built Foresite inside our own Shopify brand (Linda's, $2M → $11M in 18 months, 0.7x → 12x ROAS) and now run it for {n_brands} brands.\n\nIn short: Olivia, our AI operator, identifies who is on your site, runs Google, Meta, TikTok and CTV as one system, and is judged on one number, blended ROAS. Typical lift is 1.5–3x on current ROAS and 15–25% lower CAC, and you can start with ads only at 10% of spend, no platform fee.\n\nWould a 20-minute look at {company}'s current ad performance be useful? Grab a time here: ${CALENDLY_URL}\n\nHow it works, in 4 minutes: https://loom.com/share/9539bd21d6d343d5a5b220c0ac374683\n\n{signature}`},
+  followup: {label:'Follow-up', subject:'Re: Foresite × {company}', body:`Hi {first},\n\nFollowing up on my note about Foresite. One proof point since then: across our managed brands we're at 8.5x blended ROAS over the last 12 months, and our onboarding takes hours, not weeks.\n\nIf {company} is planning for Q4, this is the moment to have the system learning before the peak. Happy to do a quick 20-minute review of your current accounts: ${CALENDLY_URL}\n\n{signature}`},
+  precall: {label:'Before our call', subject:'Ahead of our call: {company} + Foresite', body:`Hi {first},\n\nLooking forward to our call. To make it useful, it helps if you can share (or have handy):\n\n• Current monthly ad spend by channel and rough ROAS\n• Gross margin and any margin or CAC targets\n• Your Shopify store URL and whether you use Klaviyo\n\nWe'll map a 90-day plan on the call: channels, budget and targets.\n\n{signature}`},
+  recap: {label:'Post-call recap', subject:'{company} + Foresite: recap and 90-day plan', body:`Hi {first},\n\nThanks for the time today. Quick recap of what we discussed and the plan:\n\n• Goal: \n• Starting point: \n• 90-day plan: start with AI Ads, add identities and flows as we prove lift\n• Pricing: Ads Only at 10% of spend, no platform fee\n\nNext step: I'll send the agreement so we can be live within a few days of signature. Let me know if anything above is off.\n\n{signature}`},
+  contract: {label:'Contract nudge', subject:'Re: Foresite agreement for {company}', body:`Hi {first},\n\nChecking in on the agreement. If any term needs a tweak, I'm glad to walk through it live, and the sooner we're live the sooner the system has data to work with ahead of the season.\n\nAnything I can clear up on my side?\n\n{signature}`},
+  reengage: {label:'Re-engage', subject:'{company}: still worth a look?', body:`Hi {first},\n\nWe spoke a while back about Foresite. A few things have changed since: Olivia now runs ads, email/SMS flows, identities and CTV on one scorecard, and we've added AI SEO and AEO content.\n\nIf profitable growth is on the agenda this quarter, I'd love 20 minutes to show what's new: ${CALENDLY_URL}\n\n{signature}`},
+  custom: {label:'Blank', subject:'', body:'Hi {first},\n\n\n\n{signature}'},
+};
+function stageTemplate(d){ return ({new:'intro', intro:'followup', call_scheduled:'precall', discovery:'recap', proposal:'contract', negotiating:'contract', stalled:'reengage'})[d.stage] || 'custom'; }
+function fill(t, d){ const first = ((d.contacts||[])[0]?.name||'').split(' ')[0] || 'there'; return t.replace(/{first}/g, first).replace(/{company}/g, d.company||'your brand').replace(/{n_brands}/g, String(Math.max(26, customers().length))).replace(/{signature}/g, (S.team||DEFAULT_TEAM).signature||''); }
+function openEmail(opts){
+  const team = S.team||DEFAULT_TEAM;
+  if (opts.team){
+    const open = openDeals(); const t=today();
+    const hi = sortDeals(open.filter(d=>prio(d)==='high')), md = sortDeals(open.filter(d=>prio(d)==='medium'));
+    const overdue = sortDeals(open.filter(d=>d.due_date&&d.due_date<t));
+    const meetings = allDeals().flatMap(d=>(d.meetings||[]).filter(m=>m.date>=t&&m.date<=addDays(t,7)).map(m=>({...m,deal:d}))).sort((a,b)=>a.date<b.date?-1:1);
+    const won = allDeals().filter(d=>['won','customer'].includes(d.stage) && d.updated_at && daysBetween(d.updated_at.slice(0,10), t)<=14);
+    const line = d => `• ${d.company} (${STAGE[d.stage]?.label}${d.owner?', '+d.owner:''}) — ${d.next_action||'no next action set'}${d.due_date?` (due ${fmtDate(d.due_date)})`:''}`;
+    const body = `Team,\n\nPipeline update as of ${fmtDate(t)}: ${open.length} open deals (${hi.length} high, ${md.length} medium, ${open.length-hi.length-md.length} low), ${customers().length} customers & partners.\n\nHIGH PRIORITY\n${hi.map(line).join('\n')||'• none'}\n\nMEDIUM PRIORITY\n${md.slice(0,12).map(line).join('\n')||'• none'}${md.length>12?`\n• …and ${md.length-12} more`:''}\n\nOVERDUE FOLLOW-UPS (${overdue.length})\n${overdue.slice(0,10).map(d=>`• ${d.company} — ${d.next_action||'follow up'} (was due ${fmtDate(d.due_date)})`).join('\n')||'• none'}\n\nMEETINGS THIS WEEK\n${meetings.map(m=>`• ${fmtDate(m.date)} — ${m.deal.company}${m.name?': '+m.name:''}`).join('\n')||'• none booked'}\n${won.length?`\nRECENT WINS / ONBOARDING\n${won.map(d=>`• ${d.company}${d.plan?' — '+d.plan:''}`).join('\n')}\n`:''}\n${team.signature||''}`;
+    openModal('email', {mode:'team', deal:null, to:(team.members||[]).map(m=>m.email).filter(e=>e && e!=='jonathan@foresiteads.com'), cc:splitEmails(team.cc), subject:`Foresite BD pipeline update — ${fmtDate(t)}`, body, template:null});
+    return;
+  }
+  const d = S.deals[opts.dealId]; if(!d) return;
+  const tKey = stageTemplate(d); const tpl = PROSPECT_TEMPLATES[tKey];
+  openModal('email', {mode:'prospect', deal:d, to:(d.contacts||[]).map(c=>c.email).filter(Boolean).slice(0,1), cc:splitEmails(team.cc), subject:fill(tpl.subject,d), body:fill(tpl.body,d), template:tKey});
+}
+function splitEmails(s){ return String(s||'').split(/[,;\s]+/).map(x=>x.trim()).filter(x=>/@/.test(x)); }
+function emailHTML(e){
+  const d = e.deal; const team = S.team||DEFAULT_TEAM;
+  const allTo = e.mode==='team' ? (team.members||[]).map(m=>m.email).filter(Boolean) : (d.contacts||[]).map(c=>c.email).filter(Boolean);
+  return `<div class="modal"><div class="box" style="width:min(820px,100%)"><header><h2>${e.mode==='team'?'Team update':'Email '+esc(d.company)}</h2><button class="btn small ghost" data-close="modal">Close</button></header><div class="body">
+    ${e.mode==='prospect'?`<div class="chips">${Object.entries(PROSPECT_TEMPLATES).map(([k,t])=>`<span class="chip ${e.template===k?'on':''}" data-tpl="${k}">${t.label}</span>`).join('')}</div>`:''}
+    <div class="f"><label>To</label><div class="chips" id="toChips">${allTo.map(a=>`<span class="chip ${e.to.includes(a)?'on':''}" data-to="${esc(a)}">${esc(a)}</span>`).join('')}</div><input id="eTo" value="${esc(e.to.join(', '))}" placeholder="name@company.com, …"></div>
+    <div class="f"><label>CC</label><input id="eCc" value="${esc((e.cc||[]).join(', '))}" placeholder="optional"></div>
+    <div class="f"><label>Subject</label><input id="eSubj" value="${esc(e.subject)}"></div>
+    <div class="f"><label>Message (plain text, sent from your Gmail)</label><textarea id="eBody" style="min-height:280px;font-family:var(--font-body)">${esc(e.body)}</textarea></div>
+    <div id="eMsg"></div>
+  </div><footer><span class="hint">${S.mcp?'Sends through your connected Gmail account. Gmail may ask for permission the first time.':'Gmail is not available in this view. Copy the text into Gmail instead.'}</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" id="eCopy">Copy text</button><button class="btn" id="eDraft" ${S.mcp?'':'disabled'}>Save as Gmail draft</button><button class="btn primary" id="eSend" ${S.mcp?'':'disabled'}>Send</button></div></footer></div></div>`;
+}
+function wireEmail(mo, e){
+  const d = e.deal;
+  mo.querySelectorAll('[data-tpl]').forEach(c=>c.onclick=()=>{ const t=PROSPECT_TEMPLATES[c.dataset.tpl]; e.template=c.dataset.tpl; e.subject=fill(t.subject,d); e.body=fill(t.body,d); e.to=splitEmails($('#eTo').value); e.cc=splitEmails($('#eCc').value); renderOverlay(); });
+  mo.querySelectorAll('[data-to]').forEach(c=>c.onclick=()=>{ const cur=splitEmails($('#eTo').value); const a=c.dataset.to; const nxt = cur.includes(a)?cur.filter(x=>x!==a):[...cur,a]; $('#eTo').value=nxt.join(', '); c.classList.toggle('on'); });
+  const read = () => ({to:splitEmails($('#eTo').value), cc:splitEmails($('#eCc').value), subject:$('#eSubj').value.trim(), body:$('#eBody').value});
+  const msg = (cls, t) => { $('#eMsg').innerHTML = `<div class="msg ${cls}">${t}</div>`; };
+  $('#eCopy',mo).onclick=async()=>{ const m=read(); const txt=`To: ${m.to.join(', ')}\nSubject: ${m.subject}\n\n${m.body}`; try{ await navigator.clipboard.writeText(txt); toast('Copied'); }catch(err){ const ta=$('#eBody'); ta.focus(); ta.select(); toast('Select and copy the text'); } };
+  const send = async (asDraft) => {
+    const m = read(); if(!m.to.length){ msg('warn','Add at least one recipient.'); return; } if(!m.subject){ msg('warn','Add a subject.'); return; }
+    const btn = asDraft?$('#eDraft'):$('#eSend'); btn.disabled=true; $('#eSend').disabled=true; $('#eDraft').disabled=true; msg('', asDraft?'Saving draft in Gmail…':'Sending through Gmail…');
+    const input = {to:m.to, subject:m.subject, body:m.body, htmlBody: toHtml(m.body)}; if(m.cc.length) input.cc=m.cc;
+    try {
+      const r = await S.mcp.callTool(GMAIL, asDraft?'create_draft':'send_message', input, {cache:false});
+      const p = r.payload||{}; const url = p.viewUrl || (p.draft&&p.draft.viewUrl) || '';
+      msg('ok', asDraft ? `Draft saved in Gmail.${url?` <a href="${esc(url)}" target="_blank" rel="noopener">Open draft</a>`:''}` : `Sent to ${esc(m.to.join(', '))}.`);
+      const text = `${asDraft?'Draft saved':'Email sent'} to ${m.to.join(', ')}: "${m.subject}"`;
+      if (d){ if(!asDraft){ d.last_contact=today(); d.last_from='us'; } const fresh = S.deals[d.id]||d; Object.assign(fresh,{last_contact:d.last_contact,last_from:d.last_from}); await saveDeal(fresh, text, asDraft?'draft':'email'); if(S.drawer&&S.drawer.id===d.id) S.drawer.draft=JSON.parse(JSON.stringify(fresh)); }
+      else await logActivity(null, asDraft?'draft':'email', text);
+      setTimeout(()=>{ if(S.modal&&S.modal.kind==='email') closeModal(); toast(asDraft?'Draft saved':'Sent'); }, 1400);
+    } catch(err){ console.error(err); msg('bad', esc(gmailErrorText(err)) + (err.code==='server_unavailable'||err.code==='upstream_error'?' The message may or may not have gone out: check your Gmail Sent folder before retrying.':'')); $('#eSend').disabled=false; $('#eDraft').disabled=false; }
+  };
+  $('#eSend',mo).onclick=()=>send(false); $('#eDraft',mo).onclick=()=>send(true);
+}
+function toHtml(text){ return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#1a1a1a">' + esc(text).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>').replace(/\n/g,'<br>') + '</div>'; }
+
+// ---------- export ----------
+async function exportCSV(){
+  const cols = ['company','type','stage','priority','score','owner','referrer','source','revenue_hint','est_monthly_spend','plan','last_contact','last_from','next_action','due_date','summary','interest','notes','website','contacts','meetings'];
+  const rows = allDeals().map(d=>cols.map(c=>{ let v = c==='priority'?prio(d):c==='score'?scoreDeal(d):c==='contacts'?(d.contacts||[]).map(x=>`${x.name} <${x.email}>`).join('; '):c==='meetings'?(d.meetings||[]).map(m=>`${m.date} ${m.name||''}`).join('; '):(d[c]??''); v=String(v).replace(/"/g,'""'); return /[",\n]/.test(v)?`"${v}"`:v; }).join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  try { await S.downloads.save({filename:`foresite-pipeline-${today()}.csv`, data: csv}); toast('Exported'); } catch(e){ toast('Export cancelled or unavailable'); }
+}
+
+// ---------- global wiring ----------
+$('#btnNew').onclick = newDeal;
+$('#btnTeam').onclick = ()=>openEmail({team:true});
+$('#btnExport').onclick = exportCSV;
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ if(S.modal) closeModal(); else if(S.drawer){ S.drawer=null; renderOverlay(); } } });
+try { const v = localStorage.getItem('bd.view'); if (v && VIEWS.some(x=>x.id===v)) S.view = v; } catch(e){}
+if (location.hash){ const h=location.hash.slice(1); if(VIEWS.some(x=>x.id===h)) S.view=h; }
+boot();
+</script>
