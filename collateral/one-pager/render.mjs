@@ -5,16 +5,18 @@ const p = await b.newPage({ viewport: { width: 900, height: 1200 } });
 await p.goto('file://' + dir + '/index.html', { waitUntil: 'load' });
 await p.evaluate(() => document.fonts.ready);
 await p.emulateMedia({ media: 'print' });
-let h = await p.evaluate(() => document.querySelector('.page').getBoundingClientRect().height);
-console.log('print content height px:', h, ' letter=1056');
-if (h > 1056) {
-  const z = Math.floor((1052 / h) * 1000) / 1000;
-  console.log('applying print zoom', z);
-  await p.addStyleTag({ content: `@media print{ .page{ zoom:${z}; min-height: calc(11in / ${z}); width: calc(8.5in / ${z}); } }` });
-  h = await p.evaluate(() => document.querySelector('.page').getBoundingClientRect().height);
-  console.log('after zoom height px:', h);
-}
+const hs = await p.evaluate(() => [...document.querySelectorAll('.page')].map(e => e.getBoundingClientRect().height));
+console.log('print heights:', hs, 'letter=1056');
+let css = '';
+hs.forEach((h, i) => {
+  if (h > 1056) {
+    const z = Math.floor((1052 / h) * 1000) / 1000;
+    console.log(`page ${i+1}: zoom ${z}`);
+    css += `@media print{ .page:nth-of-type(${i+1}){ zoom:${z}; min-height: calc(11in / ${z}); width: calc(8.5in / ${z}); } }`;
+  }
+});
+if (css) await p.addStyleTag({ content: css });
 await p.pdf({ path: dir + '/Foresite_One_Pager.pdf', format: 'Letter', printBackground: true, preferCSSPageSize: true });
-await p.emulateMedia({ media: 'screen' });
-await p.screenshot({ path: dir + '/preview.png', fullPage: true });
+await p.setViewportSize({ width: 816, height: 1056 });
+await p.screenshot({ path: dir + '/print-preview.png', fullPage: true });
 await b.close();
