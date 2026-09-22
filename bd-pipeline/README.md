@@ -2,6 +2,10 @@
 
 A living business-development pipeline for Foresite Ads: every prospect, customer, partner and referral source from the last 12 months of Gmail, Calendly, the Santiago/Jonathan pipeline sheet and the Foresite platform, scored into high / medium / low priority with a recommended next action, and a hosted tool where the team edits it and emails from it.
 
+## Where it lives
+
+Published tool: https://claude.ai/artifact/Bxvw8TkisEpzDidViwdiXv (private to the owner until shared from the page's Share menu; anyone it is shared with inside the organization can edit and email from it, using their own Gmail).
+
 ## What is here
 
 | Path | What it is |

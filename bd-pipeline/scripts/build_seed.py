@@ -47,6 +47,8 @@ def load(path, default):
 
 def norm_company(name):
     s = (name or '').lower()
+    s = re.sub(r'\(.*?\)', ' ', s)          # drop parenthetical qualifiers
+    s = s.split(' / ')[0].split(' - ')[0]     # "A / B portfolio" -> A
     s = re.sub(r'\b(inc|llc|ltd|gmbh|co|corp|sa de cv|the)\b\.?', ' ', s)
     s = re.sub(r'[^a-z0-9]+', ' ', s).strip()
     return re.sub(r'\s+', ' ', s)
@@ -90,6 +92,14 @@ def map_stage(text):
     if 'new' in t or 'lead' in t or 'inbound' in t:
         return 'new'
     return 'new'
+
+
+def norm_owner(o):
+    low = (o or '').lower()
+    for k, v in (('kendra', 'Kendra'), ('arun', 'Arun'), ('christopher', 'Christopher'), ('santiago', 'Santiago'), ('jonathan', 'Jonathan')):
+        if k in low:
+            return v
+    return (o or '').strip()[:30]
 
 
 def norm_referrer(r):
@@ -238,13 +248,19 @@ def find_key(company, contacts=None, website=None):
     cands = []
     if website:
         cands.append('dom:' + domain_of(website))
-    for c in contacts or []:
+    # only the primary contact's domain identifies the company: later contacts are often cc'd referrers
+    for c in (contacts or [])[:1]:
         dom = domain_of(c.get('email', '')) if isinstance(c, dict) else ''
         if dom and dom not in TEAM_DOMAINS and not dom.endswith(('gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com')):
             cands.append('dom:' + dom)
     n = norm_company(company)
     if n:
         cands.append('name:' + n)
+        cands.append('flat:' + n.replace(' ', ''))
+    if website:
+        base = domain_of(website).split('.')[0]
+        if len(base) >= 6:
+            cands.append('flat:' + base)
         # first significant word helps "Malo'o Racks" vs "Maloo"
         first = n.split(' ')[0]
         if len(first) >= 5:
@@ -299,7 +315,7 @@ def upsert(rec, source):
     if rec.get('referrer') and (not d['referrer'] or d['referrer'] in ('Calendly', 'Inbound / email', 'Email', 'Outbound', 'List', 'Platform signup')):
         d['referrer'] = norm_referrer(rec['referrer'])
     if rec.get('owner') and not d['owner']:
-        d['owner'] = rec['owner'].strip()
+        d['owner'] = norm_owner(rec['owner'])
     # stage: most advanced wins, except explicit lost/customer from platform truth handled later
     st = rec.get('_stage') or map_stage(rec.get('stage'))
     if STAGE_RANK.get(st, 0) > STAGE_RANK.get(d['stage'], 0) and st not in ('lost', 'stalled'):
@@ -497,7 +513,9 @@ os.makedirs(REPORTS, exist_ok=True)
 team = {
     'members': [
         {'name': 'Jonathan Shroyer', 'email': 'jonathan@foresiteads.com', 'role': 'CEO'},
-        {'name': 'Arun Bordoloi', 'email': 'arun@foresiteads.com', 'role': 'Team'},
+        {'name': 'Kendra Jackson', 'email': 'kendra@foresiteads.com', 'role': 'Onboarding & client success'},
+        {'name': 'Christopher', 'email': 'christopher@foresiteads.com', 'role': 'Team'},
+        {'name': 'Arun Bordoloi', 'email': 'arun@foresiteads.com', 'role': 'Platform'},
     ],
     'signature': 'Jonathan Shroyer\nFounder & CEO, Foresite Ads\njonathan@foresiteads.com · ForesiteAds.com · calendly.com/quimbi',
     'cc': '',

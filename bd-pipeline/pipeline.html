@@ -260,7 +260,9 @@ const CALENDLY_URL = 'https://calendly.com/quimbi';
 const DEFAULT_TEAM = {
   members: [
     {name:'Jonathan Shroyer', email:'jonathan@foresiteads.com', role:'CEO'},
-    {name:'Arun Bordoloi', email:'arun@foresiteads.com', role:'Team'},
+    {name:'Kendra Jackson', email:'kendra@foresiteads.com', role:'Onboarding & client success'},
+    {name:'Christopher', email:'christopher@foresiteads.com', role:'Team'},
+    {name:'Arun Bordoloi', email:'arun@foresiteads.com', role:'Platform'},
   ],
   signature: 'Jonathan Shroyer\nFounder & CEO, Foresite Ads\njonathan@foresiteads.com · ForesiteAds.com · calendly.com/quimbi',
   cc: ''
@@ -657,13 +659,13 @@ function fill(t, d){ const first = ((d.contacts||[])[0]?.name||'').split(' ')[0]
 function openEmail(opts){
   const team = S.team||DEFAULT_TEAM;
   if (opts.team){
-    const open = openDeals(); const t=today();
+    const open = openDeals(); const t=today(); const active = activeDeals();
     const hi = sortDeals(open.filter(d=>prio(d)==='high')), md = sortDeals(open.filter(d=>prio(d)==='medium'));
     const overdue = sortDeals(open.filter(d=>d.due_date&&d.due_date<t));
     const meetings = allDeals().flatMap(d=>(d.meetings||[]).filter(m=>m.date>=t&&m.date<=addDays(t,7)).map(m=>({...m,deal:d}))).sort((a,b)=>a.date<b.date?-1:1);
     const won = allDeals().filter(d=>['won','customer'].includes(d.stage) && d.updated_at && daysBetween(d.updated_at.slice(0,10), t)<=14);
     const line = d => `• ${d.company} (${STAGE[d.stage]?.label}${d.owner?', '+d.owner:''}) — ${d.next_action||'no next action set'}${d.due_date?` (due ${fmtDate(d.due_date)})`:''}`;
-    const body = `Team,\n\nPipeline update as of ${fmtDate(t)}: ${open.length} open deals (${hi.length} high, ${md.length} medium, ${open.length-hi.length-md.length} low), ${customers().length} customers & partners.\n\nHIGH PRIORITY\n${hi.map(line).join('\n')||'• none'}\n\nMEDIUM PRIORITY\n${md.slice(0,12).map(line).join('\n')||'• none'}${md.length>12?`\n• …and ${md.length-12} more`:''}\n\nOVERDUE FOLLOW-UPS (${overdue.length})\n${overdue.slice(0,10).map(d=>`• ${d.company} — ${d.next_action||'follow up'} (was due ${fmtDate(d.due_date)})`).join('\n')||'• none'}\n\nMEETINGS THIS WEEK\n${meetings.map(m=>`• ${fmtDate(m.date)} — ${m.deal.company}${m.name?': '+m.name:''}`).join('\n')||'• none booked'}\n${won.length?`\nRECENT WINS / ONBOARDING\n${won.map(d=>`• ${d.company}${d.plan?' — '+d.plan:''}`).join('\n')}\n`:''}\n${team.signature||''}`;
+    const body = `Team,\n\nPipeline update as of ${fmtDate(t)}: ${active.length} active deals (${hi.length} high, ${md.length} medium, ${open.length-hi.length-md.length} low) plus ${open.length-active.length} in nurture, ${customers().length} customers & partners.\n\nHIGH PRIORITY\n${hi.map(line).join('\n')||'• none'}\n\nMEDIUM PRIORITY\n${md.slice(0,12).map(line).join('\n')||'• none'}${md.length>12?`\n• …and ${md.length-12} more`:''}\n\nOVERDUE FOLLOW-UPS (${overdue.length})\n${overdue.slice(0,10).map(d=>`• ${d.company} — ${d.next_action||'follow up'} (was due ${fmtDate(d.due_date)})`).join('\n')||'• none'}\n\nMEETINGS THIS WEEK\n${meetings.map(m=>`• ${fmtDate(m.date)} — ${m.deal.company}${m.name?': '+m.name:''}`).join('\n')||'• none booked'}\n${won.length?`\nRECENT WINS / ONBOARDING\n${won.map(d=>`• ${d.company}${d.plan?' — '+d.plan:''}`).join('\n')}\n`:''}\n${team.signature||''}`;
     openModal('email', {mode:'team', deal:null, to:(team.members||[]).map(m=>m.email).filter(e=>e && e!=='jonathan@foresiteads.com'), cc:splitEmails(team.cc), subject:`Foresite BD pipeline update — ${fmtDate(t)}`, body, template:null});
     return;
   }
