@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "leadpipe": {
+      "command": "npx",
+      "args": ["-y", "@leadpipe/mcp"],
+      "env": {
+        "LEADPIPE_API_KEY": "${LEADPIPE_API_KEY}"
+      }
+    }
+  }
+}
