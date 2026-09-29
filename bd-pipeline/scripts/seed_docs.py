@@ -15,6 +15,11 @@ if '--existing' in sys.argv:
     ex = json.load(open(sys.argv[sys.argv.index('--existing') + 1]))
     for doc in ex.get('documents', ex if isinstance(ex, list) else []):
         existing[doc.get('id') or doc.get('doc_id')] = doc.get('data', doc)
+if '--existing-dir' in sys.argv:  # a directory of <doc_id>.json files as ArtifactData list --out_dir writes them
+    ddir = sys.argv[sys.argv.index('--existing-dir') + 1]
+    for fn in os.listdir(ddir):
+        if fn.endswith('.json'):
+            existing[fn[:-5]] = json.load(open(os.path.join(ddir, fn)))
 KEEP = ('stage', 'priority', 'owner', 'next_action', 'due_date', 'notes', 'summary', 'interest', 'plan', 'revenue_hint', 'est_monthly_spend', 'tags', 'contacts', 'company', 'type', 'referrer')
 n = 0
 for d in seed['deals']:

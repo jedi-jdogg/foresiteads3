@@ -1,47 +1,442 @@
-{"note":"Tenants in the Foresite platform DB with a subscription state, pulled 2026-09-22. Active/paused = customers; canceled = churned; null = signed up, never subscribed.",
- "tenants":[
- {"name":"BB GIRL","created":"2026-09-02","sub":null,"plan":null},
- {"name":"Cuddle Fabrics","created":"2026-08-17","sub":"canceled","plan":"Ads + Flows"},
- {"name":"Niraskin","created":"2026-08-06","sub":"active","plan":"Ads Only"},
- {"name":"ShaktiMat GmbH","created":"2026-07-17","sub":"active","plan":"Ads Only"},
- {"name":"Pets Table","created":"2026-06-15","sub":"active","plan":"Management Fee Only (10%)"},
- {"name":"PetScy","created":"2026-06-12","sub":"paused","plan":"Ads + Flows"},
- {"name":"Girl Charlee","created":"2026-06-03","sub":"active","plan":"Ads + Flows"},
- {"name":"Denver Fabrics","created":"2026-06-03","sub":"active","plan":"Ads + Flows"},
- {"name":"Fabric Depot","created":"2026-06-03","sub":"active","plan":"Ads + Flows"},
- {"name":"Memory Air","created":"2026-06-01","sub":null,"plan":null},
- {"name":"iQor","created":"2026-06-01","sub":null,"plan":null},
- {"name":"Sew Yeah","created":"2026-05-18","sub":"paused","plan":"Ads + Flows"},
- {"name":"Quiltkit.com","created":"2026-04-30","sub":null,"plan":null},
- {"name":"Shannon Fabrics","created":"2026-04-24","sub":"canceled","plan":"Ads + Flows"},
- {"name":"The Western Edit","created":"2026-04-16","sub":"canceled","plan":"Ads + Flows"},
- {"name":"UniMarkets","created":"2026-04-07","sub":null,"plan":null},
- {"name":"Luxe Noir","created":"2026-04-04","sub":null,"plan":null},
- {"name":"DigiDevice.shop","created":"2026-03-30","sub":null,"plan":null},
- {"name":"Blueberry Bay Swimwear","created":"2026-03-29","sub":null,"plan":null},
- {"name":"Applied Perspicacity Ltd","created":"2026-03-27","sub":null,"plan":null},
- {"name":"Nanodropper","created":"2026-03-23","sub":null,"plan":null},
- {"name":"WestCoastAstro.com","created":"2026-03-19","sub":null,"plan":null},
- {"name":"Whiz Design","created":"2026-03-18","sub":null,"plan":null},
- {"name":"House of Saint","created":"2026-03-10","sub":null,"plan":null},
- {"name":"Vendi App","created":"2026-03-03","sub":null,"plan":null},
- {"name":"El Angel de Jardin","created":"2026-03-03","sub":null,"plan":null},
- {"name":"Baby Boo Design","created":"2026-03-02","sub":null,"plan":null},
- {"name":"AquaVault","created":"2026-03-02","sub":null,"plan":null},
- {"name":"California Cowboy","created":"2026-02-28","sub":"active","plan":"Ads + Flows"},
- {"name":"Atelier Silente","created":"2026-02-28","sub":null,"plan":null,"note":"CRM: contract signed, onboarded, first campaign live"},
- {"name":"Keeks Eyewear","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Healing Mountain Organics","created":"2026-02-28","sub":null,"plan":null},
- {"name":"BionicGym / Medical Currents","created":"2026-02-28","sub":"active","plan":"Ads + Flows"},
- {"name":"Sol Brush","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Roshambo","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Rockin Royalty","created":"2026-02-28","sub":"active","plan":"Ads + Flows"},
- {"name":"Quilt Batting","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Pandemonium Hats","created":"2026-02-28","sub":"canceled","plan":"Ads + Flows"},
- {"name":"OPN Quilting","created":"2026-02-28","sub":"active","plan":"Ads + Flows"},
- {"name":"Mojo Shop","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Minky Mamas","created":"2026-02-28","sub":"active","plan":"Ads + Flows"},
- {"name":"Miami Beach Bum","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Medistik","created":"2026-02-28","sub":null,"plan":null},
- {"name":"Macaloney Distillers","created":"2026-02-28","sub":null,"plan":null}
- ]}
+{
+ "note": "Tenants in the Foresite platform DB with subscription state, pulled 2026-09-29. active/paused = customers; past_due = customer at risk; canceled = churned; null = signed up, never subscribed.",
+ "tenants": [
+  {
+   "id": 101,
+   "name": "SOOPA",
+   "created": "2026-09-24",
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 100,
+   "name": "BB GIRL",
+   "created": "2026-09-02",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 99,
+   "name": "Cuddle Fabrics",
+   "created": "2026-08-17",
+   "sub": "canceled",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 97,
+   "name": "Niraskin",
+   "created": "2026-08-06",
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 88,
+   "name": "ShaktiMat GmbH",
+   "created": "2026-07-17",
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 86,
+   "name": "Pets Table",
+   "created": "2026-06-15",
+   "sub": "past_due",
+   "plan": "Management Fee Only (10%)"
+  },
+  {
+   "id": 83,
+   "name": "PetScy",
+   "created": "2026-06-12",
+   "sub": "paused",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 82,
+   "name": "Girl Charlee",
+   "created": "2026-06-03",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 81,
+   "name": "Denver Fabrics",
+   "created": "2026-06-03",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 80,
+   "name": "Fabric Depot",
+   "created": "2026-06-03",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 79,
+   "name": "Memory Air",
+   "created": "2026-06-01",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 78,
+   "name": "iQor",
+   "created": "2026-06-01",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 76,
+   "name": "Sew Yeah",
+   "created": "2026-05-18",
+   "sub": "paused",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 75,
+   "name": "Quiltkit.com",
+   "created": "2026-04-30",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 74,
+   "name": "Shannon Fabrics",
+   "created": "2026-04-24",
+   "sub": "canceled",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 73,
+   "name": "The Western Edit",
+   "created": "2026-04-16",
+   "sub": "canceled",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 72,
+   "name": "UniMarkets",
+   "created": "2026-04-07",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 69,
+   "name": "Luxe Noir",
+   "created": "2026-04-04",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 68,
+   "name": "DigiDevice.shop",
+   "created": "2026-03-30",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 67,
+   "name": "Blueberry Bay Swimwear",
+   "created": "2026-03-29",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 66,
+   "name": "Applied Perspicacity Ltd",
+   "created": "2026-03-27",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 65,
+   "name": "Nanodropper",
+   "created": "2026-03-23",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 64,
+   "name": "WestCoastAstro.com",
+   "created": "2026-03-19",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 63,
+   "name": "Whiz Design",
+   "created": "2026-03-18",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 57,
+   "name": "House of Saint",
+   "created": "2026-03-10",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 55,
+   "name": "Vendi App",
+   "created": "2026-03-03",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 54,
+   "name": "El Angel de Jardin",
+   "created": "2026-03-03",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 49,
+   "name": "Baby Boo Design",
+   "created": "2026-03-02",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 48,
+   "name": "AquaVault",
+   "created": "2026-03-02",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 46,
+   "name": "California Cowboy",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 45,
+   "name": "Atelier Silente",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null,
+   "note": "CRM: contract signed, onboarded, first campaign live"
+  },
+  {
+   "id": 44,
+   "name": "Keeks Eyewear",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 43,
+   "name": "Healing Mountain Organics",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 42,
+   "name": "BionicGym / Medical Currents",
+   "created": "2026-02-28",
+   "sub": "canceled",
+   "plan": "Ads + Flows",
+   "note": "subscription canceled 2026-09-29"
+  },
+  {
+   "id": 41,
+   "name": "Sol Brush",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 40,
+   "name": "Roshambo",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 39,
+   "name": "Rockin Royalty",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 38,
+   "name": "Quilt Batting",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 37,
+   "name": "Pandemonium Hats",
+   "created": "2026-02-28",
+   "sub": "canceled",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 36,
+   "name": "OPN Quilting",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 35,
+   "name": "Mojo Shop",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 34,
+   "name": "Minky Mamas",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 33,
+   "name": "Miami Beach Bum",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 32,
+   "name": "Medistik",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 31,
+   "name": "Macaloney Distillers",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 30,
+   "name": "LyfeFuel",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 29,
+   "name": "Lounge Wagon",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 28,
+   "name": "Kyrgies",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 27,
+   "name": "K9 Power",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 26,
+   "name": "InchBug",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 25,
+   "name": "From The Forest",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 24,
+   "name": "Fashion Fabrics Club",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 23,
+   "name": "The Fabric Company",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 22,
+   "name": "Dog is Good",
+   "created": "2026-02-28",
+   "sub": "canceled",
+   "plan": "Ads Only",
+   "note": "canceled 2026-09-10"
+  },
+  {
+   "id": 21,
+   "name": "Diamond Dotz",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 20,
+   "name": "Denik",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 19,
+   "name": "Daniella Shevel",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 18,
+   "name": "CTPub",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 17,
+   "name": "Corset Story",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 16,
+   "name": "Chlorophyll Water",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 15,
+   "name": "That Koa Life",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 14,
+   "name": "Truth Treatments",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  }
+ ]
+}

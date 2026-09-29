@@ -457,13 +457,18 @@ for t in plat.get('tenants', []):
     name = t['name']
     key, _ = find_key(name)
     sub = t.get('sub')
-    if sub in ('active', 'paused'):
+    if sub in ('active', 'paused', 'past_due'):
         rec = {'company': name, '_stage': 'customer', 'type': 'customer', 'plan': t.get('plan') or '', 'tags': ['platform:' + sub], 'owner': 'Jonathan'}
         k = upsert(rec, 'platform')
         if k:
             deals[k]['stage'] = 'customer'
             if not deals[k]['last_contact']:
                 deals[k]['last_contact'] = t.get('created', '')
+            if sub == 'past_due':
+                deals[k]['tags'].append('churn-risk')
+                deals[k]['next_action'] = 'Payment past due: call about the failed charge and confirm they want to continue'
+            elif sub == 'paused':
+                deals[k]['tags'].append('churn-risk')
     elif sub == 'canceled':
         if not key:
             key = upsert({'company': name, '_stage': 'lost', 'type': 'customer', 'plan': t.get('plan') or '', 'owner': 'Jonathan', 'referrer': 'Platform'}, 'platform')
