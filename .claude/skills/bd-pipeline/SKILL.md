@@ -9,7 +9,9 @@ The pipeline lives in two places: `bd-pipeline/data/seed.json` in this repo (the
 
 ## 1. Sweep the sources
 
-Run these as parallel background agents (each writes one JSON file into `bd-pipeline/data/sources/`). Today's date bounds the window at 12 months.
+Run these as parallel background agents (each writes one JSON file into `bd-pipeline/data/sources/`). On a **refresh** (the normal case), sweep only the days since `last_refresh` in `data/artifact.json` plus a day of overlap and write `delta_<name>.json`; `scripts/merge_delta.py` folds the deltas into the 12-month files and removes them. Run a full 12-month sweep only when the source files are missing. Use the `sonnet` model for the sweep agents; they are tool-heavy and it keeps usage within limits.
+
+Gmail gotchas: `label:Label_<id>` does not work on this account, use name syntax (`label:a-pipeline`, `label:a---hot-leads`, `label:a---white-glove`, `label:a---urgent`, `label:a---gtm`, `label:b---customer-success`, `label:a-platform`). Labels sit on messages, so a recently active thread may carry no recent labeled message: for the pipeline labels, also search counterpart addresses without the label. Calendly notices go to the chiefcxofficer.com inbox, so meetings come from the Calendly API, not Gmail. Calendly `page_token` is rejected; paginate by advancing `min_start_time`.
 
 - **gmail_pipeline.json** — labels `A-Pipeline` (`Label_709454777408910987`) and `A - Hot Leads` (`Label_1277979622946254656`), `after:<12 months ago>`. Paginate fully, group threads by counterpart, read the newest thread per company with `get_thread` (PLAIN_TEXT), emit `{company, contacts[], source_label, referrer, summary, interest, deal_size_hint, stage, last_contact_date, last_from, owner, next_action, thread_ids[], thread_urls[]}`.
 - **gmail_other.json** — labels `A - White Glove`, `A - GTM`, `B - Customer Success`, `A - Urgent` (deal-related only), `A-Platform`, `Consulting`, `Lindas`. Same shape plus `type` (prospect | customer | partner).
@@ -28,9 +30,11 @@ Writes `data/seed.json` and `reports/<date>-bd-pipeline.md`. Stage mapping, dedu
 
 ## 3. Republish and re-seed
 
-1. Republish `bd-pipeline/pipeline.html` to the existing artifact URL with `files: {"seed.json": "bd-pipeline/data/seed.json"}` and the stored capabilities (omit `capabilities` to keep them).
-2. Seed the database with `ArtifactData` (`batch` of `set` writes on collection `deals`, 50 per call). **Never overwrite a deal the team has edited in the tool**: list `deals` first; for an existing id only update fields that are empty in the db or strictly newer (`last_contact`, new `meetings`, new `thread_urls`), and keep `stage`, `priority`, `owner`, `next_action`, `due_date`, `notes` as they are in the db.
-3. Commit the new sources, seed and report to the repo.
+1. Before rebuilding, copy the current `data/seed_docs/` aside (it is what the db was last seeded with) and dump the live db: `ArtifactData list deals` with `out_dir` (note each doc's version from the listing).
+2. `python3 scripts/seed_docs.py --existing-dir <db dump>/deals --last-seed-dir <copy>/deals`. A db doc identical to the last seed is unedited and takes the fresh build; an edited doc keeps its `stage`, `priority`, `owner`, `next_action`, `due_date`, `notes` and only gains newer `last_contact`, `meetings`, `thread_urls`.
+3. Diff `data/seed_docs/deals/*.json` against the dump: write changed docs with `ArtifactData batch` (`set`, pinned with `if_version` from the listing, 50 per call), new docs unpinned, and `delete` ids that vanished (merged duplicates), pinned.
+4. Republish `bd-pipeline/pipeline.html` to the artifact URL with `files: {"seed.json": "bd-pipeline/data/seed.json"}`; omit `capabilities` to keep them.
+5. Update `last_refresh` in `data/artifact.json`; commit sources, seed, report and push.
 
 ## 4. Report back
 
