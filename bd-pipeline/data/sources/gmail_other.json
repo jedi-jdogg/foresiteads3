@@ -1,42 +1,5 @@
 [
  {
-  "company": "Clevercel",
-  "contacts": [
-   {
-    "name": "Jorge Palacio",
-    "email": "japalacio@clevercel.co",
-    "title": ""
-   },
-   {
-    "name": "Francisco T.",
-    "email": "FranciscoT@clevercel.co",
-    "title": "AI team"
-   },
-   {
-    "name": "Javier C.",
-    "email": "javierc@clevercel.co",
-    "title": "AI team"
-   }
-  ],
-  "source_label": "A - White Glove",
-  "referrer": "",
-  "summary": "Jonathan had an intro call with Jorge and on 2026-09-18 sent the full Foresite overview, four Loom videos and the 'Stop the Bleeding' deck. Jorge replied the same day copying Francisco and Javier (their AI leads) and asked Jonathan to coordinate a deeper platform call with them. Jonathan replied asking them to grab a Calendly slot.",
-  "interest": "AI ads / platform partnership; deeper technical evaluation with their AI team",
-  "deal_size_hint": "",
-  "stage": "call done / follow-up call requested",
-  "last_contact_date": "2026-09-18",
-  "last_from": "us",
-  "owner": "Jonathan Shroyer",
-  "next_action": "Get a call booked with Francisco and Javier (send direct invite rather than waiting on Calendly).",
-  "thread_ids": [
-   "1a0b68294f7c46db"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0b68294f7c46db"
-  ],
-  "type": "prospect"
- },
- {
   "company": "GoPlus / Goodtimer",
   "contacts": [
    {
@@ -3162,5 +3125,42 @@
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19e28c4f586f3d68"
   ],
   "type": "partner"
+ },
+ {
+  "company": "Clevercel",
+  "contacts": [
+   {
+    "name": "Jorge Palacio",
+    "email": "japalacio@clevercel.co",
+    "title": ""
+   },
+   {
+    "name": "Francisco T.",
+    "email": "FranciscoT@clevercel.co",
+    "title": "AI capabilities lead (per Jorge)"
+   },
+   {
+    "name": "Javier C.",
+    "email": "javierc@clevercel.co",
+    "title": "AI capabilities lead (per Jorge)"
+   }
+  ],
+  "source_label": "a---white-glove",
+  "referrer": "",
+  "summary": "After an intro call, Jonathan emailed Jorge Palacio a Foresite overview (AI Ads, AI Flows, AI TV/CTV), four Loom videos, results (7.8x blended ROAS, Famore, K9 Power) and the 'Stop the Bleeding' PDF. Jorge replied the same day looping in Francisco and Javier, who know Clevercel's AI capabilities best, and asked Jonathan to set up a call with them to explore opportunities. Jonathan replied with his Calendly link (calendly.com/quimbi) for them to book.",
+  "interest": "Exploring platform details and potential partnership or joint opportunities via AI-team call; interest in 90-day strategy discussion",
+  "deal_size_hint": "",
+  "stage": "intro sent",
+  "last_contact_date": "2026-09-18",
+  "last_from": "us",
+  "owner": "jonathan@foresiteads.com",
+  "next_action": "Watch for Francisco/Javier Calendly booking; if none by ~2026-10-02, nudge Jorge. Prepare platform deep-dive for the AI-team call.",
+  "thread_ids": [
+   "1a0b68294f7c46db"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0b68294f7c46db"
+  ],
+  "type": "prospect"
  }
 ]

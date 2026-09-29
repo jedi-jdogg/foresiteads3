@@ -1,87 +1,5 @@
 [
  {
-  "company": "APOC",
-  "contacts": [
-   {
-    "name": "Jules Volleberg",
-    "email": "jules@apoc-store.com",
-    "title": "Co-founder"
-   }
-  ],
-  "source_label": "A - Hot Leads",
-  "referrer": "Santiago Avalos (Manhattan Edge)",
-  "summary": "Santiago introduced Jules (APOC, curated fashion/art marketplace, UK-based) on 2026-08-19. Several rounds of scheduling back-and-forth; Jonathan missed the UK-week window. On 2026-09-22 Jonathan apologized, asked for times next week and attached the Foresite one-pager.",
-  "interest": "Foresite platform for profit-margin expansion on a marketplace",
-  "deal_size_hint": "unknown",
-  "stage": "call scheduled",
-  "stage_detail": "intro sent / call being scheduled",
-  "last_contact_date": "2026-09-22",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Lock a call time as soon as Jules replies (she offered Tue/Wed); consider proposing 2 concrete UK-friendly slots.",
-  "thread_ids": [
-   "1a01ba84a5b1adcc"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1873983998841171404"
-  ]
- },
- {
-  "company": "Neems Jeans",
-  "contacts": [
-   {
-    "name": "Andre Ramirez",
-    "email": "andre@neemsjeans.com",
-    "title": "Founder/owner"
-   }
-  ],
-  "source_label": "A - Hot Leads",
-  "referrer": "Santiago Avalos (Distinct Elements)",
-  "summary": "Intro 2026-07-30, discovery call held, deep-dive sent 8/13. Andre said on 9/1 he wants to move forward with a Sept 14 start; agreement sent 9/5. His legal team was confused about monthly costs; Jonathan quoted $2,298/mo ex-ad-spend (unlimited identities $1,499 + $499 flows + 10% ad fee). Andre modeled a fully ramped ~$14.7K/mo and pushed back; on 9/22 Jonathan offered a lower-risk 90-day ads-only trial (ads + 10% fee).",
-  "interest": "Identities + AI Flows + AI Ads (high-end apparel; ~$35K/mo ad spend, ~40K sessions/mo, ~500 orders/mo)",
-  "deal_size_hint": "$2.3K-$15K/mo platform fees plus $35K/mo ad spend under management",
-  "stage": "negotiating",
-  "stage_detail": "negotiating (agreement sent, pricing objection)",
-  "last_contact_date": "2026-09-22",
-  "last_from": "us",
-  "owner": "Jonathan (Kendra cc for onboarding)",
-  "next_action": "Get Andre's response to the ads-only 90-day trial; provide a capped month-1/2/3 cost table to satisfy his legal team.",
-  "thread_ids": [
-   "19ff94e84f80b4c9",
-   "19fa3e069565143f"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1873379695496574153"
-  ]
- },
- {
-  "company": "Engino",
-  "contacts": [
-   {
-    "name": "Gidi Shulman",
-    "email": "gidi@engino.com",
-    "title": "Team member (Engino STEM toys)"
-   }
-  ],
-  "source_label": "A - Hot Leads / A-Pipeline",
-  "referrer": "Santiago Avalos (Apex North)",
-  "summary": "Intro 2026-07-22. Two months of failed scheduling across Israel/PST/UK time zones (multiple proposed Mondays 17:00 Israel time never confirmed). On 9/22 Jonathan asked for times next week and sent the short pitch + one-pager.",
-  "interest": "Foresite platform for omni-channel STEM toy brand",
-  "deal_size_hint": "unknown",
-  "stage": "call scheduled",
-  "stage_detail": "intro sent / call being scheduled",
-  "last_contact_date": "2026-09-22",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Send a calendar invite for a specific early-morning PST slot rather than asking again for times.",
-  "thread_ids": [
-   "19f8a2111f2330a6"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1871423839592984742"
-  ]
- },
- {
   "company": "iQor (via JumpCrew)",
   "contacts": [
    {
@@ -136,33 +54,6 @@
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1861027373135861208",
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1877052117825725899"
-  ]
- },
- {
-  "company": "Yoyo Sam",
-  "contacts": [
-   {
-    "name": "Mitch",
-    "email": "mitch@yoyosam.com",
-    "title": "Owner"
-   }
-  ],
-  "source_label": "A - Hot Leads",
-  "referrer": "",
-  "summary": "Discovery call held mid-September; Jonathan sent the standard Foresite deep-dive (overview, 4 Loom videos, results, Stop the Bleeding PDF) on 2026-09-16 and invited a 90-day strategy discussion.",
-  "interest": "AI Ads / Flows / identity platform",
-  "deal_size_hint": "unknown",
-  "stage": "proposal or contract sent",
-  "stage_detail": "call done / deep-dive sent",
-  "last_contact_date": "2026-09-16",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Follow up ~9/23-9/25 to book the 90-day strategy call.",
-  "thread_ids": [
-   "1a0ab3d4e81d6494"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1876509921761911956"
   ]
  },
  {
@@ -430,99 +321,6 @@
   ],
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1875266364138608905"
-  ]
- },
- {
-  "company": "Estado Brands",
-  "contacts": [
-   {
-    "name": "Arturo Goldberg",
-    "email": "arturo@estadobrands.com",
-    "title": "Co-founder"
-   },
-   {
-    "name": "Sofia Dominguez",
-    "email": "sofia@estadobrands.com",
-    "title": "Marketing"
-   }
-  ],
-  "source_label": "A - Hot Leads",
-  "referrer": "Santiago Avalos (Apex North)",
-  "summary": "Intro 8/20 (healthy food, omni-channel with retail). Arturo delegated to Sofia (marketing) 8/27; Sofia asked for a demo 8/31; Jonathan sent Calendly 9/2. No confirmation seen.",
-  "interest": "Demo of Foresite; CPG/online growth",
-  "deal_size_hint": "unknown",
-  "stage": "proposal or contract sent",
-  "stage_detail": "demo requested / call to be scheduled",
-  "last_contact_date": "2026-09-02",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Follow up with Sofia offering 2-3 demo slots.",
-  "thread_ids": [
-   "1a01f79ce208946a"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1874051173142008938"
-  ]
- },
- {
-  "company": "Simple Sugars",
-  "contacts": [
-   {
-    "name": "Lani Lazzari",
-    "email": "lani@simplesugarsskincare.com",
-    "title": "President & CEO"
-   },
-   {
-    "name": "Gina",
-    "email": "gina@simplesugarsskincare.com",
-    "title": "Partner"
-   }
-  ],
-  "source_label": "A - Hot Leads / A-Pipeline",
-  "referrer": "Santiago Avalos (Manhattan Edge)",
-  "summary": "Intro 7/1; first call held in July; deep-dive sent 7/28. Lani reviewed with partner Gina and booked a second call for 2026-09-02 to discuss an initial Meta/Facebook ads strategy.",
-  "interest": "Initial strategy starting with Meta ads; skincare DTC",
-  "deal_size_hint": "unknown",
-  "stage": "proposal or contract sent",
-  "stage_detail": "call done (2nd call 9/2) / awaiting proposal",
-  "last_contact_date": "2026-08-27",
-  "last_from": "us",
-  "owner": "Jonathan (Kendra cc)",
-  "next_action": "Send post-9/2 recap and proposal/agreement; confirm start.",
-  "thread_ids": [
-   "19fa621bcd1decec",
-   "19f1dfb4eddfacad"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1871916466670791916"
-  ]
- },
- {
-  "company": "Lone Design Club (LDC)",
-  "contacts": [
-   {
-    "name": "Rebecca Morter",
-    "email": "rebecca@lonedesignclub.com",
-    "title": "Founder/CEO"
-   }
-  ],
-  "source_label": "A - Hot Leads / A-Pipeline",
-  "referrer": "Santiago Avalos (Distinct Elements)",
-  "summary": "Intro 2026-07-21. Rebecca missed the 8/5 call (expecting her first baby). On 8/21 she proposed Tuesday 8 Sept at 9am PST / 5pm UK and said she'd send an invite; Jonathan agreed.",
-  "interest": "Foresite platform for UK fashion/design marketplace",
-  "deal_size_hint": "unknown",
-  "stage": "call scheduled",
-  "stage_detail": "call scheduled (Sept 8) - outcome not in thread",
-  "last_contact_date": "2026-08-21",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Confirm whether the 9/8 call happened; if so send deep-dive/proposal, if not reschedule gently given her maternity leave.",
-  "thread_ids": [
-   "19fd352f5e40854b",
-   "19f706245e577f27"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1872711497617016139"
   ]
  },
  {
@@ -1702,34 +1500,6 @@
   ]
  },
  {
-  "company": "The Fortia Group",
-  "contacts": [
-   {
-    "name": "Emmett Kilduff",
-    "email": "emmett.kilduff@thefortiagroup.com",
-    "title": "Co-Founder (eCommerce brand M&A advisory)"
-   }
-  ],
-  "source_label": "A - Hot Leads / A-Pipeline",
-  "referrer": "Santiago Avalos (Distinct Elements) - 'Linda's - Fortia Group' intro 6/26",
-  "summary": "M&A advisory intro (potential deal-flow/referral partner and Linda's-related). Call rescheduling in early July; Emmett proposed ET slots for the week of 7/6. No confirmation from Jonathan in thread.",
-  "interest": "Partnership / referral of eCommerce brands; possibly Linda's M&A",
-  "deal_size_hint": "partner channel",
-  "stage": "call scheduled",
-  "stage_detail": "call being scheduled (ball with Foresite)",
-  "last_contact_date": "2026-07-06",
-  "last_from": "them",
-  "owner": "Jonathan",
-  "next_action": "Reply to Emmett and book the call.",
-  "thread_ids": [
-   "19f23bd33bb92b87",
-   "19f043c1615fe284"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1869622573738306439"
-  ]
- },
- {
   "company": "PTP Fitness",
   "contacts": [
    {
@@ -1991,44 +1761,6 @@
   ],
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1868199979950338167"
-  ]
- },
- {
-  "company": "Pet's Table (petstable.mx)",
-  "contacts": [
-   {
-    "name": "Jorge Salas",
-    "email": "jorge@petstable.mx",
-    "title": "Co-founder"
-   },
-   {
-    "name": "Luis Gerardo",
-    "email": "luisgerardo@petstable.mx",
-    "title": ""
-   },
-   {
-    "name": "Mike Lambarri",
-    "email": "mike.lambarri@petstable.mx",
-    "title": ""
-   }
-  ],
-  "source_label": "A-Pipeline / A - Hot Leads",
-  "referrer": "Santiago Avalos (Distinct Elements) - intro Apr 2026",
-  "summary": "Intro April; agreement for AI Ads + Identities + SEO sent 6/10; Jorge clarified scope, capped identities at 5,000/mo and confirmed ~$6,000 monthly investment; signed via DocuSign 6/12; paid via ads-only checkout 6/15; Kendra sent onboarding steps 6/17.",
-  "interest": "AI Ads, Identities (capped 5K/mo), AI SEO - Mexico pet food",
-  "deal_size_hint": "~$6,000/mo",
-  "stage": "closed-won",
-  "stage_detail": "closed-won (onboarded June 2026)",
-  "last_contact_date": "2026-06-17",
-  "last_from": "us",
-  "owner": "Jonathan / Kendra",
-  "next_action": "Customer success check-in; results review at 60-90 days; expand beyond cap.",
-  "thread_ids": [
-   "19eb25a077eb2205",
-   "19ddeb0bfc4835ad"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1867627841612096005"
   ]
  },
  {
@@ -2316,49 +2048,6 @@
   ],
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1866741481389983350"
-  ]
- },
- {
-  "company": "Shannon Fabrics",
-  "contacts": [
-   {
-    "name": "Kristin Viola",
-    "email": "kristin@shannonfabrics.com",
-    "title": "Marketing Manager"
-   },
-   {
-    "name": "Arvin",
-    "email": "arvin@shannonfabrics.com",
-    "title": "Owner (also investor/referrer)"
-   },
-   {
-    "name": "Heidi",
-    "email": "heidi@shannonfabrics.com",
-    "title": ""
-   },
-   {
-    "name": "Julie",
-    "email": "julie@shannonfabrics.com",
-    "title": ""
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "Arvin (Shannon Fabrics owner, Foresite investor)",
-  "summary": "Active white-glove customer: weekly project tracking (AI Ads launch targeted 6/5, HubSpot app, flows, new-customer landing page built by Kendra, brand colors/testimonials edits June 2026). Arvin also refers other craft/sewing brands (Felina, Ken's Sewing, Sew Sweet Minky, Minky Mama, Rockin Royalty).",
-  "interest": "AI Ads + Flows + landing pages (B2B fabric wholesaler)",
-  "deal_size_hint": "active managed-services account",
-  "stage": "closed-won",
-  "stage_detail": "closed-won (active customer)",
-  "last_contact_date": "2026-06-09",
-  "last_from": "them",
-  "owner": "Kendra (Jonathan, Christopher cc)",
-  "next_action": "Continue delivery; leverage Arvin for referrals.",
-  "thread_ids": [
-   "19e65ebd075a6b88",
-   "19a335dd504a0f76"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1866283261556845448"
   ]
  },
  {
@@ -3150,33 +2839,6 @@
   ],
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1865716233839038776"
-  ]
- },
- {
-  "company": "Alopeke (Matthew Rehurek)",
-  "contacts": [
-   {
-    "name": "Matthew Rehurek",
-    "email": "matthew@alopeke.co",
-    "title": "Founder/Investor"
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "",
-  "summary": "Call Oct 2025; asked for customer references (Brint). Re-engaged after 3/22 check-in, call mid-April 2026; intrigued by the AI TikTok creator setup (examples sent 5/11). On 5/12 he also asked for the raise materials; Jonathan sent the investor narrative 5/15. No reply since.",
-  "interest": "AI TikTok creators / platform; also potential investor",
-  "deal_size_hint": "unknown",
-  "stage": "negotiating",
-  "stage_detail": "call done / evaluating (prospect + investor)",
-  "last_contact_date": "2026-05-15",
-  "last_from": "us",
-  "owner": "Jonathan (Arun, Kendra cc)",
-  "next_action": "Follow up on both the TikTok pilot and investment interest.",
-  "thread_ids": [
-   "19a335e3a5a9514f"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1847379524005220687"
   ]
  },
  {
@@ -5002,34 +4664,6 @@
   ]
  },
  {
-  "company": "Binaery LLC (agency/reseller)",
-  "contacts": [
-   {
-    "name": "Ehsan",
-    "email": "support@binaery.com",
-    "title": "Agency owner"
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "",
-  "summary": "Agency partner given platform login Nov 2025; on 11/14/2025 Ehsan said he pitched two clients (hoped to sign enjoyzibra.com). Follow-ups 1/1 and 3/22/2026 unanswered.",
-  "interest": "Reseller/agency channel",
-  "deal_size_hint": "partner channel",
-  "stage": "stalled",
-  "stage_detail": "dormant partner",
-  "last_contact_date": "2026-03-22",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Archive or re-engage with partner program.",
-  "thread_ids": [
-   "19a80efd3afcf67f",
-   "19a37317a8c60bda"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1848744127814760063"
-  ]
- },
- {
   "company": "Baraka Shea Butter",
   "contacts": [
    {
@@ -5260,40 +4894,6 @@
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1847502469952566734",
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1848431930469125205"
-  ]
- },
- {
-  "company": "Medistik + InchBug (via Naser Alubaidi / CoLab Consultancy)",
-  "contacts": [
-   {
-    "name": "Naser Alubaidi",
-    "email": "naser@colabconsultancy.com",
-    "title": "Agency lead (also naser@medistik.com)"
-   },
-   {
-    "name": "Ruza",
-    "email": "ruza@medistik.com",
-    "title": "Medistik partner"
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "Santiago Avalos",
-  "summary": "Santiago intro to Medistik 10/16/2025 (pain relief). Naser (agency) proposed Foresite take over US Meta+Google for Medistik; also brought InchBug and intro to Siin. Medistik: DocuSign Nov 2025, launch 12/8/2025, $2.5K ads, $1K/mo platform incl. AI SEO with zero commission; wire payment issues Dec 2025 (Ruza re-sending). InchBug: call 11/21/2025, confirmed $2K fee + $2.5K ads, awaiting invoice payment + signature as of 12/2/2025. Jonathan New Year note 1/1/2026 and 3/22/2026 mass follow-up (addressed 'Cliff' by mistake); no reply since.",
-  "interest": "Agency channel: Medistik (ads+SEO) and InchBug (ads); more clients possible",
-  "deal_size_hint": "Medistik ~$1K/mo platform + $2.5K ads; InchBug $2K fee + $2.5K ads",
-  "stage": "closed-won",
-  "stage_detail": "closed-won",
-  "last_contact_date": "2026-03-22",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Confirm Medistik wire received/live and InchBug signed+paid; re-engage Naser for more agency clients (fix name in outreach).",
-  "thread_ids": [
-   "199ed1b3f5f69efa",
-   "19a2ca8827ef9ccc"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1846143468124413690",
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1847261483309702348"
   ]
  },
  {
@@ -6356,38 +5956,6 @@
   ]
  },
  {
-  "company": "OPN Quilting",
-  "contacts": [
-   {
-    "name": "Michael (Mike) Roberts",
-    "email": "michael@opnquilting.com",
-    "title": "Owner"
-   },
-   {
-    "name": "Angela",
-    "email": "angela@opnquilting.com",
-    "title": "Owner"
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "Arvin (Shannon Fabrics)",
-  "summary": "Arvin intro 11/10/2025; call 11/13; Mike self-signed up 11/21 and chose the Performance Partnership at $1,000/mo, no commission, $100/day ads (11/22); contract and invoices sent; onboarding by Arun/Kendra.",
-  "interest": "Performance Partnership (ads + flows) - quilting retailer (Google/Bing/Etsy ads)",
-  "deal_size_hint": "$1,000/mo + $3K/mo ads",
-  "stage": "closed-won",
-  "stage_detail": "closed-won (Nov 2025)",
-  "last_contact_date": "2025-11-22",
-  "last_from": "them",
-  "owner": "Jonathan / Arun / Kendra",
-  "next_action": "Customer success; leverage as craft-vertical reference.",
-  "thread_ids": [
-   "19a6c90f416bc601"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1848385764441441793"
-  ]
- },
- {
   "company": "Corset Story",
   "contacts": [
    {
@@ -6726,45 +6294,6 @@
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1846251632618255133",
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1845418772113897171",
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1845616195774690174"
-  ]
- },
- {
-  "company": "Barnett Home Decor (Barnett Products LLC)",
-  "contacts": [
-   {
-    "name": "George Zahringer",
-    "email": "george@barnetthomedecor.com",
-    "title": "Owner/Exec"
-   },
-   {
-    "name": "Melissa Mahon",
-    "email": "melissa.mahon@barnettproducts.com",
-    "title": "VP, DTC Division"
-   },
-   {
-    "name": "Mike",
-    "email": "mike@barnetthomedecor.com",
-    "title": ""
-   }
-  ],
-  "source_label": "A-Pipeline",
-  "referrer": "Santiago Avalos",
-  "summary": "Santiago intro 10/20/2025; call 10/27/2025. Executed agreement returned 10/29; GA4/Merchant Center/Meta access granted; $2,500 ad budget approved 10/31; invoice paid 11/4/2025; Arun onboarding. George also mentioned a 'thread opportunity and quilting deal' (Lindas cross-sell).",
-  "interest": "AI ads + identity + flows (Growth plan); DTC home decor",
-  "deal_size_hint": "$2,500/mo ads + platform fee",
-  "stage": "closed-won",
-  "stage_detail": "closed-won",
-  "last_contact_date": "2025-11-04",
-  "last_from": "us",
-  "owner": "Jonathan",
-  "next_action": "Ensure onboarding/launch done; follow up with George on Lindas quilting/thread deal.",
-  "thread_ids": [
-   "19a276333ec62a50",
-   "19a01b4a412fce04"
-  ],
-  "thread_urls": [
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1847168759643908688",
-   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1846505852957085188"
   ]
  },
  {
@@ -7699,5 +7228,597 @@
   "thread_urls": [
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/thread-f:1844185143487772843"
   ]
+ },
+ {
+  "company": "Engino",
+  "contacts": [
+   {
+    "name": "Gidi Shulman",
+    "email": "gidi@engino.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline / A - Hot Leads",
+  "referrer": "Santiago Avalos (Foresite Intro thread; intro email not re-read)",
+  "summary": "Long scheduling back-and-forth (Israel/UK/LA time zones). On 2026-09-22 Jonathan apologized, asked Gidi for times next week, and sent the Foresite overview/one-pager with videos ('no pitch planned', wants to hear how they grow today). No reply since 9/11 ('let us try', just landed in LA).",
+  "interest": "Foresite platform (identity + ads + flows + TV); exploratory",
+  "deal_size_hint": "unknown",
+  "stage": "intro sent",
+  "last_contact_date": "2026-09-22",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Wait for Gidi's times for the week of 9/28 and book via calendly.com/quimbi; nudge on 9/30 if silent.",
+  "thread_ids": [
+   "19f8a2111f2330a6"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f8a2111f2330a6"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "Yoyo Sam",
+  "contacts": [
+   {
+    "name": "Mitch",
+    "email": "mitch@yoyosam.com",
+    "title": "Owner"
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "",
+  "summary": "After a call, Jonathan (from chiefcxofficer.com alias) sent on 2026-09-16 the 'Foresite Deep Dive' overview: platform (AI Ads, AI Flows, AI TV/CTV), 4 Loom videos, results (7.8x blended ROAS, $10.2M attributed revenue, 15-25% CAC improvement, Famore 12.4x, K9 Power 9.1x) and an offer to scope an initial 90-day strategy. Attached 'Foresite Stop the Bleeding.pdf'. No reply yet.",
+  "interest": "Full growth stack; 90-day strategy discussion",
+  "deal_size_hint": "unknown",
+  "stage": "call done",
+  "last_contact_date": "2026-09-16",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Follow up (13 days silent): ask if he watched the videos and propose a 90-day strategy call; consider sending the ads-only agreement.",
+  "thread_ids": [
+   "1a0ab3d4e81d6494"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ab3d4e81d6494"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "Simple Sugars",
+  "contacts": [
+   {
+    "name": "Lani Lazzari",
+    "email": "lani@simplesugarsskincare.com",
+    "title": "Founder / CEO"
+   },
+   {
+    "name": "Gina Nigro",
+    "email": "gina@simplesugarsskincare.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "Santiago Avalos (Manhattan Edge), intro 2026-07-01",
+  "summary": "Skincare brand. Kickoff call 9/2 booked. On 9/23 Gina said they are excited to start and fine with the paid trial (120-day), but sent 6 requested contract changes: (1) term/cancellation language - Jonathan accepted; (2) Paid Media Spend scope/tiers - fine since all spend goes through Foresite AI Ads; (3) bill media to their own ad accounts - rejected (all Foresite media must run through the platform); (4) permissions limited to an Exhibit A; (5) data ownership/confidentiality/deletion; (6) AI Identities/deliverability questions. On 9/28 Jonathan said he will update the contract, then replied that some requests 'break the Foresite model' and asked them to review his position. Second thread (1a063478563876a3) also active: Lani/Jonathan exchanges 9/11-9/21 (not re-read).",
+  "interest": "Paid 120-day trial: AI Ads + Identities + Flows",
+  "deal_size_hint": "Paid trial with management-fee tiers on Foresite-managed ad spend; exact $ not in thread",
+  "stage": "negotiating",
+  "last_contact_date": "2026-09-28",
+  "last_from": "us",
+  "owner": "Jonathan (Kendra cc for onboarding)",
+  "next_action": "Send revised agreement (accept term/data/permissions edits, hold firm on media running through platform), get Gina/Lani sign-off, then hand to Kendra for onboarding.",
+  "thread_ids": [
+   "19fa621bcd1decec",
+   "1a063478563876a3"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fa621bcd1decec",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a063478563876a3"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "Neems Jeans",
+  "contacts": [
+   {
+    "name": "Andre",
+    "email": "andre@neemsjeans.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "",
+  "summary": "Andre said 9/11 they are 'excited to move forward' but legal is confused on months 1-3 cost; store profile: $35K/mo Meta+Google spend, ~40K sessions/mo, 2-3K email profiles added/mo, ~500 orders/mo. Jonathan quoted 9/14: $1,499 unlimited identities + min ~$100/day ads ($3K spend, $300 fee) + $499 for 5,000 flows = ~$2,298/mo ex ad spend. Andre 9/16 modelled fully ramped cost ~$14,699/mo (identities $1,499 + $3,500 ad mgmt + $9,700 flows) and challenged ROI (needs ~+$75K/mo revenue for 5x). Jonathan 9/16: 90-day trial should prove 30-70% ROAS lift. On 9/22 Jonathan offered a lower-risk 90-day ads-only trial at a 10% ad fee. No reply yet.",
+  "interest": "Identities + Flows + AI Ads; cost/ROI clarity before contract",
+  "deal_size_hint": "~$2.3K/mo to start; up to ~$14.7K/mo ramped per prospect; ads-only trial = 10% of ad spend (~$3.5K/mo on $35K)",
+  "stage": "negotiating",
+  "last_contact_date": "2026-09-22",
+  "last_from": "us",
+  "owner": "Jonathan (Kendra cc)",
+  "next_action": "Await Andre's answer on the 90-day ads-only trial; if silent by ~10/1 send a one-page ramp-cost/ROI scenario and the ads-only agreement.",
+  "thread_ids": [
+   "19ff94e84f80b4c9"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19ff94e84f80b4c9"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "APOC",
+  "contacts": [
+   {
+    "name": "Jules Volleberg",
+    "email": "jules@apoc-store.com",
+    "title": "Co-founder"
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "Santiago Avalos (Manhattan Edge), intro 2026-08-19",
+  "summary": "UK-based curated fashion/art marketplace. Many rounds of scheduling; Jonathan missed the 9/8-9/9 UK window, Jules chased 9/10, offered Tue/Wed 9/11. On 2026-09-22 Jonathan apologized, asked for times next week and attached the Foresite one-pager.",
+  "interest": "Profit-margin expansion across online channels",
+  "deal_size_hint": "unknown",
+  "stage": "intro sent",
+  "last_contact_date": "2026-09-22",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Lock a call as soon as Jules replies (she offered Tue/Wed); propose two concrete UK-friendly slots to avoid more back-and-forth.",
+  "thread_ids": [
+   "1a01ba84a5b1adcc"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a01ba84a5b1adcc"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "StoreYa",
+  "contacts": [
+   {
+    "name": "Berk Barokas",
+    "email": "berk@storeya.com",
+    "title": "Senior Account Manager"
+   },
+   {
+    "name": "Mushon",
+    "email": "mushon@storeya.com",
+    "title": ""
+   },
+   {
+    "name": "Emma",
+    "email": "emma@storeya.com",
+    "title": ""
+   },
+   {
+    "name": "Shlomit",
+    "email": "shlomit@storeya.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Active agency partner running ads for Foresite-managed brands; multiple live threads with Kendra/Arun daily (latest 2026-09-29). Most recent: ShaktiMat France / Shopify Markets - Berk (9/27) proposed adding the FR feed to the existing Merchant Center; Kendra (9/29) said the team will use the 'Multi Feed' app (feeds French products into Merchant Center) and set it up by Monday; StoreYa ready to advertise once the pixel is installed. Other threads: 19fcc74b5521edd1, 19ff0a45eddc931a, 19f3e089127475fb, 19f5ea94db4ebd19, 1a0cb181bc969a88, 1a0c99ed42ea2734.",
+  "interest": "Executing paid media for Foresite clients (ShaktiMat, others)",
+  "deal_size_hint": "partner channel; existing revenue share",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-29",
+  "last_from": "us",
+  "owner": "Kendra (Arun cc)",
+  "next_action": "Kendra: confirm Multi Feed set up by 10/5, tell StoreYa when pixel/FR feed is live so they can launch ShaktiMat France ads; keep partner threads moving.",
+  "thread_ids": [
+   "1a076157b80146fe",
+   "19fcc74b5521edd1",
+   "19ff0a45eddc931a",
+   "19f3e089127475fb",
+   "19f5ea94db4ebd19"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a076157b80146fe",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fcc74b5521edd1",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19ff0a45eddc931a",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f3e089127475fb",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f5ea94db4ebd19"
+  ],
+  "type": "partner"
+ },
+ {
+  "company": "Shannon Fabrics",
+  "contacts": [
+   {
+    "name": "Heidi",
+    "email": "heidi@shannonfabrics.com",
+    "title": ""
+   },
+   {
+    "name": "Kristin",
+    "email": "kristin@shannonfabrics.com",
+    "title": ""
+   },
+   {
+    "name": "Julie",
+    "email": "julie@shannonfabrics.com",
+    "title": ""
+   },
+   {
+    "name": "Daisy",
+    "email": "daisy@shannonfabrics.com",
+    "title": ""
+   },
+   {
+    "name": "Arvin",
+    "email": "arvin@shannonfabrics.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Active managed-services customer. Kendra rescheduled the 'Shannon Fabrics <> Foresite' Zoom to Thu 2026-10-01 10:00-10:30am PT (Thueba family emergency), invite sent 9/29 with Jonathan/Christopher as guests. Related threads: Kendra/Heidi/Kristin working sessions 9/16; Mapptrap (zack@mapptrap.com) thread with Shannon Fabrics team active 9/18 (not re-read).",
+  "interest": "Ongoing ads/growth management, reporting and expansion",
+  "deal_size_hint": "active managed-services account (amount not in thread)",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-29",
+  "last_from": "us",
+  "owner": "Kendra (Jonathan, Christopher cc)",
+  "next_action": "Kendra runs the 10/1 10am PT call; Jonathan optional. Capture outcomes/upsell notes afterwards.",
+  "thread_ids": [
+   "1a0ee254a56751f0",
+   "19dc15498c7be8b6",
+   "1a0abdb4142e1afa"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ee254a56751f0",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19dc15498c7be8b6",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0abdb4142e1afa"
+  ],
+  "type": "customer"
+ },
+ {
+  "company": "OPN Quilting",
+  "contacts": [
+   {
+    "name": "Michael (Mike)",
+    "email": "michael@opnquilting.com",
+    "title": ""
+   },
+   {
+    "name": "Angela",
+    "email": "angela@opnquilting.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Existing customer. Thread 'AEO and SEO Audit Growth Plan': on 2026-09-25 Kendra reset the budget to $2,000 and said she will run the charge (renewal was missed after she paused charges to investigate a billing issue), and that the AEO/SEO audit is being re-run then a regroup on action items. Mike asked about an unexplained shared folder 'OPN Quilting'; Kendra said it is an auto-generated bug from the subscription restart. Mike replied 9/26 'Ok, good to know'.",
+  "interest": "AEO/SEO audit and growth plan plus ads",
+  "deal_size_hint": "$2,000/mo budget (prior: $1,000/mo platform + $3K/mo ads)",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-26",
+  "last_from": "them",
+  "owner": "Kendra (Jonathan cc)",
+  "next_action": "Kendra: confirm the $2,000 charge went through, deliver re-run AEO/SEO audit, schedule findings call and pitch action items.",
+  "thread_ids": [
+   "19fecdffcbcd37ab"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fecdffcbcd37ab"
+  ],
+  "type": "customer"
+ },
+ {
+  "company": "Barnett Home Decor (Barnett Products LLC)",
+  "contacts": [
+   {
+    "name": "George Zahringer",
+    "email": "george@barnetthomedecor.com",
+    "title": ""
+   },
+   {
+    "name": "Mike Addy",
+    "email": "mike@barnetthomedecor.com",
+    "title": ""
+   },
+   {
+    "name": "Melissa Mahon",
+    "email": "melissa.mahon@barnettproducts.com",
+    "title": "Vice President, DTC Division"
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Long-time customer, AEO/SEO upsell. After a 9/24 meeting Kendra sent the three audit reports (detailed SEO/AEO, one-page, scorecard/next steps) and asked which option they want: 90-day action plan at $699/mo, or Jonathan's discounted pull-forward at $1,999 (normally $2,999) to execute ahead of BFCM. Foresite starts the first 30-day items meanwhile. Internal thread 1a083637c216d45f (Kendra/Ivan/Jonathan, 9/28): Ivan re-ran the analysis; Jonathan asked to get admin access from BetterBrand, Pet's Table and Fashion Fabrics Club Shopify.",
+  "interest": "AEO/SEO optimization (306 chair-cushion PDPs + Home Decor Collective products) ahead of BFCM",
+  "deal_size_hint": "$699/mo x 90 days vs $1,999 one-time (list $2,999); existing ~$2,500/mo ads + platform",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-25",
+  "last_from": "us",
+  "owner": "Kendra (Jonathan, Ivan)",
+  "next_action": "Get George/Melissa to choose $699/mo vs $1,999 pull-forward; start 30-day items; chase reply by ~10/1 to hit BFCM timeline.",
+  "thread_ids": [
+   "1a0d5e220d225e76",
+   "1a083637c216d45f"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0d5e220d225e76",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a083637c216d45f"
+  ],
+  "type": "customer"
+ },
+ {
+  "company": "Pet's Table (petstable.mx)",
+  "contacts": [
+   {
+    "name": "Jorge",
+    "email": "jorge@petstable.mx",
+    "title": ""
+   },
+   {
+    "name": "Luis Gerardo",
+    "email": "luisgerardo@petstable.mx",
+    "title": ""
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "",
+  "summary": "Existing customer (~$6K/mo previously). On 2026-09-25 Kendra circled back offering Foresite's ad-management resource to re-optimize their own ad accounts at $2,000/month, month-to-month, and asked if Jorge wants to meet him. Ivan notes Foresite is still missing Shopify admin access for Pet's Table (Jonathan 9/28: reach out to get it). No reply yet.",
+  "interest": "Hands-on ad management / account re-optimization",
+  "deal_size_hint": "$2,000/mo month-to-month (previously ~$6,000/mo)",
+  "stage": "negotiating",
+  "last_contact_date": "2026-09-25",
+  "last_from": "us",
+  "owner": "Kendra (Jonathan cc)",
+  "next_action": "Kendra: follow up with Jorge for a meeting with the ad manager and request Shopify admin access.",
+  "thread_ids": [
+   "1a0da8907b64e85c",
+   "19eb25a077eb2205"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0da8907b64e85c",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19eb25a077eb2205"
+  ],
+  "type": "customer"
+ },
+ {
+  "company": "Estado Brands",
+  "contacts": [
+   {
+    "name": "Sofia Dominguez",
+    "email": "sofia@estadobrands.com",
+    "title": "Marketing"
+   },
+   {
+    "name": "Arturo Goldberg",
+    "email": "arturo@estadobrands.com",
+    "title": "Co-founder"
+   }
+  ],
+  "source_label": "A - Hot Leads",
+  "referrer": "Santiago Avalos (Apex North)",
+  "summary": "After a pitch call, Jonathan sent Sofia on 2026-09-21 the standard post-pitch email (platform overview, 4 Looms, results) with 'Foresite Stop the Bleeding.pdf' and 'Foresite Agreement - Ads only.docx' attached. He then forwarded the same email to katordesign@hotmail.com as a template of his post-pitch summary. No reply from Estado yet.",
+  "interest": "AI Ads (ads-only agreement) with option to add Identities/Flows",
+  "deal_size_hint": "unknown (ads-only agreement; terms in attachment)",
+  "stage": "proposal or contract sent",
+  "last_contact_date": "2026-09-21",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Follow up with Sofia/Arturo on the ads-only agreement (8 days silent); offer a 15-min walkthrough and a 90-day ads trial.",
+  "thread_ids": [
+   "1a0c57e9af087f92"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0c57e9af087f92"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "Deal Insider Capital",
+  "contacts": [
+   {
+    "name": "Jason Olson",
+    "email": "jason@dealinsider.net",
+    "title": "Managing Director"
+   },
+   {
+    "name": "Neil Patel",
+    "email": "neil@dealinsider.net",
+    "title": "Managing Director"
+   },
+   {
+    "name": "Mazhar A. Pawar",
+    "email": "mazhar@dealinsider.net",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Capital-raise partner (not a sales prospect). Deal Insider is circulating Foresite's investment memorandum/pitch to investors (7/13 'Updated Pitch' approved; 9/20-21 Neil/Jonathan exchange). On 2026-09-22 Jason sent the pitch outline 'for Mazhar to pick from'; Jonathan said it tells a great story but asked what the final script and deck look like since some items should not be shared with investors; Jason said it is an outline; Jonathan closed with 'Ok ty'.",
+  "interest": "Seed raise: $1M ($345K committed, $655K open per Jonathan's 9/19 deck v6)",
+  "deal_size_hint": "fundraising ($655K open)",
+  "stage": "call done",
+  "last_contact_date": "2026-09-22",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Ask Jason/Mazhar for the final pitch script and deck for review; confirm investor meeting schedule.",
+  "thread_ids": [
+   "1a0cb3b2711d6a86",
+   "1a0bc119950735e3",
+   "19f5c13670fb0b1e"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0cb3b2711d6a86",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0bc119950735e3",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f5c13670fb0b1e"
+  ],
+  "type": "partner"
+ },
+ {
+  "company": "Lone Design Club (LDC)",
+  "contacts": [
+   {
+    "name": "Rebecca Morter",
+    "email": "rebecca@lonedesignclub.com",
+    "title": "Founder"
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "Santiago Avalos (Distinct Elements), intro 2026-07-17",
+  "summary": "B2B tech platform for commercial landlords to manage/monetize flexible retail spaces and help brands launch pop-ups. Rebecca booked a slot 7/21; on 2026-09-15 she re-confirmed the 'Rebecca <> Jonathan' Google Meet for Tue 9/15 5:00-5:45pm UK and Jonathan replied with a heart emoji. Outcome of the call is not in email.",
+  "interest": "Foresite for brand/landlord ecosystem (possible partner or customer)",
+  "deal_size_hint": "unknown",
+  "stage": "call done",
+  "last_contact_date": "2026-09-15",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Send post-call recap and proposed next step (14 days since the call); log outcome.",
+  "thread_ids": [
+   "1a0a55a029291020",
+   "19f706245e577f27"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0a55a029291020",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f706245e577f27"
+  ],
+  "type": "prospect"
+ },
+ {
+  "company": "The Fortia Group",
+  "contacts": [
+   {
+    "name": "Emmett Kilduff",
+    "email": "emmett.kilduff@thefortiagroup.com",
+    "title": "Co-Founder (eCommerce brand M&A advisory)"
+   }
+  ],
+  "source_label": "A - Hot Leads / A-Pipeline",
+  "referrer": "Santiago Avalos (Distinct Elements) - 'Linda's - Fortia Group' intro",
+  "summary": "On 2026-09-19 Jonathan (from lindas.com address) sent Emmett the Foresite pitch deck v6 ('26 live clients in 10 months') after a recent chat about Linda's, flagging 'another opportunity to consider' and the upcoming new site. No reply yet.",
+  "interest": "Partner/channel: M&A advisory network for eCommerce brands; also Linda's discussions",
+  "deal_size_hint": "partner channel",
+  "stage": "intro sent",
+  "last_contact_date": "2026-09-19",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Follow up with Emmett for feedback on the deck and a call about referring brands.",
+  "thread_ids": [
+   "1a0baa7f2459bb64",
+   "19f23bd33bb92b87"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0baa7f2459bb64",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f23bd33bb92b87"
+  ],
+  "type": "partner"
+ },
+ {
+  "company": "Binaery LLC (agency/reseller)",
+  "contacts": [
+   {
+    "name": "Ehsan Tamkhisa",
+    "email": "support@binaery.com",
+    "title": "Project Manager"
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "On 2026-09-19 Jonathan sent Ehsan pitch deck v6 (26 paying brands, $1.26M booked Nov-Aug, $1M seed with $345K committed) to replace the July version Ehsan shared with two contacts. Ehsan replied 9/21 he'd re-share the deck and had heard nothing from the two contacts yet; Jonathan 'Ty'.",
+  "interest": "Introducer for investors/partners (deck sharing)",
+  "deal_size_hint": "partner channel",
+  "stage": "stalled",
+  "last_contact_date": "2026-09-21",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Low priority: check in with Ehsan in ~2 weeks on whether either contact responded.",
+  "thread_ids": [
+   "1a0bc1632bf7b5c9"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0bc1632bf7b5c9"
+  ],
+  "type": "referral_source"
+ },
+ {
+  "company": "Alopeke (Matthew Rehurek)",
+  "contacts": [
+   {
+    "name": "Matthew",
+    "email": "matthew@alopeke.co",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "On 2026-09-19 Jonathan sent Matthew the rebuilt raise materials (deck v6; he had asked for them in May): 26 paying brands, $1.26M booked Nov-Aug, $1M seed ($345K committed, $655K open), 20-min call offer. No reply yet.",
+  "interest": "Investor interest in Foresite seed round",
+  "deal_size_hint": "fundraising ($655K open)",
+  "stage": "proposal or contract sent",
+  "last_contact_date": "2026-09-19",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Follow up in a week; offer 20-minute walkthrough.",
+  "thread_ids": [
+   "1a0bc11884bebec9"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0bc11884bebec9"
+  ],
+  "type": "referral_source"
+ },
+ {
+  "company": "VirtualHQ / Trifecta (Chad T., Morgan Salcido)",
+  "contacts": [
+   {
+    "name": "Chad T.",
+    "email": "chadt@virtualhq.co",
+    "title": ""
+   },
+   {
+    "name": "Morgan Salcido",
+    "email": "morgansalcido90@gmail.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "On 2026-09-19 Jonathan sent deck v6 (10 months of actuals; replaces the April deck) to Chad and Morgan, asking if Trifecta wants another look or knows others who should see it. $1M seed, $345K committed. No reply yet.",
+  "interest": "Investor / network introductions",
+  "deal_size_hint": "fundraising ($655K open)",
+  "stage": "intro sent",
+  "last_contact_date": "2026-09-19",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Follow up next week; ask for intros to angels/funds.",
+  "thread_ids": [
+   "1a0bc11c6093fee2"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0bc11c6093fee2"
+  ],
+  "type": "referral_source"
+ },
+ {
+  "company": "Medistik + InchBug (via Naser Alubaidi / CoLab Consultancy)",
+  "contacts": [
+   {
+    "name": "Naser Alubaidi",
+    "email": "naser@colabconsultancy.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A-Pipeline",
+  "referrer": "",
+  "summary": "Existing customer/champion (Medistik ~$1K/mo platform + $2.5K ads; InchBug $2K fee + $2.5K ads per prior sweep). On 2026-09-19 Jonathan emailed Naser deck v6 ('10 Months on, 26 clients, and scaling') asking him to forward it to anyone on his side who might be interested and offering to add to his own position before the round closes. No reply yet.",
+  "interest": "Investor/forwarder for seed round; existing customer relationship",
+  "deal_size_hint": "fundraising ($655K open); customer revenue per prior sweep",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-19",
+  "last_from": "us",
+  "owner": "Jonathan",
+  "next_action": "Wait for reply; follow up in a week or two.",
+  "thread_ids": [
+   "1a0bc115347be520"
+  ],
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0bc115347be520"
+  ],
+  "type": "customer"
  }
 ]

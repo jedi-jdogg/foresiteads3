@@ -261,7 +261,8 @@ def find_key(company, contacts=None, website=None):
         base = domain_of(website).split('.')[0]
         if len(base) >= 6:
             cands.append('flat:' + base)
-        # first significant word helps "Malo'o Racks" vs "Maloo"
+    if n:
+        # first significant word helps "SOOPA" vs "Soopa Pets"
         first = n.split(' ')[0]
         if len(first) >= 5:
             cands.append('first:' + first)
@@ -417,7 +418,7 @@ for email, items in cal_by_email.items():
     dom = domain_of(email)
     if dom in CAL_SKIP_DOMAINS or email in CAL_SKIP_EMAILS:
         continue
-    if re.search(r'(capital|partners|fund|ventures|equity|invest|\.vc$|holdings)', dom) and not find_key(pretty_domain(dom), [{'email': email}], dom)[0]:
+    if re.search(r'(capital|partners|fund|ventures|equity|invest|\.vc$|holdings|bank|finance|lending)', dom) and not find_key(pretty_domain(dom), [{'email': email}], dom)[0]:
         EXCLUDED_INVESTORS.append(f'{email} ({dom})')
         continue
     items.sort(key=lambda x: x[0].get('start_time', ''))

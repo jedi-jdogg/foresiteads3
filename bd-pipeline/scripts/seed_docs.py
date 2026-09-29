@@ -20,11 +20,26 @@ if '--existing-dir' in sys.argv:  # a directory of <doc_id>.json files as Artifa
     for fn in os.listdir(ddir):
         if fn.endswith('.json'):
             existing[fn[:-5]] = json.load(open(os.path.join(ddir, fn)))
+last_seed = {}
+if '--last-seed-dir' in sys.argv:  # what the db was seeded with last time: a db doc equal to it carries no human edits
+    ldir = sys.argv[sys.argv.index('--last-seed-dir') + 1]
+    for fn in os.listdir(ldir):
+        if fn.endswith('.json'):
+            last_seed[fn[:-5]] = json.load(open(os.path.join(ldir, fn)))
+def strip(d): return {k: v for k, v in (d or {}).items() if not k.startswith('__')}
 KEEP = ('stage', 'priority', 'owner', 'next_action', 'due_date', 'notes', 'summary', 'interest', 'plan', 'revenue_hint', 'est_monthly_spend', 'tags', 'contacts', 'company', 'type', 'referrer')
 n = 0
 for d in seed['deals']:
     doc = dict(d)
-    if d['id'] in existing:
+    if d['id'] in existing and last_seed.get(d['id']) is not None and strip(existing[d['id']]) == strip(last_seed[d['id']]):
+        # untouched since the last seed: the fresh build wins, but keep the clock fields steady when nothing real changed
+        old = existing[d['id']]
+        doc['created_at'] = old.get('created_at', doc['created_at'])
+        same = all(old.get(k) == doc.get(k) for k in ('stage', 'next_action', 'last_contact', 'priority'))
+        if same:
+            doc['due_date'] = old.get('due_date', doc['due_date'])
+            doc['updated_at'] = old.get('updated_at', doc['updated_at'])
+    elif d['id'] in existing:
         old = existing[d['id']]
         for k in KEEP:
             if k in old and old[k] not in ('', None, []):
