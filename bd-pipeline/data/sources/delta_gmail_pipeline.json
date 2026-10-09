@@ -1,5 +1,140 @@
 [
   {
+    "company": "Advanced Molecular Labs",
+    "contacts": [
+      {
+        "name": "Brian Turner",
+        "email": "bturner@advancedmolecularlabs.com",
+        "title": "Vice President"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Manhattan Edge)",
+    "summary": "Santiago intro (Oct 1) to Brian Turner, VP at Advanced Molecular Labs, established DTC premium supplements/health brand; Foresite pitched for margin expansion online. Jonathan replied Oct 9 with Calendly link asking Brian to book; no reply from Brian yet.",
+    "interest": "Online margin expansion (DTC supplements)",
+    "deal_size_hint": "Unknown; established DTC brand",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Watch for Calendly booking from Brian; nudge in ~1 week if none",
+    "thread_ids": [
+      "1a0f7c519ea50817"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f7c519ea50817"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Anabolic Aliens / Exerprise",
+    "contacts": [
+      {
+        "name": "Mike Rosa",
+        "email": "mike@anabolicaliens.com",
+        "title": "CEO/Founder"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Distinct Elements)",
+    "summary": "Santiago intro Sep 24 to Mike Rosa, CEO of Anabolic Aliens (coaching business) and Exerprise (app licensed to gyms/trainers); 'potential deeper partnership to explore'. Jonathan replied Sep 28 with Calendly link and Linda's story one-pager; no response from Mike.",
+    "interest": "Profit growth plus potential deeper partnership (Exerprise licensed tech)",
+    "deal_size_hint": "Unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-09-28",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Follow up with Mike (12 days quiet); resend Calendly",
+    "thread_ids": [
+      "1a0d3b78fdb244c4"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0d3b78fdb244c4"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "AquaBlu Mosaics",
+    "contacts": [
+      {
+        "name": "Mike Vitori",
+        "email": "mike@aquablumosaics.com",
+        "title": "Co-founder"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Silverfire Partners)",
+    "summary": "Santiago intro Sep 28 to Mike Vitori, co-founder of AquaBlu (online premium pool tile, mosaics, hardscape; B2B and DTC). Jonathan replied Sep 28 with Calendly link and one-pager; no response from Mike.",
+    "interest": "Expanding online profit margins",
+    "deal_size_hint": "Unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-09-28",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Follow up with Mike (11 days quiet); resend Calendly",
+    "thread_ids": [
+      "1a0e850fea407bd9"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0e850fea407bd9"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Arteflame",
+    "contacts": [
+      {
+        "name": "Michiel",
+        "email": "michiel@arteflame.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Welcome/onboarding email sent 9/14; Kendra followed up on account access 9/16 and 9/30 with no reply from Michiel. Jonathan nudged 9/30 ('ready to show you what we can do'). Onboarding stalled awaiting access.",
+    "interest": "AI ads onboarding",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-09-30",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Chase Michiel for platform access (call/WhatsApp); escalate if no reply this week",
+    "thread_ids": [
+      "1a0a1a0d84aceb05"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0a1a0d84aceb05"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Baltic Born",
+    "contacts": [
+      {
+        "name": "Allison Hunt",
+        "email": "allison@balticborn.com",
+        "title": "Co-CEO"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Manhattan Edge)",
+    "summary": "Santiago intro (Oct 6) to Allison Hunt, Co-CEO of Baltic Born (DTC dresses/apparel). Jonathan replied Oct 9 with Calendly link; no response yet.",
+    "interest": "Online margin expansion",
+    "deal_size_hint": "Unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Watch for Calendly booking from Allison",
+    "thread_ids": [
+      "1a1118534978a0bb"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1118534978a0bb"
+    ],
+    "type": "prospect"
+  },
+  {
     "company": "Barnett Home Decor",
     "contacts": [
       {
@@ -20,7 +155,7 @@
     ],
     "source_label": "A-Pipeline / customer ops (delta sweep)",
     "referrer": "",
-    "summary": "Strong results ($101K revenue in July, 4X+ ROAS at $6K/mo) while client spends ~$14K/mo in-house Google at ~2.8x. StoreYa says budget-limited; Kendra 10/7 agreed to coordinate an adjustment and add budget once confirmed by client.",
+    "summary": "Strong results ($101K revenue in July, 4X+ ROAS at $6K/mo) while client spends ~$14K/mo in-house Google at ~2.8x. StoreYa says budget-limited; Kendra 10/7 agreed to coordinate an adjustment and add budget once confirmed by client. Separately Ivan delivered an AEO/SEO report for Barnett (9/22) and Kendra planned a follow-up call (internal thread, last 9/28).",
     "interest": "Increase budget; shift in-house Google spend",
     "deal_size_hint": "$6K/mo now; upsell potential toward $14K",
     "stage": "closed-won",
@@ -29,12 +164,78 @@
     "owner": "kendra",
     "next_action": "Pitch client on moving in-house Google budget to Foresite; confirm increase",
     "thread_ids": [
-      "19fcc74b5521edd1"
+      "19fcc74b5521edd1",
+      "1a083637c216d45f"
     ],
     "thread_urls": [
-      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fcc74b5521edd1"
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fcc74b5521edd1",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a083637c216d45f"
     ],
     "type": "customer"
+  },
+  {
+    "company": "BionicGym",
+    "contacts": [
+      {
+        "name": "Dr. Louis Crowe",
+        "email": "louiscrowe@gmail.com",
+        "title": "Founder"
+      },
+      {
+        "name": "Wes Quinn",
+        "email": "wes@bionicgym.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Churned. 10/1 Wes emailed Arun that BionicGym is finishing with Foresite and requested service handover, tracking removal and data exports. 10/6 Jonathan/Kendra decided not to share the tech/tool information (Foresite not required to). 10/9 Arun sent a courteous wrap-up; Louis (10/9) confirmed he will make outstanding payment and Kendra thanked him, understanding the constraints.",
+    "interest": "Offboarding; handover of tracking/data",
+    "deal_size_hint": "Closed customer; outstanding payment owed",
+    "stage": "closed-lost",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Collect outstanding payment from Louis; complete offboarding and tracking removal; keep door open for return",
+    "thread_ids": [
+      "1a0f71c048d3b74a"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f71c048d3b74a"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Birds of Condor",
+    "contacts": [
+      {
+        "name": "Frankie Kimpton",
+        "email": "frankie@birdsofcondor.com",
+        "title": "Co-Founder / Creative Director"
+      },
+      {
+        "name": "Kristi",
+        "email": "kristi@birdsofcondor.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Apex North)",
+    "summary": "Santiago intro (Oct 1) to Frankie Kimpton, co-founder of Byron Bay, Australia golf lifestyle brand. Frankie replied Oct 1 asking for a Zoom next week (AEDST). Jonathan only replied Oct 9 (8 days later) with Calendly link.",
+    "interest": "Expanding profits online and into the US",
+    "deal_size_hint": "Unknown; established AU brand wanting US expansion",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Confirm Zoom booking (AEDST timezone); watch for Calendly booking from Frankie",
+    "thread_ids": [
+      "1a0f7c44f6ed2307"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f7c44f6ed2307"
+    ],
+    "type": "prospect"
   },
   {
     "company": "California Cowboy",
@@ -132,6 +333,43 @@
     "type": "customer"
   },
   {
+    "company": "GAS (Gas Milano 1984)",
+    "contacts": [
+      {
+        "name": "Romolo D'Orazio",
+        "email": "romolo.dorazio@gasjeans.com",
+        "title": "Chief Executive Officer"
+      },
+      {
+        "name": "Angelo",
+        "email": "",
+        "title": "Digital Marketing Manager"
+      },
+      {
+        "name": "Linda",
+        "email": "",
+        "title": "E-commerce Manager"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Silverfire Partners)",
+    "summary": "Santiago intro (Oct 1) to Romolo D'Orazio, CEO of Gas Milano 1984 S.p.A. (heritage omnichannel jeans brand). Romolo (Oct 2) looped in Angelo (Digital Marketing) and Linda (E-commerce) to explore collaboration. Santiago says larger group not yet heard from. Jonathan replied Oct 9 with Calendly link to Santiago/Romolo.",
+    "interest": "DTC and US expansion",
+    "deal_size_hint": "Unknown; large heritage omnichannel brand (potentially enterprise)",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Watch for booking from Angelo/Linda; consider emailing them directly",
+    "thread_ids": [
+      "1a0f7c4340536fa9"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f7c4340536fa9"
+    ],
+    "type": "prospect"
+  },
+  {
     "company": "High Country Quilts (HC Quilts)",
     "contacts": [
       {
@@ -162,6 +400,43 @@
       "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a02e31d14292273"
     ],
     "type": "customer"
+  },
+  {
+    "company": "Humanic",
+    "contacts": [
+      {
+        "name": "Arjun Saksena",
+        "email": "saksena@humanic.so",
+        "title": "Founder/CEO"
+      },
+      {
+        "name": "Sukrit",
+        "email": "sukrit@humanic.so",
+        "title": ""
+      },
+      {
+        "name": "Raman",
+        "email": "raman@humanic.so",
+        "title": ""
+      }
+    ],
+    "source_label": "Gmail keyword (delta sweep)",
+    "referrer": "",
+    "summary": "Partnership kickoff held Oct 2. Five joint projects agreed: (1) Linda's flows/campaigns test on Humanic, (2) deliverability test replacing Instant for low-deliverability Foresite clients, (3) new client offer pairing Leadpipe identity resolution + Humanic, (4) Humanic email blast to its audience for Foresite ads/CTV, (5) Foresite growth campaign for Humanic targeting Klaviyo switchers. Arjun (Oct 5) added Sukrit and Raman and asked for a kickoff call time this week.",
+    "interest": "Reciprocal partnership: email platform + cross-sell",
+    "deal_size_hint": "No dollar figure; joint offer and cross-promotion",
+    "stage": "call done",
+    "last_contact_date": "2026-10-05",
+    "last_from": "them",
+    "owner": "Jonathan / Kendra / Christopher",
+    "next_action": "Reply to Arjun with kickoff call time for the Linda's test; start deliverability client list",
+    "thread_ids": [
+      "1a0fe13e185d9b7d"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0fe13e185d9b7d"
+    ],
+    "type": "partner"
   },
   {
     "company": "K9 Power",
@@ -338,6 +613,40 @@
     "type": "customer"
   },
   {
+    "company": "Pet's Table (petstable.mx)",
+    "contacts": [
+      {
+        "name": "Jorge",
+        "email": "jorge@petstable.mx",
+        "title": ""
+      },
+      {
+        "name": "Luis Gerardo",
+        "email": "luisgerardo@petstable.mx",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Strong performer: 30-day (Aug 31-Sep 30) ad spend $6,431, revenue $31,294, 4.87x ROAS (earlier 6.3x). 9/30 Kendra sent performance recap, said ads will pause until budget refreshed, sent Stripe link to add budget, promised increase proposal 'Monday' (10/5). Meta setup still blocked on client admin access; Kendra paused the next StoreYa renewal until payment.",
+    "interest": "Scale budget; add Meta ads",
+    "deal_size_hint": "$3K-$10K/mo budgets discussed ($9K top-up in Aug)",
+    "stage": "negotiating",
+    "last_contact_date": "2026-09-30",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Follow up on budget top-up/proposal, resolve Meta admin access",
+    "thread_ids": [
+      "1a0f341b999bc333",
+      "19ff0a45eddc931a"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f341b999bc333",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19ff0a45eddc931a"
+    ],
+    "type": "customer"
+  },
+  {
     "company": "Petscy",
     "contacts": [
       {
@@ -370,6 +679,33 @@
       "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f36a2c606c1057"
     ],
     "type": "customer"
+  },
+  {
+    "company": "Pink Palm Puff",
+    "contacts": [
+      {
+        "name": "Linas Balaisis",
+        "email": "linas@pinkpalmpuff.com",
+        "title": "Founder"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Manhattan Edge)",
+    "summary": "Santiago intro (Oct 1) to Linas Balaisis, founder of Pink Palm Puff (premium lifestyle DTC hoodies/apparel/accessories). Jonathan replied Oct 9 with Calendly link; no response yet.",
+    "interest": "Profit margin expansion across online channels, AI perspective",
+    "deal_size_hint": "Unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Watch for Calendly booking from Linas; nudge in ~1 week",
+    "thread_ids": [
+      "1a0f7c57132e0016"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f7c57132e0016"
+    ],
+    "type": "prospect"
   },
   {
     "company": "Puissante",
@@ -469,6 +805,52 @@
     "type": "customer"
   },
   {
+    "company": "Shannon Fabrics",
+    "contacts": [
+      {
+        "name": "Arvin Pairavi",
+        "email": "arvin@shannonfabrics.com",
+        "title": ""
+      },
+      {
+        "name": "Kristin Viola",
+        "email": "kristin@shannonfabrics.com",
+        "title": ""
+      },
+      {
+        "name": "Heidi",
+        "email": "heidi@shannonfabrics.com",
+        "title": ""
+      },
+      {
+        "name": "Julie",
+        "email": "julie@shannonfabrics.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Active customer. 10/3 Kendra sent written update (meeting moved): email flow creatives complete and attached for review, HubSpot audience setup underway. Asked client to connect HubSpot form to site back end, verify Google Ads business verification, and confirm whether Foresite-sourced leads (Leisurology, All Wound Up Craft Goods, Christopher Creations) placed orders. Threads of 9/29 and 10/1 also sent to team.",
+    "interest": "Email flows, B2B lead gen, HubSpot, Google Ads",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-03",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Follow up on HubSpot form connection, Google Ads verification and order confirmations; get flows approved to activate",
+    "thread_ids": [
+      "1a0ff45a257bd349",
+      "1a0f8523b1db8604",
+      "1a0ee254a56751f0"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ff45a257bd349",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f8523b1db8604",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ee254a56751f0"
+    ],
+    "type": "customer"
+  },
+  {
     "company": "Shop BB Girl (Kelsey Beeby)",
     "contacts": [
       {
@@ -494,6 +876,131 @@
       "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d556a5039083"
     ],
     "type": "customer"
+  },
+  {
+    "company": "Simple Sugars Skincare",
+    "contacts": [
+      {
+        "name": "Lani Lazzari",
+        "email": "lani@simplesugarsskincare.com",
+        "title": ""
+      },
+      {
+        "name": "Gina Nigro",
+        "email": "gina@simplesugarsskincare.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Contract negotiation on paid 120-day trial then 1-yr auto-renew with platform fee + tiered management fee on paid media. Gina sent redlines 9/23; Jonathan accepted items 1, 2, 7 and rejected 3 and 4 as breaking Foresite model (9/28). Lani asked about separate Foresite ad account, dashboard visibility and reporting (10/2); call held 10/5. On 10/9 Jonathan said updated contract coming later today; Lani replied she will watch for it.",
+    "interest": "Foresite managed ads + platform with separate ad account",
+    "deal_size_hint": "Platform fee + tiered % mgmt fee on paid media after 120-day paid trial",
+    "stage": "negotiating",
+    "last_contact_date": "2026-10-09",
+    "last_from": "them",
+    "owner": "jonathan",
+    "next_action": "SEND the updated contract today (Oct 9) reflecting accepted items; answer ad-account/dashboard/tracking questions",
+    "thread_ids": [
+      "19fa621bcd1decec",
+      "1a109c0e92583f78"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fa621bcd1decec",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a109c0e92583f78"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Soopa Pets",
+    "contacts": [
+      {
+        "name": "Abbie Harris",
+        "email": "marketing@soopapets.com",
+        "title": "Marketing"
+      },
+      {
+        "name": "Heather Mullins",
+        "email": "heather@soopapets.com",
+        "title": "Shopify/Google admin"
+      },
+      {
+        "name": "Barbara Hanly",
+        "email": "barbara@soopapets.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Signed and onboarding. 9/24 welcome email and Slack channel set up; Foresite waited on Shopify/Google admin access from Heather (bumped 9/30). 10/6 Kendra announced ads officially launched, starting with UK and US advertising to build AI data on ideal customer.",
+    "interest": "AI ads (UK and US)",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-06",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Monitor launch performance; send first reporting",
+    "thread_ids": [
+      "1a0d30b4f830185a"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0d30b4f830185a"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Standard Beauty",
+    "contacts": [
+      {
+        "name": "Ann-Kathrin Joos",
+        "email": "ann@standard-beauty.co.za",
+        "title": "Founder"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Distinct Elements)",
+    "summary": "Santiago intro (Oct 7) to Ann-Kathrin Joos, founder of Standard Beauty (South Africa omnichannel vegan skincare). Jonathan replied Oct 9 with Calendly link; no response yet.",
+    "interest": "US and online margin expansion",
+    "deal_size_hint": "Unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "Jonathan",
+    "next_action": "Watch for Calendly booking from Ann (SAST timezone)",
+    "thread_ids": [
+      "1a116aae2fe3d903"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a116aae2fe3d903"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "SuperBuzz",
+    "contacts": [
+      {
+        "name": "Jeremy Levine",
+        "email": "jeremy@superbuzz.io",
+        "title": "Chief Revenue Officer"
+      }
+    ],
+    "source_label": "Gmail keyword (delta sweep)",
+    "referrer": "",
+    "summary": "Jeremy (Oct 1) said SuperBuzz had a very negative Q1 and is restructuring leadership/board, still building SuperBuzz 2.0 Shopify app with Jonathan's input. Oct 5 he proposed onboarding Jonathan's ~80 waiting clients onto the current product with per-account tracking links and promoting the 2.0 upgrade, generating additional income for all. Jonathan has not replied to the proposal.",
+    "interest": "Partner/rev-share: onboard Foresite's ~80 waiting clients to SuperBuzz",
+    "deal_size_hint": "~80 client accounts referenced; no pricing",
+    "stage": "new lead",
+    "last_contact_date": "2026-10-05",
+    "last_from": "them",
+    "owner": "Jonathan",
+    "next_action": "Decide whether to entertain the 80-client onboarding proposal given SuperBuzz instability; reply to Jeremy",
+    "thread_ids": [
+      "1a0f81149a7ab243"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f81149a7ab243"
+    ],
+    "type": "partner"
   },
   {
     "company": "The Fabric Company / Choice Fabrics",
@@ -528,6 +1035,40 @@
     "type": "customer"
   },
   {
+    "company": "Toy Kingdom (Super-Brands Holdings)",
+    "contacts": [
+      {
+        "name": "Cuan Chelin",
+        "email": "cuan@toykingdom.co.za",
+        "title": "Founder & CEO"
+      },
+      {
+        "name": "Lauren Furter",
+        "email": "lauren@s-b.co.za",
+        "title": "Executive Assistant"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Distinct Elements)",
+    "summary": "Santiago intro Sep 22 to Cuan Chelin (South African toy retail, golf handicapping, online sportsbook via Super-Brands Holdings). Jonathan sent overview. Scheduling back-and-forth with EA Lauren (SAST, 10 hrs ahead; Cuan away). Lauren (Oct 1) proposed 8am PST/5pm SAST on Oct 13, 14 or 15 (or following week) after Jonathan offered 9am PST. No reply from Jonathan since.",
+    "interest": "Online profit margin expansion; deeper partnership possible",
+    "deal_size_hint": "Unknown; large multi-brand SA retailer",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-01",
+    "last_from": "them",
+    "owner": "Jonathan",
+    "next_action": "Reply to Lauren confirming 8am PST on Oct 13/14/15 to book the call",
+    "thread_ids": [
+      "1a0c96c4b8335fb5",
+      "1a0f46e3ada3efc6"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0c96c4b8335fb5",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f46e3ada3efc6"
+    ],
+    "type": "prospect"
+  },
+  {
     "company": "Two Sisters Ecotextiles",
     "contacts": [
       {
@@ -557,5 +1098,39 @@
       "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0fe99c6600af2c"
     ],
     "type": "prospect"
+  },
+  {
+    "company": "Uncapped",
+    "contacts": [
+      {
+        "name": "Alan Blackman-Rogers",
+        "email": "alan.blackmanrogers@weareuncapped.com",
+        "title": "Commercial Strategy & Operations Analyst"
+      },
+      {
+        "name": "David Liles",
+        "email": "david.liles@weareuncapped.com",
+        "title": "Head of Commercial"
+      }
+    ],
+    "source_label": "A-Pipeline / Santiago referral (delta sweep)",
+    "referrer": "Santiago Avalos (Silverfire Partners)",
+    "summary": "Santiago intro Sep 25 to Uncapped (ecommerce working-capital provider: LOCs, short-term loans) for mutual deal flow: Foresite helps Uncapped brands profit, Uncapped finances Foresite clients/Linda's. Jonathan booked David's calendar (Sep 25). Alan (Oct 1) said he cannot see Jonathan availability between the 5th and 12th and asked for other times. No Jonathan reply yet.",
+    "interest": "Mutual referral / working-capital financing for brands",
+    "deal_size_hint": "Referral partnership; no figures",
+    "stage": "call scheduled",
+    "last_contact_date": "2026-10-01",
+    "last_from": "them",
+    "owner": "Jonathan",
+    "next_action": "Confirm date of call with David/Alan (reply to Alan with times after Oct 12)",
+    "thread_ids": [
+      "1a0d8de23d5c8aaf",
+      "1a0ea4ec08d98450"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0d8de23d5c8aaf",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ea4ec08d98450"
+    ],
+    "type": "partner"
   }
 ]

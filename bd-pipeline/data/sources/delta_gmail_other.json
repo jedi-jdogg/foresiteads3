@@ -593,5 +593,392 @@
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10fef5df75d655",
    "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1126876ee94722"
   ]
+ },
+ {
+  "company": "Lounge Wagon",
+  "contacts": [
+   {
+    "name": "Malo'o / Lounge Wagon team",
+    "email": "",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "StoreYa-managed Google ads customer with underperformance. 09-23 Kendra asked StoreYa (Shlomit Sade) how to improve; StoreYa uploaded a new Merchant Center feed, optimized settings and launched Search/Shopping AI Max. 10-05 Kendra reported poor performance again; 10-06 a Google Ads strategist (Ashish Gill) separately emailed asking for the right account POC. 10-09 Kendra asked StoreYa to lower the next renewal to $500 while she gathers BFCM plans for a later increase.",
+  "interest": "Google ads performance recovery; BFCM increase",
+  "deal_size_hint": "Renewal being lowered to $500 (from higher)",
+  "stage": "churn risk",
+  "last_contact_date": "2026-10-09",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Get StoreYa's performance review and Lounge Wagon BFCM plans; decide on renewal at $500 and whether to answer the Google strategist call.",
+  "thread_ids": [
+   "1a0cf145b6a697f7",
+   "1a1122bf9cbe2d48"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0cf145b6a697f7",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1122bf9cbe2d48"
+  ]
+ },
+ {
+  "company": "California Cowboy",
+  "contacts": [
+   {
+    "name": "Drew Clark",
+    "email": "drew@californiacowboy.com",
+    "title": ""
+   },
+   {
+    "name": "David",
+    "email": "david@californiacowboy.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "Active customer. 09-30 Drew asked for a lead-gen campaign to collect email/SMS more aggressively (offer: $ off/% off/free koozie). 10-05 Kendra recommended against lead-only campaigns and instead folding a signup offer ('Sign up and get XX% off') into ROAS campaigns; Drew replied 10-08 'OK got it.'",
+  "interest": "Email/SMS list growth via offer-led ads",
+  "deal_size_hint": "",
+  "stage": "closed-won",
+  "last_contact_date": "2026-10-08",
+  "last_from": "them",
+  "owner": "Kendra Jackson",
+  "next_action": "Draft and launch the signup-offer ad concept inside the ROAS campaigns; confirm offer with Drew.",
+  "thread_ids": [
+   "1a10d761ebc76bd1",
+   "1a0ee9c04757f544"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10d761ebc76bd1",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ee9c04757f544"
+  ]
+ },
+ {
+  "company": "K9 Power",
+  "contacts": [
+   {
+    "name": "K9 Power team (via StoreYa)",
+    "email": "",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "StoreYa-managed customer (case study 9.1x ROAS, 142% revenue growth). 10-05 Kendra asked StoreYa (Berk) to renew K9 at $3,000 for 30 days; Berk confirmed 10-06 he was processing it.",
+  "interest": "Ongoing ads management via StoreYa",
+  "deal_size_hint": "$3,000 per 30 days",
+  "stage": "closed-won",
+  "last_contact_date": "2026-10-06",
+  "last_from": "them",
+  "owner": "Kendra Jackson",
+  "next_action": "Confirm the $3,000 renewal posted; review K9 budget for BFCM.",
+  "thread_ids": [
+   "1a10d5e5cd434694"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10d5e5cd434694"
+  ]
+ },
+ {
+  "company": "NiraSkin",
+  "contacts": [
+   {
+    "name": "D. Bean",
+    "email": "dbean@niraskin.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "Santiago Avalos (original intro 05-2026)",
+  "summary": "Renewal discussion in progress. 10-08 StoreYa (Berk) told Kendra NiraSkin is at 5.1x ROAS over 30 days vs 3.5x target and recommends increasing budget with November seasonality.",
+  "interest": "Renewal with budget increase for BFCM",
+  "deal_size_hint": "5.1x ROAS vs 3.5x target",
+  "stage": "negotiating",
+  "last_contact_date": "2026-10-08",
+  "last_from": "them",
+  "owner": "Kendra Jackson",
+  "next_action": "Kendra to pitch budget increase at NiraSkin renewal; confirm decision before renewal date.",
+  "thread_ids": [
+   "1a11a997b5cc70a9"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11a997b5cc70a9"
+  ]
+ },
+ {
+  "company": "HC Quilts (High Country Quilts)",
+  "contacts": [
+   {
+    "name": "HC Quilts contact",
+    "email": "",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "Facebook ads setup issue. Since 09-03 Foresite is running FB ads itself because StoreYa could not be given access; StoreYa (Berk) says the pixel is too new to share with partners. On 10-08 Berk asked Arun to retry sharing the pixel since another month has passed.",
+  "interest": "Facebook ads / pixel sharing",
+  "deal_size_hint": "",
+  "stage": "stalled",
+  "last_contact_date": "2026-10-08",
+  "last_from": "them",
+  "owner": "Arun Bordoloi",
+  "next_action": "Arun to retry sharing the Meta pixel with StoreYa; confirm FB ads attribution.",
+  "thread_ids": [
+   "1a02e31d14292273"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a02e31d14292273"
+  ]
+ },
+ {
+  "company": "Sew Yeah Quilting",
+  "contacts": [
+   {
+    "name": "Brody",
+    "email": "brody@sewyeahquilting.com",
+    "title": ""
+   },
+   {
+    "name": "Teancum",
+    "email": "teancum@sewyeahquilting.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "Customer expanding. After a 09-29 meeting Jonathan sent minutes; Kendra said she would process the next renewal that day adding $3,000 additional ad budget (reaching $200/day) plus a TV platform fee and ad budget; creatives to go into a Drive folder; AEO/SEO audit to be reviewed on the next call. ~ $3,000 credit was remaining.",
+  "interest": "Ads, TV and AEO/SEO",
+  "deal_size_hint": "+$3,000 ad budget ($200/day) plus TV platform fee",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-29",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Confirm renewal invoice with TV add-on paid, collect creatives, run AEO/SEO audit review on next call.",
+  "thread_ids": [
+   "1a0eecf4bb2aef15"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0eecf4bb2aef15"
+  ]
+ },
+ {
+  "company": "Soopa Pets",
+  "contacts": [
+   {
+    "name": "Abbie Harris",
+    "email": "marketing@soopapets.com",
+    "title": "Digital Marketing & Social Media Manager"
+   },
+   {
+    "name": "Heather",
+    "email": "heather@soopapets.com",
+    "title": ""
+   },
+   {
+    "name": "Charlotte",
+    "email": "sales@soopapets.com",
+    "title": "Sales Administrator"
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "New customer (Ireland, pet products) onboarding since 09-24 (current ROAS ~9% by their statement, ads only on Google, no attribution tool). Slack set up; asset folder shared; Kendra chased Heather for Shopify/Google admin access 09-30. Ads officially launched 10-06 targeting UK and US to build AI data before narrowing to US.",
+  "interest": "Foresite AI ads launch UK/US",
+  "deal_size_hint": "",
+  "stage": "closed-won",
+  "last_contact_date": "2026-10-06",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Monitor learning-phase results; confirm all admin access granted; schedule kickoff/first performance check.",
+  "thread_ids": [
+   "1a0d30b4f830185a"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0d30b4f830185a"
+  ]
+ },
+ {
+  "company": "Arteflame",
+  "contacts": [
+   {
+    "name": "Michiel",
+    "email": "michiel@arteflame.com",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "New customer onboarding stalled: welcome email 09-14, Kendra chased for account access 09-16 and 09-30, Jonathan nudged 09-30 ('ready to show you what we can do'). No reply from Michiel.",
+  "interest": "Foresite AI ads onboarding",
+  "deal_size_hint": "",
+  "stage": "stalled",
+  "last_contact_date": "2026-09-30",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Escalate access chase (call or text); confirm checkout in client portal and kickoff booking.",
+  "thread_ids": [
+   "1a0a1a0d84aceb05"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0a1a0d84aceb05"
+  ]
+ },
+ {
+  "company": "Pet's Table (Mexico)",
+  "contacts": [
+   {
+    "name": "Jorge",
+    "email": "jorge@petstable.mx",
+    "title": ""
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "Active customer. 09-30 Kendra sent 30-day performance (Aug 31-Sep 30): $6,431 spend, $31,294 revenue, 4.87x ROAS, strong last week (6-9x days). Ads pause until budget is refreshed; Kendra recommended a budget increase, said she would bring a proposal Monday (10-05), and sent a Stripe invoice link to add budget. No reply in thread.",
+  "interest": "Budget renewal and scale-up",
+  "deal_size_hint": "$6.4K/month ad spend, 4.87x ROAS; increase proposed",
+  "stage": "closed-won",
+  "last_contact_date": "2026-09-30",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Follow up on budget renewal invoice and send the promised scale-up proposal (ads are paused until budget refreshed).",
+  "thread_ids": [
+   "1a0f341b999bc333"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f341b999bc333"
+  ]
+ },
+ {
+  "company": "Humanic",
+  "contacts": [
+   {
+    "name": "Arjun Saksena",
+    "email": "saksena@humanic.so",
+    "title": "Founder/CEO"
+   },
+   {
+    "name": "Sukrit",
+    "email": "sukrit@humanic.so",
+    "title": ""
+   },
+   {
+    "name": "Raman",
+    "email": "raman@humanic.so",
+    "title": ""
+   }
+  ],
+  "source_label": "A - GTM",
+  "referrer": "",
+  "summary": "Partnership kickoff 10-02. Five joint projects agreed: (1) Linda's email flows/campaigns test on Humanic, (2) deliverability test replacing Instant for Foresite clients with weak deliverability, (3) new client offer pairing Leadpipe identity resolution with Humanic, (4) Humanic email blast to its audience for Foresite ads/TV, (5) Foresite growth campaign for Humanic targeting Klaviyo switchers. 10-05 Arjun asked for a kickoff call this week and added Sukrit and Raman.",
+  "interest": "Email platform partnership, cross-selling, joint client offer",
+  "deal_size_hint": "",
+  "stage": "call done",
+  "last_contact_date": "2026-10-05",
+  "last_from": "them",
+  "owner": "Jonathan Shroyer",
+  "next_action": "Schedule the Linda's test kickoff call with Arjun this week; assign Kendra/Christopher to the five action items.",
+  "thread_ids": [
+   "1a0fe13e185d9b7d"
+  ],
+  "type": "partner",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0fe13e185d9b7d"
+  ]
+ },
+ {
+  "company": "SuperBuzz",
+  "contacts": [
+   {
+    "name": "Jeremy Levine",
+    "email": "jeremy@superbuzz.io",
+    "title": "Chief Revenue Officer"
+   }
+  ],
+  "source_label": "A - GTM",
+  "referrer": "",
+  "summary": "Shopify app partner. 10-01 Jeremy said SuperBuzz had a very negative Q1, is restructuring leadership/board, and is finishing SuperBuzz 2.0 for Shopify (Foresite helped with development). 10-05 he proposed onboarding Foresite's ~80 waiting clients to the current product with tracking links, promoting the 2.0 upgrade, and sharing resulting income. Jonathan's last reply was sympathetic on 10-01; the 10-05 proposal is unanswered.",
+  "interest": "Distribution/rev share: onboard Foresite's ~80 clients to SuperBuzz",
+  "deal_size_hint": "~80 Foresite clients as distribution; rev-share TBD",
+  "stage": "intro sent",
+  "last_contact_date": "2026-10-05",
+  "last_from": "them",
+  "owner": "Jonathan Shroyer",
+  "next_action": "Decide whether to offer SuperBuzz to Foresite's client base; reply to Jeremy's rev-share proposal.",
+  "thread_ids": [
+   "1a0f81149a7ab243"
+  ],
+  "type": "partner",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f81149a7ab243"
+  ]
+ },
+ {
+  "company": "Carmen Sol",
+  "contacts": [
+   {
+    "name": "Sebastiano Di Bari",
+    "email": "sebastiano@carmensol.com",
+    "title": "President CEO"
+   }
+  ],
+  "source_label": "A - Urgent",
+  "referrer": "",
+  "summary": "New lead from a call held ~10-06 (rescheduled once because Jonathan was sick). 10-08 Sebastiano asked for the deck and said he looks forward to testing; Jonathan sent the full Foresite overview, four Loom videos, 'Foresite Agreement - Ads Only' docx and 'Stop the Bleeding' PDF the same day and offered a 90-day strategy discussion.",
+  "interest": "Test Foresite AI ads/growth platform",
+  "deal_size_hint": "",
+  "stage": "proposal or contract sent",
+  "last_contact_date": "2026-10-08",
+  "last_from": "us",
+  "owner": "Jonathan Shroyer",
+  "next_action": "Follow up ~10-12; book 90-day strategy call via calendly.com/quimbi; walk through ads-only agreement.",
+  "thread_ids": [
+   "1a11d5c4dced9509"
+  ],
+  "type": "prospect",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d5c4dced9509"
+  ]
+ },
+ {
+  "company": "Shop BB Girl (Kelsey Beeby)",
+  "contacts": [
+   {
+    "name": "Kelsey Beeby",
+    "email": "kelseybeeby@shopbbgirl.com",
+    "title": "Founder"
+   }
+  ],
+  "source_label": "A - White Glove",
+  "referrer": "",
+  "summary": "New closed-won customer. Strategy call 09-04, package discussed (spend $1,500/mo + $150 mgmt, optional $499 platform and $499 identities fees). After negotiating terms (month-to-month, 90-day cancel-anytime trial, 2-4x target without guarantee, spend capped at $1,500), Kelsey chose the Ads-Only plan ($1,650/month total), signed via DocuSign and granted platform access. 10-08 Kendra sent the checkout link to create the account and pay.",
+  "interest": "Ads-only AI Ads management",
+  "deal_size_hint": "$1,500/mo ad spend + $150 mgmt = $1,650/mo; 90-day trial",
+  "stage": "closed-won",
+  "last_contact_date": "2026-10-08",
+  "last_from": "us",
+  "owner": "Kendra Jackson",
+  "next_action": "Confirm Kelsey completes checkout/payment; schedule kickoff call; set 30/60-day review.",
+  "thread_ids": [
+   "1a11d556a5039083",
+   "1a11eccfdb2e1887"
+  ],
+  "type": "customer",
+  "thread_urls": [
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d556a5039083",
+   "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11eccfdb2e1887"
+  ]
  }
 ]
