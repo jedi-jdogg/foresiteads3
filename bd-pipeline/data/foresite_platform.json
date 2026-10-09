@@ -1,5 +1,5 @@
 {
- "note": "Tenants in the Foresite platform DB with subscription state, pulled 2026-09-29. active/paused = customers; past_due = customer at risk; canceled = churned; null = signed up, never subscribed.",
+ "note": "Tenants in the Foresite platform DB with subscription state, pulled 2026-10-09. active/paused = customers; past_due = customer at risk; canceled = churned; null = signed up, never subscribed.",
  "tenants": [
   {
    "id": 101,
@@ -26,8 +26,9 @@
    "id": 97,
    "name": "Niraskin",
    "created": "2026-08-06",
-   "sub": "active",
-   "plan": "Ads Only"
+   "sub": "past_due",
+   "plan": "Ads Only",
+   "note": "payment past due since 2026-10-06"
   },
   {
    "id": 88,
@@ -40,15 +41,17 @@
    "id": 86,
    "name": "Pets Table",
    "created": "2026-06-15",
-   "sub": "past_due",
-   "plan": "Management Fee Only (10%)"
+   "sub": "canceled",
+   "plan": "Management Fee Only (10%)",
+   "note": "both subscriptions canceled (9/30, 10/09)"
   },
   {
    "id": 83,
    "name": "PetScy",
    "created": "2026-06-12",
-   "sub": "paused",
-   "plan": "Ads + Flows"
+   "sub": "active",
+   "plan": "Ad Budget Biweekly",
+   "note": "re-activated 10/01"
   },
   {
    "id": 82,
@@ -89,8 +92,9 @@
    "id": 76,
    "name": "Sew Yeah",
    "created": "2026-05-18",
-   "sub": "paused",
-   "plan": "Ads + Flows"
+   "sub": "active",
+   "plan": "Ads + Flows",
+   "note": "resumed 9/29"
   },
   {
    "id": 75,
@@ -239,7 +243,7 @@
    "created": "2026-02-28",
    "sub": "canceled",
    "plan": "Ads + Flows",
-   "note": "subscription canceled 2026-09-29"
+   "note": "subscription canceled 2026-09-29, final cancel 10/09"
   },
   {
    "id": 41,
@@ -330,7 +334,8 @@
    "name": "Lounge Wagon",
    "created": "2026-02-28",
    "sub": "active",
-   "plan": "Ads + Flows"
+   "plan": "Ads Only",
+   "note": "downgraded from Ads + Flows to Ads Only 10/09"
   },
   {
    "id": 28,
@@ -344,7 +349,8 @@
    "name": "K9 Power",
    "created": "2026-02-28",
    "sub": "active",
-   "plan": "Ads + Flows"
+   "plan": "Ads + Flows",
+   "note": "re-subscribed 10/06"
   },
   {
    "id": 26,
@@ -437,6 +443,43 @@
    "created": "2026-02-28",
    "sub": null,
    "plan": null
+  },
+  {
+   "id": 102,
+   "name": "kelsey beeby's Business",
+   "created": "2026-10-09",
+   "sub": "active",
+   "plan": "Ads Only",
+   "note": "self-serve signup 10/09, store name not set yet"
+  },
+  {
+   "id": 13,
+   "name": "BetterBrand",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 9,
+   "name": "Barnett Home Decor",
+   "created": "2026-02-28",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 5,
+   "name": "HC Quilts",
+   "created": "2026-02-23",
+   "sub": "active",
+   "plan": "Ads + Flows"
+  },
+  {
+   "id": 6,
+   "name": "Famcut",
+   "created": "2026-02-23",
+   "sub": "canceled",
+   "plan": "Ads + Flows",
+   "note": "canceled 2026-08-19"
   }
  ]
 }
