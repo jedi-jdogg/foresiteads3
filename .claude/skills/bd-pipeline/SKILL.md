@@ -20,6 +20,8 @@ Gmail gotchas: `label:Label_<id>` does not work on this account, use name syntax
 
 Also refresh `data/foresite_platform.json` from the Foresite MCP (`database-query` on `tenants` joined to `subscriptions` and `plans`) and re-read the Google Sheet "Copy of Foresite AI Pipeline - Jonathan / Santiago" (Drive id `1PsJVWU9x_VYb25DfzOBc1vdxhtL1Cl0iXUheNCTUN4M`) into `data/sheet_pipeline.json` if it changed.
 
+Deal ids are stable across runs through `data/id_map.json` (alias key → id, written by the build). When two spellings of one company still produce two deals, add the other spelling to `data/aliases.json` (`"other spelling": "canonical name"`) and rebuild.
+
 ## 2. Rebuild
 
 ```

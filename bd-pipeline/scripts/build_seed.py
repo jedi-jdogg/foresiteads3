@@ -242,6 +242,8 @@ def clean_contacts(contacts):
 # ---------------------------------------------------------------- merge
 deals = {}          # key -> deal
 alias = {}          # domain / normalized name -> key
+ID_MAP = load(os.path.join(DATA, 'id_map.json'), {})      # alias key -> deal id, persisted so ids survive renames
+MANUAL = load(os.path.join(DATA, 'aliases.json'), {})     # "other spelling" -> canonical company name
 
 
 def find_key(company, contacts=None, website=None):
@@ -276,12 +278,16 @@ def upsert(rec, source):
     company = (rec.get('company') or '').strip()
     if not company:
         return None
+    if company in MANUAL:
+        company = MANUAL[company]
     if norm_company(company) in ('foresite', 'foresite ads', 'lindas', 'linda s') and source != 'sheet':
         return None
     contacts = clean_contacts(rec.get('contacts'))
     key, cands = find_key(company, contacts, rec.get('website'))
     if key is None:
-        key = stable_id(norm_company(company) or company)
+        key = next((ID_MAP[c] for c in cands if c in ID_MAP), None) or stable_id(norm_company(company) or company)
+        if key in deals:  # the mapped id is already live under another spelling: merge into it
+            pass
         deals[key] = {
             'id': key, 'company': company, 'website': '', 'type': 'prospect', 'contacts': [], 'source': source,
             'sources': [], 'referrer': '', 'owner': '', 'stage': 'new', 'priority': '', 'revenue_hint': '',
@@ -516,6 +522,10 @@ for d in deals.values():
         d.pop('est_monthly_spend')
 
 os.makedirs(REPORTS, exist_ok=True)
+for a, k in alias.items():
+    ID_MAP[a] = k
+with open(os.path.join(DATA, 'id_map.json'), 'w') as f:
+    json.dump(dict(sorted(ID_MAP.items())), f, indent=0)
 team = {
     'members': [
         {'name': 'Jonathan Shroyer', 'email': 'jonathan@foresiteads.com', 'role': 'CEO'},
