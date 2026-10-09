@@ -1,0 +1,561 @@
+[
+  {
+    "company": "Barnett Home Decor",
+    "contacts": [
+      {
+        "name": "George Zahringer",
+        "email": "george@barnetthomedecor.com",
+        "title": ""
+      },
+      {
+        "name": "Mike Addy",
+        "email": "mike@barnetthomedecor.com",
+        "title": ""
+      },
+      {
+        "name": "Melissa Mahon",
+        "email": "melissa.mahon@barnettproducts.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Strong results ($101K revenue in July, 4X+ ROAS at $6K/mo) while client spends ~$14K/mo in-house Google at ~2.8x. StoreYa says budget-limited; Kendra 10/7 agreed to coordinate an adjustment and add budget once confirmed by client.",
+    "interest": "Increase budget; shift in-house Google spend",
+    "deal_size_hint": "$6K/mo now; upsell potential toward $14K",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-07",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Pitch client on moving in-house Google budget to Foresite; confirm increase",
+    "thread_ids": [
+      "19fcc74b5521edd1"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19fcc74b5521edd1"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "California Cowboy",
+    "contacts": [
+      {
+        "name": "Drew Clark",
+        "email": "drew@californiacowboy.com",
+        "title": ""
+      },
+      {
+        "name": "David Buckley",
+        "email": "david@californiacowboy.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Drew asked for a lead-gen campaign (10/1). StoreYa advised against lead-only campaigns; Kendra 10/5 recommended embedding the offer into ROAS campaigns; Drew accepted 10/8.",
+    "interest": "Lead gen offer within ROAS ads",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-08",
+    "last_from": "them",
+    "owner": "kendra",
+    "next_action": "Set up offer inside existing campaigns",
+    "thread_ids": [
+      "1a10d761ebc76bd1",
+      "1a0f885af5178c14",
+      "1a0ee9c04757f544"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10d761ebc76bd1",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f885af5178c14",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0ee9c04757f544"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Carmen Sol",
+    "contacts": [
+      {
+        "name": "Sebastiano Di Bari",
+        "email": "sebastiano@carmensol.com",
+        "title": "President / CEO"
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Discovery call held ~10/6 (rescheduled once; Jonathan was sick). Sebastiano emailed 10/8 asking for the deck and 'looking forward to test'. Jonathan replied 10/8 with Foresite overview, 4 Loom videos, Stop the Bleeding PDF and Ads-Only agreement, offering a 90-day strategy call.",
+    "interest": "AI Ads, Flows and CTV; eager to test",
+    "deal_size_hint": "unknown; ads-only agreement sent",
+    "stage": "proposal or contract sent",
+    "last_contact_date": "2026-10-08",
+    "last_from": "us",
+    "owner": "jonathan",
+    "next_action": "Follow up to book 90-day strategy call and get agreement signed",
+    "thread_ids": [
+      "1a11d5c4dced9509"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d5c4dced9509"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Denik",
+    "contacts": [
+      {
+        "name": "Tyler Tolson",
+        "email": "tyler@denik.com",
+        "title": ""
+      },
+      {
+        "name": "Alex",
+        "email": "alex@denik.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Customer since April 2026. On 10/7 Kendra sent 6-month performance recap: $181,381 revenue on $36,378 spend (4.99x); AI Ads 4.2x ROAS, AI Flows $29.5K on $182. Recommends cutting in-house Google campaigns (0.83x ROAS), raising Foresite AI budget from $7,500 to $10,000/mo from Oct 12 billing date (then $12K for holiday peak), and asking for wholesale/exhibitor email+phone list to exclude. Asked for confirmation by Friday 10/9. StoreYa also moving a spare $6K to Denik.",
+    "interest": "Scale spend into Foresite AI ads/flows for holiday",
+    "deal_size_hint": "$7.5K/mo -> $10K -> $12K/mo ad budget (upsell)",
+    "stage": "negotiating",
+    "last_contact_date": "2026-10-07",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Get Tyler/Alex to confirm $10K budget before Oct 12 billing and send wholesale exclusion list",
+    "thread_ids": [
+      "1a1181a9e2044c85"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1181a9e2044c85"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "High Country Quilts (HC Quilts)",
+    "contacts": [
+      {
+        "name": "Adam",
+        "email": "adam@hcquilts.com",
+        "title": ""
+      },
+      {
+        "name": "Ayla",
+        "email": "ayla@hcquilts.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Performing well on Google Ads. Plan to add Facebook ads stalled because StoreYa cannot get partner access to HC Quilts' Meta pixel (button greyed out; new pixel). 9/3 Jonathan decided Foresite would run FB ads itself; 10/8 StoreYa asked Arun to retry sharing.",
+    "interest": "Add Facebook/Meta ads",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-08",
+    "last_from": "them",
+    "owner": "arun",
+    "next_action": "Decide: Foresite runs Meta in-house vs retry StoreYa pixel share; Arun to confirm",
+    "thread_ids": [
+      "1a02e31d14292273"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a02e31d14292273"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "K9 Power",
+    "contacts": [
+      {
+        "name": "Jack Coughlin",
+        "email": "jack@k9power.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "10/5 Kendra asked StoreYa to renew K9 at $3,000 for 30 days (below current self-pay); StoreYa confirmed 10/6. Featured case study (9.1x ROAS).",
+    "interest": "Ongoing managed ads",
+    "deal_size_hint": "$3,000/30 days",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-06",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Review performance at month end and propose increase",
+    "thread_ids": [
+      "1a10d5e5cd434694"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10d5e5cd434694"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Lounge Wagon / Malo'o Racks",
+    "contacts": [
+      {
+        "name": "Phil Kelly",
+        "email": "phil@loungewagon.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Active customer, poor performance. 9/23 Kendra asked StoreYa how to improve; StoreYa changed Merchant Center feed, excluded low performers, launched Search/Shopping AI Max. 10/5 Kendra reported poor performance again. 10/9 Kendra asked StoreYa to lower next renewal to $500 for now while gathering BFCM plans to plan an increase.",
+    "interest": "Improve ROAS; BFCM scale",
+    "deal_size_hint": "$500 next renewal (reduced)",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Get BFCM plan from Phil, review AI Max results, consider budget lift for BFCM",
+    "thread_ids": [
+      "1a0cf145b6a697f7"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0cf145b6a697f7"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Magic Chocolate",
+    "contacts": [
+      {
+        "name": "Rachel Moss",
+        "email": "Rachel.Moss@magicchocolate.com",
+        "title": "Marketing lead (Magic Chocolate)"
+      },
+      {
+        "name": "Kate Archenault",
+        "email": "katedandrea@gmail.com",
+        "title": "cc"
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Kendra sent Q4 2026 Service Plan and Budget (Oct-Dec) proposal revision 10/8. Rachel replied she has no budget through year-end for email campaigns/creative at those rates (budgeted $499 for email program; creative budget possible in 2027). Call held 10/8 2:30 PT; Kendra to revise and resend.",
+    "interest": "Email/flows program plus creative",
+    "deal_size_hint": "$499/mo email program budgeted; creative deferred to 2027",
+    "stage": "negotiating",
+    "last_contact_date": "2026-10-08",
+    "last_from": "them",
+    "owner": "kendra",
+    "next_action": "Send revised lower-scope proposal ($499 email program), creative phase in 2027",
+    "thread_ids": [
+      "1a11c357b19a46d8"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11c357b19a46d8"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Medistik",
+    "contacts": [
+      {
+        "name": "Naser Alubaidi",
+        "email": "naser@medistik.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "September: revenue up 12% MoM / 46% YoY, 240 sales, $13.7K via StoreYa. Budget exhausted 10/2 (campaigns paused); Kendra renewed at current budget 10/3 and plans to raise to 10K CAD for October.",
+    "interest": "Scale to 10K CAD/mo",
+    "deal_size_hint": "10K CAD/mo planned",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-04",
+    "last_from": "them",
+    "owner": "kendra",
+    "next_action": "Increase budget to 10K CAD",
+    "thread_ids": [
+      "1a0e28e3476d13e5"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0e28e3476d13e5"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Memory Air",
+    "contacts": [
+      {
+        "name": "Ricky Rohaidy",
+        "email": "rickyrohaidy@memoryair.com",
+        "title": "Owner"
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Foresite supplies outsourced customer support (CX) to Memory Air via contractor Jarom Thurston (JLT Consulting). 10/4 Jarom flagged sales/ticket spike since mid-Sept (podcasts) and proposed raising monthly invoice from $4,000 (100 hrs x $40) to $6,000 (150 hrs x $40) starting October, plus training 1-2 part-timers from Oct 15. 10/7 Kendra sent Aug + Sept Stripe invoices (Aug outstanding) and offered extra BFCM CX capacity.",
+    "interest": "Customer support staffing (CX) for BFCM",
+    "deal_size_hint": "$4,000/mo -> $6,000/mo (150 hrs at $40)",
+    "stage": "negotiating",
+    "last_contact_date": "2026-10-07",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Collect outstanding August invoice, confirm $6K/mo increase and paperwork with Jarom/JLT, sell BFCM CX add-on",
+    "thread_ids": [
+      "1a1080a476293979",
+      "1a117208e6800a68"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1080a476293979",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a117208e6800a68"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Niraskin",
+    "contacts": [
+      {
+        "name": "Christian Huber",
+        "email": "christian@niraskin.com",
+        "title": ""
+      },
+      {
+        "name": "David Bean",
+        "email": "dbean@niraskin.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Renewal discussion in progress. 10/8 StoreYa (Berk) reported 5.1x ROAS over last 30 days vs 3.5x target and recommended raising budget given November seasonality.",
+    "interest": "Renew and expand budget for Nov/BFCM",
+    "deal_size_hint": "unknown (renewal + increase)",
+    "stage": "negotiating",
+    "last_contact_date": "2026-10-08",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Present 5.1x ROAS to Niraskin and propose budget increase at renewal",
+    "thread_ids": [
+      "1a11a997b5cc70a9"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11a997b5cc70a9"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Petscy",
+    "contacts": [
+      {
+        "name": "Chris Rogers",
+        "email": "chris@petscy.com",
+        "title": "Owner"
+      },
+      {
+        "name": "Rick Del Rio",
+        "email": "rick@petscy.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Closed-won customer running StoreYa-fulfilled dynamic ads. Client unhappy: CAC around $75 vs needs low-$40s; criticised dynamic catalog ads (no headline/CTA). 10/7-10/8 Kendra and StoreYa (Mushon) agreed to test the client's custom creatives as 'last option'; Kendra asked to charge $2,500 every two weeks (working toward $10K/month budget) and charged now 10/8. Thread 'Pause Petscy' still active.",
+    "interest": "Lower CAC to ~$40; creative testing",
+    "deal_size_hint": "$2,500 biweekly (~$5-10K/mo target)",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-08",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Monitor CAC from custom-creative test; save relationship (churn risk)",
+    "thread_ids": [
+      "1a0f9254b6ea92c3",
+      "19f36a2c606c1057"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0f9254b6ea92c3",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/19f36a2c606c1057"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Puissante",
+    "contacts": [
+      {
+        "name": "Marie Comacle",
+        "email": "marie@puissante.co",
+        "title": "Founder"
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "Santiago Avalos (Silverfire Partners)",
+    "summary": "Santiago (Silverfire) intro 10/8 to Marie Comacle, founder of Puissante (sexual wellness / intimate lifestyle brand). Jonathan replied 10/9 with Calendly link asking her to book.",
+    "interest": "Profit optimization / ads for DTC wellness brand",
+    "deal_size_hint": "unknown",
+    "stage": "intro sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "jonathan",
+    "next_action": "Wait for Marie to book via Calendly; nudge in ~3-4 days if no booking",
+    "thread_ids": [
+      "1a11d9da82c2b088"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d9da82c2b088"
+    ],
+    "type": "prospect"
+  },
+  {
+    "company": "Sew Yeah Quilting",
+    "contacts": [
+      {
+        "name": "Brody Tippetts",
+        "email": "brody@sewyeahquilting.com",
+        "title": ""
+      },
+      {
+        "name": "Teancum",
+        "email": "teancum@sewyeahquilting.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Very happy with initial results; Kendra upgraded to $6K/month on 9/29 (billing mixup: a duplicate $6K charged to a Test account, reallocated to Fabric Company/Denik through 10/8).",
+    "interest": "Scale ads",
+    "deal_size_hint": "$6,000/mo",
+    "stage": "closed-won",
+    "last_contact_date": "2026-09-29",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Keep reporting; confirm billing reallocation closed",
+    "thread_ids": [
+      "1a0eeef6238f522d",
+      "1a0eecf4bb2aef15"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0eeef6238f522d",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0eecf4bb2aef15"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "ShaktiMat GmbH",
+    "contacts": [
+      {
+        "name": "Stephanos Pantelas",
+        "email": "stephanos@shaktimat.de",
+        "title": "CFO & Co-founder"
+      },
+      {
+        "name": "Dr. Glynn Ryland",
+        "email": "glynn@shaktimat.de",
+        "title": "CEO & Co-founder"
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Initial 3-month contract ended 10/8; 10/6 Stephanos asked to renew to Jan 31 2027 instead of 12 months; Jonathan agreed same day and paperwork to be updated. Glynn on sabbatical until 10/12. Separate creative/geo-targeting and frequency review with StoreYa ongoing (Thueba 10/8).",
+    "interest": "Managed ads incl. France/Shopify Markets, creative",
+    "deal_size_hint": "unknown",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-06",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Send updated renewal paperwork (term to 2027-01-31); resolve geo-targeting/frequency issue",
+    "thread_ids": [
+      "1a10fef5df75d655",
+      "1a11234ad8067036",
+      "1a1126876ee94722"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a10fef5df75d655",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11234ad8067036",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a1126876ee94722"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Shop BB Girl (Kelsey Beeby)",
+    "contacts": [
+      {
+        "name": "Kelsey Beeby",
+        "email": "kelseybeeby@shopbbgirl.com",
+        "title": "Owner"
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "",
+    "summary": "Strategy call 9/4 with Kendra. Package: $1,500 ad spend + 10% mgmt fee; negotiated contract terms (month-to-month, 90-day trial, ROAS 2-4x target not guaranteed). Moved to Ads-Only plan ($1,650/mo total). Kelsey signed via DocuSign, granted platform access 10/7; Kendra sent checkout link 10/8 for account creation + payment.",
+    "interest": "AI Ads only, limited budget, new brand wanting to grow in 2 years",
+    "deal_size_hint": "$1,650/mo ($1,500 spend + $150 fee)",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-08",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Confirm checkout/payment completes, send signed contract copy, begin onboarding and ad setup",
+    "thread_ids": [
+      "1a11d556a5039083"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a11d556a5039083"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "The Fabric Company / Choice Fabrics",
+    "contacts": [
+      {
+        "name": "Chris Lundeen",
+        "email": "chris@choicefabrics.com",
+        "title": ""
+      },
+      {
+        "name": "Cam",
+        "email": "cam@choicefabrics.com",
+        "title": ""
+      }
+    ],
+    "source_label": "A-Pipeline / customer ops (delta sweep)",
+    "referrer": "",
+    "summary": "Budget expanded earlier; ran out of funds, so Kendra paid $8K on 10/7 to avoid a gap (StoreYa expected $2K because $6K from Sew Yeah double payment was available; leftover $6K moved to Denik 10/8).",
+    "interest": "Managed ads at higher budget",
+    "deal_size_hint": "~$8K per cycle",
+    "stage": "closed-won",
+    "last_contact_date": "2026-10-08",
+    "last_from": "us",
+    "owner": "kendra",
+    "next_action": "Confirm funding cadence and next charge",
+    "thread_ids": [
+      "1a0eeef6238f522d"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0eeef6238f522d"
+    ],
+    "type": "customer"
+  },
+  {
+    "company": "Two Sisters Ecotextiles",
+    "contacts": [
+      {
+        "name": "Patty Grossman",
+        "email": "patty@twosistersecotextiles.com",
+        "title": "Co-founder"
+      }
+    ],
+    "source_label": "A-Pipeline (delta sweep)",
+    "referrer": "Santiago Avalos (Apex North)",
+    "summary": "Santiago (Apex North) intro 10/2. Patty emailed 10/2: GOTS-certified upholstery/drapery fabric seller, ~$700K annual revenue, 60%+ gross margin, $1.5M inventory, $400K debt, never promoted the business (organic Google only), wants to sell assets or hire a paid service provider to scale. Jonathan held a Google Meet call 10/6, then on 10/9 sent overview deck, 4 Loom videos, 'Stop the Bleeding' PDF and Ads-Only agreement.",
+    "interest": "Paid ads/SEO to scale a bootstrapped ecommerce fabric brand (alternatively asset sale)",
+    "deal_size_hint": "~$700K revenue brand; ads-only plan likely small ($1.5-3K/mo) - financially constrained",
+    "stage": "proposal or contract sent",
+    "last_contact_date": "2026-10-09",
+    "last_from": "us",
+    "owner": "jonathan",
+    "next_action": "Follow up after Patty reviews videos/agreement; push for 90-day ads-only start; watch cash constraints",
+    "thread_ids": [
+      "1a12152268b7daea",
+      "1a0fec98ecfa6a82",
+      "1a0fe99c6600af2c"
+    ],
+    "thread_urls": [
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a12152268b7daea",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0fec98ecfa6a82",
+      "https://mail.google.com/mail/?authuser=jonathan@foresiteads.com#all/1a0fe99c6600af2c"
+    ],
+    "type": "prospect"
+  }
+]
