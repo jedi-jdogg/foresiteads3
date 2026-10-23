@@ -1,6 +1,14 @@
 {
- "note": "Tenants in the Foresite platform DB with subscription state, pulled 2026-10-09. active/paused = customers; past_due = customer at risk; canceled = churned; null = signed up, never subscribed.",
+ "note": "Tenants in the Foresite platform DB with subscription state, pulled 2026-10-23. active/paused = customers; past_due = customer at risk; canceled = churned; null = signed up, never subscribed.",
  "tenants": [
+  {
+   "id": 102,
+   "name": "kelsey beeby's Business",
+   "created": "2026-10-09",
+   "sub": "active",
+   "plan": "Ads Only",
+   "note": "self-serve signup 10/09, store name not set yet"
+  },
   {
    "id": 101,
    "name": "SOOPA",
@@ -26,9 +34,16 @@
    "id": 97,
    "name": "Niraskin",
    "created": "2026-08-06",
-   "sub": "past_due",
-   "plan": "Ads Only",
-   "note": "payment past due since 2026-10-06"
+   "sub": "active",
+   "plan": "Ads Only"
+  },
+  {
+   "id": 96,
+   "name": "Nira Innovations, Inc.",
+   "created": "2026-08-06",
+   "sub": null,
+   "plan": null,
+   "note": "Same contact as tenant 97 Niraskin (customer)"
   },
   {
    "id": 88,
@@ -132,13 +147,6 @@
    "plan": null
   },
   {
-   "id": 68,
-   "name": "DigiDevice.shop",
-   "created": "2026-03-30",
-   "sub": null,
-   "plan": null
-  },
-  {
    "id": 67,
    "name": "Blueberry Bay Swimwear",
    "created": "2026-03-29",
@@ -160,16 +168,16 @@
    "plan": null
   },
   {
-   "id": 64,
-   "name": "WestCoastAstro.com",
-   "created": "2026-03-19",
+   "id": 63,
+   "name": "Whiz Design",
+   "created": "2026-03-18",
    "sub": null,
    "plan": null
   },
   {
-   "id": 63,
-   "name": "Whiz Design",
-   "created": "2026-03-18",
+   "id": 61,
+   "name": "Nano Dropper",
+   "created": "2026-03-16",
    "sub": null,
    "plan": null
   },
@@ -335,7 +343,7 @@
    "created": "2026-02-28",
    "sub": "active",
    "plan": "Ads Only",
-   "note": "downgraded from Ads + Flows to Ads Only 10/09"
+   "note": "Ads + Flows canceled 2026-10-22; Ads Only still active"
   },
   {
    "id": 28,
@@ -378,7 +386,7 @@
    "name": "The Fabric Company",
    "created": "2026-02-28",
    "sub": "active",
-   "plan": "Ads Only"
+   "plan": "Ad Budget Weekly"
   },
   {
    "id": 22,
@@ -445,14 +453,6 @@
    "plan": null
   },
   {
-   "id": 102,
-   "name": "kelsey beeby's Business",
-   "created": "2026-10-09",
-   "sub": "active",
-   "plan": "Ads Only",
-   "note": "self-serve signup 10/09, store name not set yet"
-  },
-  {
    "id": 13,
    "name": "BetterBrand",
    "created": "2026-02-28",
@@ -460,16 +460,30 @@
    "plan": "Ads + Flows"
   },
   {
+   "id": 12,
+   "name": "Womaness",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 11,
+   "name": "Chella",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
+   "id": 10,
+   "name": "Boos Blankets",
+   "created": "2026-02-28",
+   "sub": null,
+   "plan": null
+  },
+  {
    "id": 9,
    "name": "Barnett Home Decor",
    "created": "2026-02-28",
-   "sub": "active",
-   "plan": "Ads + Flows"
-  },
-  {
-   "id": 5,
-   "name": "HC Quilts",
-   "created": "2026-02-23",
    "sub": "active",
    "plan": "Ads + Flows"
   },
@@ -480,6 +494,13 @@
    "sub": "canceled",
    "plan": "Ads + Flows",
    "note": "canceled 2026-08-19"
+  },
+  {
+   "id": 5,
+   "name": "HC Quilts",
+   "created": "2026-02-23",
+   "sub": "active",
+   "plan": "Ads + Flows"
   }
  ]
 }
