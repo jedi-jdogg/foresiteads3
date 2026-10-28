@@ -9,7 +9,7 @@ if [ "$before" = "$after" ]; then
   echo "Already up to date ($(git -C .. rev-parse --short HEAD))."
 else
   echo "Updated:"; git -C .. log --oneline "$before..$after" -- agent-hub | sed 's/^/  /'
-  npm install --no-audit --no-fund
+  npm ci --no-audit --no-fund
 fi
 echo
 read -n 1 -s -r -p "Press any key to close."

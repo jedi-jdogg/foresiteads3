@@ -35,7 +35,7 @@ fi
 
 if [ ! -d node_modules ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then
   echo "Installing packages (first run only)..."
-  npm install --no-audit --no-fund
+  npm ci --no-audit --no-fund
 fi
 
 if [ ! -f .env ]; then
