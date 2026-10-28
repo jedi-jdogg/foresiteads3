@@ -271,7 +271,7 @@
     <section>
       <h2>Macs <span class="count" id="macCount"></span></h2>
       <div id="machines"><div class="rail-note">Checking…</div></div>
-      <p class="rail-note" style="margin:8px 0 0">Online means the Mac answers on SSH. Work on a Mac runs through Claude Code there, not through this page.</p>
+      <p class="rail-note" style="margin:8px 0 0">Workers on Tailscale. Register and run them in the <a href="#machines">Machines</a> tab.</p>
     </section>
     <section>
       <h2>Connected apps</h2>
@@ -287,6 +287,7 @@
         <a href="#playbook" data-view="playbook">Playbook</a>
         <a href="#scorecard" data-view="scorecard">Scorecard</a>
         <a href="#log" data-view="log">Log</a>
+        <a href="#machines" data-view="machines">Machines</a>
         <a href="#connect" data-view="connect">Connect</a>
       </nav>
       <span class="modebadge" id="modebadge">connecting…</span>
@@ -382,6 +383,19 @@
       </div></div>
     </section>
 
+    <!-- Machines -->
+    <section class="view" id="view-machines">
+      <div class="scroll"><div class="col">
+        <div class="pb-head">
+          <div>
+            <h3>The Macs as workers</h3>
+            <p>Each Mac on your Tailscale network can take work: open a page in its signed-in browser, run a saved script, or hand a task to its own Claude Code. Agents reach them with the same actions, and only these actions, from the Ask tab.</p>
+          </div>
+        </div>
+        <div id="machinesView"></div>
+      </div></div>
+    </section>
+
     <!-- Log -->
     <section class="view" id="view-log">
       <div class="scroll"><div class="col">
@@ -441,6 +455,9 @@ async function http(path, body) {
 const Live = {
   name: 'live',
   roster: () => http('/api/roster'), playbook: () => http('/api/playbook'), machines: () => http('/api/machines'),
+  registerMachine: (b) => http('/api/machines/register', b), removeMachine: (b) => http('/api/machines/remove', b), machineStatus: (b) => http('/api/machines/status', b),
+  runMachine: (b) => http('/api/machines/run', b), jobs: () => http('/api/machines/jobs'), actions: () => http('/api/machines/actions'),
+  setupScript: async () => (await fetch('/api/machines/setup')).text(),
   route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
   feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
   connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body), version: () => http('/api/version'),
@@ -469,9 +486,23 @@ function makeDemo(snapshot) {
   const record = (prompt, result) => { log.unshift({ at: new Date().toISOString(), prompt, mode: result.mode, routing: result.routing, answers: result.answers.map((x) => x.id), synthesis: Boolean(result.synthesis) }); };
   return {
     name: 'preview',
-    roster: async () => ({ agents, machines: snapshot.machines, connectors: snapshot.connectors, whenUnsure: 'ask' }),
+    roster: async () => ({ agents, connectors: snapshot.connectors, whenUnsure: 'ask' }),
     playbook: async () => snapshot.playbook,
-    machines: async () => snapshot.machines.map((m, i) => ({ ...m, online: i < 3 })),
+    machines: async () => ({ tailscale: true, self: { host: 'hub-mac.tailnet.ts.net' }, machines: [
+      { id: 'mac-1', name: 'Mac 1', host: 'mac-1.tailnet.ts.net', user: 'jonathan', note: 'Chrome signed in to Shopify admin', online: true, running: 1 },
+      { id: 'mac-2', name: 'Mac 2', host: 'mac-2.tailnet.ts.net', user: 'jonathan', note: 'general purpose', online: true, running: 0 },
+      { id: 'mac-3', name: 'Mac 3', host: 'mac-3.tailnet.ts.net', user: 'jonathan', note: 'general purpose', online: false, running: 0 } ],
+      unregistered: [{ host: 'mac-4.tailnet.ts.net', name: 'mac-4', online: true }] }),
+    registerMachine: async () => { throw new Error('Preview only: register Macs on the hub Mac.'); },
+    removeMachine: async () => ({ ok: true }), machineStatus: async ({ id }) => ({ id, ok: true, ms: 420, uptime: 'up 3 days', disk: '/dev/disk3 460G 210G 250G 46%', macos: '15.6', claude: '2.1.x (Claude Code)', scripts: ['report.sh'] }),
+    runMachine: async ({ id, action }) => ({ machine: id, action, ok: true, job: 'ab12cd34', status: 'running', note: 'Sample: running in the background.' }),
+    jobs: async () => [{ id: 'ab12cd34', machine: 'mac-1', action: 'claude', args: { prompt: 'Export last month\'s Klaviyo campaign stats to a CSV' }, status: 'running', startedAt: new Date().toISOString(), output: 'Reading campaigns… 42 found. Writing csv…' }],
+    actions: async () => [
+      { id: 'status', label: 'Status', kind: 'shell', description: 'Uptime, disk, macOS version and whether Claude Code is installed.' },
+      { id: 'open-url', label: 'Open a URL', kind: 'open-url', description: 'Open a web page in that Mac\'s default browser.', args: { url: 'https://…' } },
+      { id: 'script', label: 'Run a saved script', kind: 'script', description: 'Run a shell script from ~/agent-hub-jobs on that Mac.', args: { name: 'file.sh' } },
+      { id: 'claude', label: 'Claude Code task', kind: 'claude', description: 'Give that Mac\'s Claude Code a task to do on its own.', args: { prompt: 'What to do' } } ],
+    setupScript: async () => '# Preview: the real script, with the hub\'s key inside, comes from the hub Mac.',
     route: async (prompt) => routeLocal(prompt, agents, snapshot.playbook),
     ask: async ({ prompt, mode = 'auto', agentId, agents: ids, history, whenUnsure = 'ask' }) => {
       let result;
@@ -564,10 +595,7 @@ async function boot() {
     $('#starter').insertAdjacentHTML('afterbegin', '<div class="notice"><b>No agents connected yet.</b> Open the <a href="#connect">Connect</a> tab, paste each key and test it. Until then every request will fail.</div>');
   }
   showView(location.hash.slice(1) || 'ask');
-  api.machines().then((ms) => {
-    $('#macCount').textContent = `${ms.filter((m) => m.online).length}/${ms.length} online`;
-    $('#machines').innerHTML = ms.map((m) => `<div class="mac"><span class="dot ${m.online ? 'on' : ''}"></span><span>${esc(m.name)}</span><span class="use">${esc(m.use)}</span></div>`).join('');
-  });
+  refreshRailMachines();
 }
 
 function renderAgents(pick) {
@@ -605,13 +633,109 @@ function renderPlaybook(hit) {
 }
 
 function showView(v) {
-  if (!['ask', 'playbook', 'scorecard', 'log', 'connect'].includes(v)) v = 'ask';
+  if (!['ask', 'playbook', 'scorecard', 'log', 'connect', 'machines'].includes(v)) v = 'ask';
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('on', el.id === `view-${v}`));
   document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
   if (v === 'scorecard') renderScorecard();
   if (v === 'log') renderLog();
   if (v === 'connect') { renderConnect(); renderSources(); fillModels(); }
+  if (v === 'machines') renderMachines();
 }
+
+// ───────────────────────── machines ─────────────────────────
+let machineActions = [];
+async function refreshRailMachines() {
+  try {
+    const o = await api.machines();
+    const ms = o.machines ?? [];
+    $('#macCount').textContent = ms.length ? `${ms.filter((m) => m.online).length}/${ms.length} online` : 'none yet';
+    $('#machines').innerHTML = ms.length ? ms.map((m) => `<div class="mac"><span class="dot ${m.online ? 'on' : ''}"></span><span>${esc(m.name)}</span><span class="use">${m.running ? `${m.running} running` : esc(m.note || '')}</span></div>`).join('')
+      : `<div class="rail-note">No Macs registered. ${o.tailscale ? `${o.unregistered?.length ?? 0} seen on Tailscale.` : 'Tailscale not found on this Mac.'}</div>`;
+  } catch { $('#machines').innerHTML = '<div class="rail-note">Could not reach the hub.</div>'; }
+}
+async function renderMachines() {
+  const [o, jobs, actions] = await Promise.all([api.machines(), api.jobs(), api.actions()]);
+  machineActions = actions;
+  const el = $('#machinesView');
+  const notice = api.name !== 'live' ? '<div class="notice"><b>Preview.</b> Sample Macs below. On the hub Mac this tab shows your Tailscale network and runs real actions.</div>'
+    : !o.tailscale ? `<div class="notice"><b>Tailscale not found on this Mac.</b> Install it from tailscale.com and sign in; the hub finds the other Macs through it.</div>` : '';
+  const cards = o.machines.map((m) => `<div class="conn mach" data-id="${m.id}" style="--c:${m.online ? 'var(--good)' : 'var(--off)'}"><span class="stripe"></span><div>
+      <div class="head"><b>${esc(m.name)}</b><span class="vendor">${esc(m.host)} · ${esc(m.user)}</span>
+        <span class="status ${m.online ? 'ok' : m.online === null ? 'missing' : ''}">${m.online ? 'online' : m.online === null ? 'not on tailscale' : 'offline'}</span></div>
+      <div class="where">${esc(m.note || 'general purpose')}${m.running ? ` · <b>${m.running} job${m.running > 1 ? 's' : ''} running</b>` : ''}</div>
+      <div class="row2">
+        <select class="actsel" aria-label="Action">${actions.map((a) => `<option value="${a.id}">${esc(a.label)}</option>`).join('')}</select>
+        <input class="actarg" placeholder="argument (URL, script name, or task)" style="flex:1;min-width:200px">
+        <button type="button" class="save" data-act="run">Run</button>
+        <button type="button" class="test" data-act="status">Check</button>
+        <button type="button" class="test" data-act="remove" title="Remove from the hub (does not touch the Mac)">Remove</button>
+      </div>
+      <div class="msg" id="machmsg-${m.id}" style="margin-top:6px;white-space:pre-wrap"></div>
+    </div></div>`).join('');
+  const unreg = (o.unregistered ?? []).map((p) => `<div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
+      <div class="head"><b>${esc(p.name ?? p.host)}</b><span class="vendor">${esc(p.host)}</span><span class="status ${p.online ? 'ok' : ''}">${p.online ? 'online' : 'offline'} · on Tailscale, not registered</span></div>
+      <div class="fields two"><label>Id<input id="reg-id-${esc(p.name)}" value="${esc((p.name ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '-'))}"></label><label>macOS user<input id="reg-user-${esc(p.name)}" placeholder="short name, e.g. jonathan"></label>
+        <label>Name<input id="reg-name-${esc(p.name)}" value="${esc(p.name ?? '')}"></label><label>What it is for / has signed in<input id="reg-note-${esc(p.name)}" placeholder="general purpose"></label></div>
+      <div class="row2"><button type="button" class="save" data-reg="${esc(p.name)}" data-host="${esc(p.host)}">Register</button><span class="msg" id="regmsg-${esc(p.name)}"></span></div>
+    </div></div>`).join('');
+  const jobRows = jobs.length ? jobs.map((j) => `<div class="logrow"><span class="t">${esc(new Date(j.startedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))}</span>
+      <span class="p"><b>${esc(j.machine)}</b> · ${esc(j.action)} ${j.args?.prompt ? '· ' + esc(j.args.prompt.slice(0, 80)) : j.args?.name ? '· ' + esc(j.args.name) : ''}<br><span class="hint" style="white-space:pre-wrap">${esc((j.output || '').slice(-300))}</span></span>
+      <span class="r"><span class="chip" style="color:${j.status === 'done' ? 'var(--good)' : j.status === 'running' ? 'var(--accent)' : 'var(--bad)'}">${esc(j.status)}</span></span></div>`).join('')
+    : '<div class="empty">No jobs yet this session.</div>';
+  el.innerHTML = `${notice}
+    <h2 style="margin-top:4px">Registered Macs <span class="count">${o.self ? 'hub: ' + esc(o.self.host) : ''}</span></h2>
+    ${cards || '<div class="empty">None yet. Macs on your Tailscale network appear below; register each one after running the setup script on it.</div>'}
+    <h2 style="margin-top:26px">On Tailscale, not yet registered</h2>
+    ${unreg || '<div class="empty">Every Mac Tailscale can see is registered.</div>'}
+    <h2 style="margin-top:26px">Set up a new worker Mac</h2>
+    <div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
+      <div class="where">On the new Mac: install Tailscale and sign in, then paste this script into Terminal. It turns on Remote Login, trusts this hub's key, installs Claude Code and creates the jobs folder. Then register the Mac above.</div>
+      <div class="row2"><button type="button" class="save" id="copySetup">Copy setup script</button><button type="button" class="test" id="showSetup">Show</button><span class="msg" id="setupmsg"></span></div>
+      <pre id="setupText" hidden style="font:12px var(--mono);white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:40vh;overflow:auto"></pre>
+    </div></div>
+    <h2 style="margin-top:26px">Jobs</h2>${jobRows}`;
+  refreshRailMachines();
+}
+$('#machinesView').addEventListener('click', async (e) => {
+  const reg = e.target.closest('button[data-reg]');
+  if (reg) {
+    const k = reg.dataset.reg, msg = $(`#regmsg-${CSS.escape(k)}`);
+    try {
+      await api.registerMachine({ id: $(`#reg-id-${CSS.escape(k)}`).value.trim(), host: reg.dataset.host, user: $(`#reg-user-${CSS.escape(k)}`).value.trim(), name: $(`#reg-name-${CSS.escape(k)}`).value.trim(), note: $(`#reg-note-${CSS.escape(k)}`).value.trim() });
+      renderMachines();
+    } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+    return;
+  }
+  if (e.target.id === 'copySetup' || e.target.id === 'showSetup') {
+    const text = await api.setupScript();
+    if (e.target.id === 'showSetup') { $('#setupText').textContent = text; $('#setupText').hidden = !$('#setupText').hidden; return; }
+    try { await navigator.clipboard.writeText(text); $('#setupmsg').className = 'msg ok'; $('#setupmsg').textContent = 'Copied. Paste it into Terminal on the new Mac.'; }
+    catch { $('#setupText').textContent = text; $('#setupText').hidden = false; $('#setupmsg').textContent = 'Select the text below and copy it.'; }
+    return;
+  }
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const box = btn.closest('.mach'), id = box.dataset.id, msg = $(`#machmsg-${id}`);
+  if (btn.dataset.act === 'remove') { await api.removeMachine({ id }); renderMachines(); return; }
+  box.querySelectorAll('button').forEach((b) => (b.disabled = true));
+  msg.className = 'msg'; msg.textContent = 'Working…';
+  try {
+    if (btn.dataset.act === 'status') {
+      const r = await api.machineStatus({ id });
+      msg.className = `msg ${r.ok ? 'ok' : 'bad'}`;
+      msg.textContent = r.ok ? `${r.uptime}\n${r.disk}\nmacOS ${r.macos} · ${r.claude}${r.scripts?.length ? '\nscripts: ' + r.scripts.join(', ') : ''}` : r.error;
+    } else {
+      const action = box.querySelector('.actsel').value, arg = box.querySelector('.actarg').value.trim();
+      const def = machineActions.find((a) => a.id === action);
+      const argKey = def?.args ? Object.keys(def.args)[0] : null;
+      const r = await api.runMachine({ id, action, args: argKey ? { [argKey]: arg } : {} });
+      msg.className = `msg ${r.ok ? 'ok' : 'bad'}`;
+      msg.textContent = r.ok ? (r.job ? `Started job ${r.job}. ${r.note}` : r.output || 'Done.') : r.error;
+      if (r.job) setTimeout(renderMachines, 1500);
+    }
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+  finally { box.querySelectorAll('button').forEach((b) => (b.disabled = false)); }
+});
 
 // ───────────────────────── connect ─────────────────────────
 async function fillModels() {

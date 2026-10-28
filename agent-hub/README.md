@@ -120,6 +120,30 @@ How agents use them:
 To add a source: a module in `src/sources/` exporting `test(creds)` and `tools(creds)`, and an entry in
 `sources.json`. A vendor with an MCP server needs no code: copy the `foresite` entry and change the env names.
 
+## The Macs as workers
+
+The **Machines** tab turns the Macs into a pool of workers any agent can use. Networking is Tailscale (install
+it on every Mac, same account); control is SSH with a key the hub generates; the AI hands on each Mac are
+Claude Code, run headless with that Mac's own Claude login.
+
+Setting up a worker: on the new Mac, install Tailscale and sign in, then paste the script from **Machines →
+Copy setup script** into Terminal. It turns on Remote Login, trusts the hub's key (and only that key), installs
+Claude Code and creates `~/agent-hub-jobs`. Then register the Mac in the tab (it appears under "on Tailscale,
+not yet registered") with its macOS user name and a note on what it is for.
+
+What can run on a worker is the allowlist in [`actions.json`](actions.json), and nothing else:
+
+| Action | What it does |
+|---|---|
+| `status`, `whoami` | Health and who is signed in |
+| `open-url` | Open a web page in that Mac's default browser (useful where it is signed in to something) |
+| `script` | Run a shell script from `~/agent-hub-jobs` on that Mac. You put scripts there; agents can only run what exists |
+| `claude` | Hand that Mac's Claude Code a task to do on its own, inside `~/agent-hub-jobs/work` |
+
+Agents see the same actions as tools (`machines__list`, `machines__run`, `machines__job`). Long actions run
+in the background and report back as jobs; the tab shows them. The registry of Macs is `machines.json`
+(per install, not committed) and job output lands in `logs/jobs/`.
+
 ## Connectors and the Macs
 
 The hub calls each agent's API. That keeps it simple and safe, but an API call does not carry your
@@ -238,6 +262,7 @@ without putting authentication in front of it.
 | `agents.json` | The roster: agents, Macs, connectors |
 | `playbook.json` | Which agent takes which kind of work, and why |
 | `sources.json`, `src/sources/` | Data sources and the tools they expose to agents |
+| `actions.json`, `src/machines.js`, `worker/setup-worker.sh` | The Macs as workers: allowlist, Tailscale/SSH control, worker setup |
 | `src/router.js` | Matches requests to plays; decides go or recommend |
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |

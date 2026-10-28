@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const run = promisify(execFile);
-import { publicAgent, checkMachine, saveEnv } from './registry.js';
+import { publicAgent, saveEnv } from './registry.js';
 import { randomBytes } from 'node:crypto';
 
 const oauthStates = new Map();
@@ -31,10 +31,24 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       const url = new URL(req.url, 'http://hub');
       if (req.method === 'GET' && url.pathname === '/') return send(200, await renderPage(hub), 'text/html; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/api/roster') {
-        return send(200, { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors, whenUnsure: hub.whenUnsure });
+        return send(200, { agents: hub.agents.map(publicAgent), connectors: hub.roster.connectors, whenUnsure: hub.whenUnsure });
       }
-      if (req.method === 'GET' && url.pathname === '/api/machines') {
-        return send(200, await Promise.all((hub.roster.machines ?? []).map((m) => checkMachine(m))));
+      if (req.method === 'GET' && url.pathname === '/api/machines') return send(200, await hub.machines.overview());
+      if (req.method === 'POST' && url.pathname === '/api/machines/register') return send(200, await hub.machines.register(await readJson(req)));
+      if (req.method === 'POST' && url.pathname === '/api/machines/remove') { await hub.machines.remove((await readJson(req)).id); return send(200, { ok: true }); }
+      if (req.method === 'POST' && url.pathname === '/api/machines/status') return send(200, await hub.machines.status((await readJson(req)).id));
+      if (req.method === 'POST' && url.pathname === '/api/machines/run') {
+        const { id, action, args } = await readJson(req);
+        return send(200, await hub.machines.runAction(id, action, args ?? {}));
+      }
+      if (req.method === 'GET' && url.pathname === '/api/machines/jobs') return send(200, hub.machines.recentJobs());
+      if (req.method === 'GET' && url.pathname === '/api/machines/job') return send(200, hub.machines.job(url.searchParams.get('id')));
+      if (req.method === 'GET' && url.pathname === '/api/machines/actions') return send(200, await hub.machines.actions());
+      if (req.method === 'GET' && url.pathname === '/api/machines/setup') {
+        const pubkey = await hub.machines.ensureKey();
+        const ts = await hub.machines.tailscale();
+        const script = await hub.machines.setupScript({ hubHost: ts.self?.host, pubkey, hubUser: process.env.USER });
+        return send(200, script, 'text/plain; charset=utf-8');
       }
       if (req.method === 'POST' && url.pathname === '/api/route') {
         const { prompt, smart } = await readJson(req);

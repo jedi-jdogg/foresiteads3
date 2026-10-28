@@ -2,6 +2,7 @@ import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import { route, councilFor } from './router.js';
 import { resolveAgent, saveEnv } from './registry.js';
 import { Sources, loadSources, publicSource } from './sources/registry.js';
+import { Machines } from './machines.js';
 import { askClaude } from './providers/anthropic.js';
 import { askOpenAICompatible } from './providers/openai-compatible.js';
 import { askPerplexity } from './providers/perplexity.js';
@@ -22,7 +23,8 @@ export class Hub {
     this.playbook = roster.playbook;
     this.log = log;
     this.whenUnsure = whenUnsure;
-    this.sources = new Sources(roster.sources ?? []);
+    this.machines = new Machines();
+    this.sources = new Sources(roster.sources ?? [], process.env, { machines: this.machines });
   }
 
   agent(id) {

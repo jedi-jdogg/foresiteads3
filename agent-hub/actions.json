@@ -1,0 +1,10 @@
+{
+  "about": "Everything an agent (or the Machines tab) may run on a worker Mac. Nothing outside this list runs. kinds: shell = fixed command; open-url = open a link in the default browser; script = a file from ~/agent-hub-jobs on that Mac; claude = a headless Claude Code task on that Mac, using its own Claude login.",
+  "actions": [
+    { "id": "status", "kind": "shell", "label": "Status", "description": "Uptime, disk, macOS version and whether Claude Code is installed.", "command": "uptime; df -h / | tail -1; sw_vers -productVersion; (command -v claude >/dev/null && claude --version) || echo 'claude: not installed'", "timeoutSec": 15 },
+    { "id": "whoami", "kind": "shell", "label": "Who is signed in", "description": "The macOS user and whether the screen is locked.", "command": "whoami; hostname; python3 -c \"import Quartz;print('screen locked' if Quartz.CGSessionCopyCurrentDictionary().get('CGSSessionScreenIsLocked') else 'screen unlocked')\" 2>/dev/null || echo 'lock state unknown'", "timeoutSec": 15 },
+    { "id": "open-url", "kind": "open-url", "label": "Open a URL", "description": "Open a web page in that Mac's default browser (for a signed-in session there).", "args": { "url": "https://…" }, "timeoutSec": 15 },
+    { "id": "script", "kind": "script", "label": "Run a saved script", "description": "Run a shell script from ~/agent-hub-jobs on that Mac. Put scripts there yourself; agents can only run what exists.", "args": { "name": "file.sh" }, "timeoutSec": 1800 },
+    { "id": "claude", "kind": "claude", "label": "Claude Code task", "description": "Give that Mac's Claude Code a task to do on its own (headless), in ~/agent-hub-jobs/work. Uses that Mac's Claude subscription login.", "args": { "prompt": "What to do" }, "flags": "--permission-mode acceptEdits", "timeoutSec": 1800 }
+  ]
+}

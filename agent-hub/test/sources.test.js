@@ -10,7 +10,7 @@ const defs = await loadSources();
 
 test('every source has a module, envs and a valid mentions pattern', () => {
   for (const s of defs) {
-    assert.ok(s.module && s.envs.length, s.id);
+    assert.ok(s.module && Array.isArray(s.envs), s.id);
     if (s.mentions) new RegExp(s.mentions, 'i');
   }
 });

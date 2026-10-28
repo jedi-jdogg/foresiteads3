@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
 import { existsSync } from 'node:fs';
-import { loadRoster, checkMachine } from '../src/registry.js';
+import { loadRoster } from '../src/registry.js';
 import { Hub } from '../src/hub.js';
 
 // Pick up keys from agent-hub/.env when present, without overriding variables already set.
@@ -28,7 +28,7 @@ if (values.help || !cmd) {
 
   agent-hub serve [--port 4747 --host 127.0.0.1]   Open the web console
   agent-hub agents                                  Roster, and which agents have keys
-  agent-hub machines                                Which Macs answer on SSH
+  agent-hub machines                                Registered Macs and what Tailscale sees
   agent-hub playbook                                Which agent takes which kind of work, and why
   agent-hub route "<request>" [--smart]             Show the play, the pick and the confidence (no API call unless --smart)
   agent-hub ask "<request>"                         Follow the playbook: answer, or recommend when it is a close call
@@ -56,9 +56,11 @@ if (cmd === 'serve') {
     console.log(`${a.id.padEnd(11)} ${a.name.padEnd(11)} ${state.padEnd(28)} ${a.role}`);
   }
 } else if (cmd === 'machines') {
-  for (const m of await Promise.all(hub.roster.machines.map((m) => checkMachine(m)))) {
-    console.log(`${m.id.padEnd(6)} ${m.host.padEnd(16)} ${m.online ? 'online ' : 'offline'}  ${m.agent} · ${m.use}`);
-  }
+  const o = await hub.machines.overview();
+  if (!o.tailscale) console.log(`! ${o.tailscaleError}`);
+  if (!o.machines.length) console.log('No Macs registered yet. Use the Machines tab in the console.');
+  for (const m of o.machines) console.log(`${m.id.padEnd(8)} ${m.host.padEnd(28)} ${m.online === null ? 'not on tailscale' : m.online ? 'online ' : 'offline'}  ${m.name}${m.note ? ' · ' + m.note : ''}`);
+  for (const p of o.unregistered) console.log(`         ${p.host.padEnd(28)} ${p.online ? 'online ' : 'offline'}  (on Tailscale, not registered)`);
 } else if (cmd === 'playbook') {
   for (const p of hub.playbook.plays) {
     const chain = [p.primary, ...(p.backup ?? [])].map(name).join(' → ');

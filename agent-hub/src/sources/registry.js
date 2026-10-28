@@ -11,6 +11,7 @@ const MODULES = {
   google: () => import('./google.js'),
   vistasocial: () => import('./vistasocial.js'),
   mcp: () => import('./mcp.js'),
+  machines: () => import('./machines.js'),
 };
 
 export async function loadSources(path = SOURCES_PATH) {
@@ -19,6 +20,7 @@ export async function loadSources(path = SOURCES_PATH) {
 
 // Fill in credentials from the environment. A source is connected when every required env is set.
 export function resolveSource(source, env = process.env) {
+  if (source.auth === 'local') return { ...source, creds: {}, missing: [], connected: Boolean(source.localReady), needsAuth: false };
   const creds = Object.fromEntries(source.envs.map((e) => [e.key, env[e.key] || undefined]));
   const missing = source.envs.filter((e) => !e.optional && !e.managed && !creds[e.key]).map((e) => e.key);
   // OAuth sources also need the token the consent flow stores.
@@ -27,19 +29,21 @@ export function resolveSource(source, env = process.env) {
 }
 
 // Never send credentials to the browser; say which fields are set.
-export function publicSource({ creds, ...rest }) {
+export function publicSource({ creds, machines, ...rest }) {
   return { ...rest, set: Object.fromEntries(Object.entries(creds).map(([k, v]) => [k, Boolean(v)])) };
 }
 
 export class Sources {
-  constructor(defs, env = process.env) {
+  constructor(defs, env = process.env, { machines } = {}) {
     this.defs = defs;
     this.env = env;
+    this.machines = machines;
     this.refresh();
   }
 
   refresh() {
-    this.list = this.defs.map((d) => resolveSource(d, this.env));
+    this.list = this.defs.map((d) => resolveSource(d.auth === 'local' ? { ...d, localReady: Boolean(this.machines) } : d, this.env));
+    for (const s of this.list) if (s.auth === 'local') s.machines = this.machines;
     this.cache = new Map();
   }
 
@@ -59,6 +63,7 @@ export class Sources {
   async tools() {
     const out = [];
     for (const s of this.list.filter((x) => x.connected)) {
+      if (s.auth === 'local' && this.machines && !(await this.machines.list()).length) continue;
       try {
         const mod = await this.module(s);
         for (const t of await mod.tools(s.creds, s)) {

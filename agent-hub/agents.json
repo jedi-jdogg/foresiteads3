@@ -143,48 +143,6 @@
       ]
     }
   ],
-  "machines": [
-    {
-      "id": "mac-1",
-      "name": "Mac 1",
-      "host": "mac-1.local",
-      "access": "ssh",
-      "agent": "claude",
-      "use": "Claude Code / Remote Control"
-    },
-    {
-      "id": "mac-2",
-      "name": "Mac 2",
-      "host": "mac-2.local",
-      "access": "ssh",
-      "agent": "claude",
-      "use": "Claude Code / Remote Control"
-    },
-    {
-      "id": "mac-3",
-      "name": "Mac 3",
-      "host": "mac-3.local",
-      "access": "ssh",
-      "agent": "openai",
-      "use": "ChatGPT desktop"
-    },
-    {
-      "id": "mac-4",
-      "name": "Mac 4",
-      "host": "mac-4.local",
-      "access": "ssh",
-      "agent": "grok",
-      "use": "Browser sessions"
-    },
-    {
-      "id": "mac-5",
-      "name": "Mac 5",
-      "host": "mac-5.local",
-      "access": "ssh",
-      "agent": "perplexity",
-      "use": "Perplexity Comet / research"
-    }
-  ],
   "connectors": [
     "Shopify",
     "Klaviyo",
