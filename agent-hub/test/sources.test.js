@@ -129,3 +129,35 @@ test('shopify tools expose the expected set', async () => {
   const names = (await shopifyTools({ SHOPIFY_STORE: 'x', SHOPIFY_ADMIN_TOKEN: 'y' })).map((t) => t.name);
   assert.deepEqual(names, ['sales_summary', 'top_products', 'search_products', 'recent_orders', 'low_stock']);
 });
+
+test('Perplexity Agent API: preset request, output_text and search_results sources', async (t) => {
+  const { askPerplexity } = await import('../src/providers/perplexity.js');
+  const seen = [];
+  const server = createServer(async (req, res) => {
+    let body = ''; for await (const c of req) body += c;
+    seen.push({ url: req.url, auth: req.headers.authorization, json: JSON.parse(body) });
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ id: 'r1', status: 'completed', model: 'perplexity/sonar', usage: { input_tokens: 5, output_tokens: 7 },
+      output: [
+        { type: 'search_results', results: [{ url: 'https://example.com/a', title: 'A' }, { url: 'https://example.com/b' }] },
+        { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'CPMs rose 12% in Q4.', annotations: [] }] },
+      ] }));
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  t.after(() => server.close());
+  const agent = { id: 'perplexity', provider: 'perplexity', apiKey: 'pplx-k', model: 'preset:fast', baseURL: `http://127.0.0.1:${server.address().port}/v1` };
+  const out = await askPerplexity(agent, { system: 'brief', messages: [{ role: 'user', content: 'Are Meta CPMs up?' }] });
+  assert.equal(seen[0].url, '/v1/agent');
+  assert.equal(seen[0].auth, 'Bearer pplx-k');
+  assert.equal(seen[0].json.preset, 'fast');
+  assert.equal(seen[0].json.tools, undefined);
+  assert.equal(seen[0].json.instructions, 'brief');
+  assert.deepEqual(seen[0].json.input, [{ role: 'user', content: 'Are Meta CPMs up?' }]);
+  assert.match(out.text, /^CPMs rose 12% in Q4\./);
+  assert.match(out.text, /\[1\] https:\/\/example.com\/a\n\[2\] https:\/\/example.com\/b$/);
+
+  // A model slug adds the web_search tool.
+  await askPerplexity({ ...agent, model: 'perplexity/sonar' }, { messages: [{ role: 'user', content: 'x' }] });
+  assert.equal(seen[1].json.model, 'perplexity/sonar');
+  assert.deepEqual(seen[1].json.tools, [{ type: 'web_search' }]);
+});

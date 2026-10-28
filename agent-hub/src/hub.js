@@ -4,6 +4,7 @@ import { resolveAgent, saveEnv } from './registry.js';
 import { Sources, loadSources, publicSource } from './sources/registry.js';
 import { askClaude } from './providers/anthropic.js';
 import { askOpenAICompatible } from './providers/openai-compatible.js';
+import { askPerplexity } from './providers/perplexity.js';
 
 const LOG_DIR = new URL('../logs/', import.meta.url);
 const FEEDBACK = new URL('feedback.jsonl', LOG_DIR);
@@ -108,7 +109,7 @@ fits two plays with different agents about equally. Suggest a council only when 
     if (!agent.callable) return { id: agentId, ok: false, error: `Missing ${agent.apiKey ? agent.baseURLEnv : agent.keyEnv}.` };
     const started = Date.now();
     const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
-    const attempt = (model) => agent.provider === 'anthropic' ? askClaude({ ...agent, model }, { ...req, effort: 'low' }) : askOpenAICompatible({ ...agent, model }, req);
+    const attempt = (model) => provider(agent.provider)({ ...agent, model }, { ...req, effort: 'low' });
     const tried = [];
     let lastErr;
     for (const model of [agent.model, ...(agent.altModels ?? []).filter((m) => m !== agent.model)]) {
@@ -157,7 +158,7 @@ marketing performance or customers rather than guessing; say which source each f
       }
     }
     const req = { system, messages: [...history, { role: 'user', content: prompt }], tools: agent.tools ? tools : [], exec };
-    const out = agent.provider === 'anthropic' ? await askClaude(agent, req) : await askOpenAICompatible(agent, req);
+    const out = await provider(agent.provider)(agent, req);
     const used = [...(out.used ?? []), ...prefetched.map((p) => ({ name: p.name, prefetched: true, ok: p.ok, ms: p.ms }))];
     return { ...out, used, ms: Date.now() - started };
   }
@@ -262,6 +263,12 @@ and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${pa
     }
     return [...tally.values()].sort((a, b) => a.play.localeCompare(b.play) || (b.up - b.down) - (a.up - a.down));
   }
+}
+
+function provider(name) {
+  if (name === 'anthropic') return askClaude;
+  if (name === 'perplexity') return askPerplexity;
+  return askOpenAICompatible;
 }
 
 // Turn provider errors into a line that says what to do.

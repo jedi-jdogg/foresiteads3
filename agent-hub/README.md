@@ -190,7 +190,7 @@ and their work goes to the next best agent, so you can start with one or two.
 | Claude | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys |
 | ChatGPT | `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 | Grok | `XAI_API_KEY` | [console.x.ai](https://console.x.ai) |
-| Perplexity | `PERPLEXITY_API_KEY` | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api) |
+| Perplexity | `PERPLEXITY_API_KEY` | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api), and add prepaid API credits there (separate from Perplexity Pro) |
 | Muse | `MUSE_API_KEY` and `MUSE_BASE_URL` | Meta's developer console for the Meta Model API: the key, and the OpenAI-compatible endpoint it lists |
 
 API keys are billed separately from ChatGPT Plus, Grok, Perplexity Pro or Claude subscriptions; each

@@ -22,18 +22,18 @@
       "name": "Perplexity",
       "vendor": "Perplexity",
       "role": "Researcher. Live web search with cited sources.",
-      "provider": "openai-compatible",
-      "baseURL": "https://api.perplexity.ai",
-      "model": "sonar-pro",
+      "provider": "perplexity",
+      "baseURL": "https://api.perplexity.ai/v1",
+      "model": "preset:fast",
       "modelEnv": "PERPLEXITY_MODEL",
       "keyEnv": "PERPLEXITY_API_KEY",
-      "notes": "Use when the answer depends on what is on the web today, or when you need sources you can click.",
+      "notes": "Uses the Perplexity Agent API (the Sonar chat endpoint was retired in September 2026). \"preset:fast\" bundles web search; a model slug like perplexity/sonar adds the web_search tool.",
       "keyUrl": "https://www.perplexity.ai/settings/api",
-      "keyHint": "Perplexity → Settings → API. Starts with pplx-.",
+      "keyHint": "Perplexity → Settings → API → generate key (pplx-…). The API is prepaid: add credits there too.",
       "tools": false,
       "altModels": [
-        "sonar",
-        "sonar-reasoning"
+        "perplexity/sonar",
+        "preset:low"
       ]
     },
     {
