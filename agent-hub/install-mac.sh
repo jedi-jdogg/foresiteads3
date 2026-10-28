@@ -34,12 +34,20 @@ if ! command -v node >/dev/null 2>&1 || [ "$(node -p 'typeof process.loadEnvFile
   export PATH="/usr/local/bin:$PATH"
 fi
 
-# 3. GitHub CLI, for a browser sign-in instead of tokens
+# 3. GitHub CLI, for a browser sign-in instead of tokens. Unpacked into ~/.agent-hub, no admin password needed.
+export PATH="$HOME/.agent-hub/bin:$PATH"
 if ! command -v gh >/dev/null 2>&1; then
   GH_TAG=$(curl -fsSLI -o /dev/null -w '%{redirect_url}' https://github.com/cli/cli/releases/latest | grep -o 'v[0-9.]*$' | tr -d v)
   GH_TAG=${GH_TAG:-2.86.0}
-  pkg_install "https://github.com/cli/cli/releases/download/v${GH_TAG}/gh_${GH_TAG}_macOS_universal.pkg" "GitHub CLI"
-  export PATH="/usr/local/bin:$PATH"
+  say "Downloading the GitHub tool…"
+  tmp=$(mktemp -d)
+  ARCH=$([ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64)
+  curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_TAG}/gh_${GH_TAG}_macOS_${ARCH}.zip" -o "$tmp/gh.zip"
+  mkdir -p "$HOME/.agent-hub/bin"
+  unzip -q -o "$tmp/gh.zip" -d "$tmp"
+  cp "$tmp"/gh_*/bin/gh "$HOME/.agent-hub/bin/gh"
+  chmod +x "$HOME/.agent-hub/bin/gh"
+  rm -rf "$tmp"
 fi
 if ! gh auth status >/dev/null 2>&1; then
   say "Sign in to GitHub: a code will appear below, your browser will open, paste the code there."
