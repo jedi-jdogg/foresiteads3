@@ -12,18 +12,19 @@ export async function loadRoster(path = ROSTER_PATH, env = process.env) {
 // Fill in model, base URL and key from the environment; an agent without a key is listed but not callable.
 export function resolveAgent(agent, env = process.env) {
   const key = agent.keyEnv ? env[agent.keyEnv] : undefined;
+  const baseURL = (agent.baseURLEnv && env[agent.baseURLEnv]) || agent.baseURL;
   return {
     ...agent,
     model: (agent.modelEnv && env[agent.modelEnv]) || agent.model,
-    baseURL: (agent.baseURLEnv && env[agent.baseURLEnv]) || agent.baseURL,
+    baseURL,
     apiKey: key || undefined,
-    callable: agent.provider !== 'handoff' && Boolean(key),
+    callable: agent.provider !== 'handoff' && Boolean(key) && (!agent.requiresBaseURL || Boolean(baseURL)),
   };
 }
 
 // What the browser and CLI may see: never the key.
 export function publicAgent({ apiKey, ...rest }) {
-  return { ...rest, configured: Boolean(apiKey) };
+  return { ...rest, configured: Boolean(apiKey), missing: rest.callable ? null : apiKey ? rest.baseURLEnv : rest.keyEnv };
 }
 
 // TCP check on the SSH port. Says whether a Mac is reachable, nothing more.

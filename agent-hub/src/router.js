@@ -7,7 +7,6 @@ export const SIGNALS = [
   { skill: 'social', label: 'social / X conversation', re: /\b(twitter|tweets?|x\.com|on x\b|viral|trending|sentiment|reddit|tiktok|influencers?|hashtags?)\b/i },
   { skill: 'meta-ads', label: 'Facebook / Instagram', re: /\b(facebook|instagram|meta ads?|reels?|whatsapp|threads app|fb ads?|ig)\b/i },
   { skill: 'images', label: 'image work', re: /\b(images?|logo|picture|illustrat\w*|photo\w*|graphic|thumbnail|mock-?up|render)\b/i },
-  { skill: 'video', label: 'video library', re: /\b(video|muse\.ai|footage|transcripts?|clips?|webinar recording)\b/i },
   { skill: 'code', label: 'code', re: /\b(code|bug|script|api|deploy|function|repo|sql|javascript|python|html|css|webhook|error)\b/i },
   { skill: 'writing', label: 'writing', re: /\b(write|draft|email|blog|copy|rewrite|edit|proposal|summari[sz]e|outline|headline|newsletter)\b/i },
   { skill: 'analysis', label: 'analysis', re: /\b(analy[sz]\w*|data|spreadsheet|numbers|forecast|roas|metrics|kpis?|report|budget|pricing|margin)\b/i },
@@ -48,10 +47,11 @@ export function route(prompt, agents) {
   if (signals.some((s) => s.skill === 'machines')) {
     flags.push('Needs hands on a Mac. Send it to the Mac running Claude Code (Remote Control) rather than an API chat.');
   }
+  const notSetUp = (a) => `isn't set up (add ${a.apiKey || !a.keyEnv ? a.baseURLEnv : a.keyEnv} to .env)`;
   if (pick !== top) {
-    flags.push(`${top.agent.name} fits best but has no API key set; using ${pick.agent.name} instead.`);
+    flags.push(`${top.agent.name} fits best but ${notSetUp(top.agent)}; using ${pick.agent.name} instead.`);
   } else if (!pick.agent.callable && pick.agent.provider !== 'handoff') {
-    flags.push(`${pick.agent.name} fits best but has no API key set (${pick.agent.keyEnv}), and no other suitable agent has one either.`);
+    flags.push(`${pick.agent.name} fits best but ${notSetUp(pick.agent)}, and no other suitable agent is set up either.`);
   }
 
   return {
@@ -59,6 +59,7 @@ export function route(prompt, agents) {
     pick: pick.agent.id,
     reason: pick.matched.length
       ? `${pick.agent.name}: ${pick.matched.join(', ')}`
+      : signals.length ? `${pick.agent.name}: standing in for ${top.agent.name}`
       : `${pick.agent.name}: no specialist signal, so the lead agent takes it`,
     ranked: ranked.map((r) => ({ id: r.agent.id, score: r.score, matched: r.matched, callable: r.agent.callable })),
     flags,

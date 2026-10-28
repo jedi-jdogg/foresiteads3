@@ -5,7 +5,7 @@ import { route, councilFor, detectSignals } from '../src/router.js';
 import { resolveAgent, publicAgent } from '../src/registry.js';
 
 const roster = JSON.parse(await readFile(new URL('../agents.json', import.meta.url), 'utf8'));
-const allKeys = Object.fromEntries(roster.agents.map((a) => [a.keyEnv, 'test-key']));
+const allKeys = { ...Object.fromEntries(roster.agents.map((a) => [a.keyEnv, 'test-key'])), MUSE_BASE_URL: 'https://muse.test/v1' };
 const agents = (env = allKeys) => roster.agents.map((a) => resolveAgent(a, env));
 
 test('research questions go to Perplexity', () => {
@@ -16,17 +16,12 @@ test('X / Twitter sentiment goes to Grok', () => {
   assert.equal(route('What is the sentiment on Twitter about our new launch, is it trending?', agents()).pick, 'grok');
 });
 
-test('Instagram and Reels work goes to Meta', () => {
-  assert.equal(route('Give me five Instagram Reels hooks for a fabric sale', agents()).pick, 'meta');
+test('Instagram and Reels work goes to Muse', () => {
+  assert.equal(route('Give me five Instagram Reels hooks for a fabric sale', agents()).pick, 'muse');
 });
 
 test('image work goes to OpenAI', () => {
   assert.equal(route('Make a logo image for the spring campaign', agents()).pick, 'openai');
-});
-
-test('video work is handed off to Muse.ai', () => {
-  const r = route('Find the clip in the webinar recording video where we talk about pricing', agents());
-  assert.equal(r.pick, 'museai');
 });
 
 test('strategy and writing go to Claude', () => {
@@ -49,14 +44,13 @@ test('best agent without a key falls through to a configured one and says so', (
   const env = { ...allKeys, PERPLEXITY_API_KEY: '' };
   const r = route('Research the latest news on Shopify fees and cite sources', agents(env));
   assert.notEqual(r.pick, 'perplexity');
-  assert.ok(r.flags.some((f) => f.includes('Perplexity')));
+  assert.ok(r.flags.some((f) => f.includes('Perplexity') && f.includes('PERPLEXITY_API_KEY')));
 });
 
 test('council always includes the lead and only callable agents', () => {
   const ids = councilFor('Brainstorm viral Instagram ideas trending on X', agents(), 3);
   assert.equal(ids.length, 3);
   assert.ok(ids.includes('claude'));
-  assert.ok(!ids.includes('museai'));
 });
 
 test('signals are word-bounded', () => {
@@ -70,8 +64,16 @@ test('public view never carries the key', () => {
 });
 
 test('model and base URL can be overridden from the environment', () => {
-  const meta = resolveAgent(roster.agents.find((a) => a.id === 'meta'), { META_MODEL: 'muse-1', META_BASE_URL: 'https://example.test/v1' });
-  assert.equal(meta.model, 'muse-1');
-  assert.equal(meta.baseURL, 'https://example.test/v1');
-  assert.equal(meta.callable, false);
+  const muse = resolveAgent(roster.agents.find((a) => a.id === 'muse'), { MUSE_MODEL: 'muse-wonder', MUSE_BASE_URL: 'https://example.test/v1' });
+  assert.equal(muse.model, 'muse-wonder');
+  assert.equal(muse.baseURL, 'https://example.test/v1');
+  assert.equal(muse.callable, false);
+});
+
+test('Muse is not callable with a key but no endpoint, and the flag names the endpoint', () => {
+  const env = { ...allKeys, MUSE_BASE_URL: '' };
+  assert.equal(agents(env).find((a) => a.id === 'muse').callable, false);
+  const r = route('Instagram reels hooks', agents(env));
+  assert.notEqual(r.pick, 'muse');
+  assert.ok(r.flags.some((f) => f.includes('MUSE_BASE_URL')));
 });

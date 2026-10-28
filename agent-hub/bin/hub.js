@@ -30,7 +30,7 @@ if (values.help || !cmd) {
   agent-hub machines                                Which Macs answer on SSH
   agent-hub route "<request>" [--smart]             Show who would get it and why (no API call unless --smart)
   agent-hub ask "<request>"                         Route and answer
-          [--agent claude|openai|grok|perplexity|meta]   ...or send to one agent
+          [--agent claude|openai|grok|perplexity|muse]   ...or send to one agent
           [--council]                                    ...or ask several and merge
           [--smart]                                      ...let Claude do the routing
 `);
@@ -41,13 +41,13 @@ const hub = new Hub(await loadRoster());
 
 if (cmd === 'serve') {
   const { startServer } = await import('../src/server.js');
-  const host = values.host ?? process.env.HUB_HOST ?? '127.0.0.1';
-  const port = Number(values.port ?? process.env.HUB_PORT ?? 4747);
+  const host = values.host || process.env.HUB_HOST || '127.0.0.1';
+  const port = Number(values.port || process.env.HUB_PORT || 4747);
   await startServer(hub, { host, port });
   console.log(`Agent hub on http://${host}:${port}`);
 } else if (cmd === 'agents') {
   for (const a of hub.agents) {
-    const state = a.provider === 'handoff' ? 'hand-off' : a.callable ? 'ready' : `no key (${a.keyEnv})`;
+    const state = a.provider === 'handoff' ? 'hand-off' : a.callable ? 'ready' : a.apiKey ? `no endpoint (${a.baseURLEnv})` : `no key (${a.keyEnv})`;
     console.log(`${a.id.padEnd(11)} ${a.name.padEnd(11)} ${state.padEnd(28)} ${a.role}`);
   }
 } else if (cmd === 'machines') {
@@ -58,7 +58,7 @@ if (cmd === 'serve') {
   const r = values.smart ? await hub.smartRoute(prompt) : hub.route(prompt);
   console.log(`→ ${r.pick}  (${r.reason})`);
   if (r.signals.length) console.log(`  signals: ${r.signals.join(', ')}`);
-  console.log(`  ranking: ${r.ranked.map((x) => `${x.id} ${x.score}${x.callable ? '' : '*'}`).join(' · ')}   (* = no key)`);
+  console.log(`  ranking: ${r.ranked.map((x) => `${x.id} ${x.score}${x.callable ? '' : '*'}`).join(' · ')}   (* = not set up)`);
   for (const f of r.flags) console.log(`  ! ${f}`);
 } else if (cmd === 'ask') {
   const mode = values.council ? 'council' : values.agent ? 'agent' : values.smart ? 'smart' : 'auto';

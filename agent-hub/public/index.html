@@ -125,7 +125,7 @@ async function api(path, body) {
 
 function status(a) {
   if (a.provider === 'handoff') return ['handoff', 'hand-off'];
-  return a.configured ? ['ready', 'ready'] : ['', `add ${a.keyEnv}`];
+  return a.callable ? ['ready', 'ready'] : ['', `add ${a.missing}`];
 }
 
 function renderAgents(pick) {

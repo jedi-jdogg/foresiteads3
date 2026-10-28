@@ -9,9 +9,9 @@ whose strengths fit, shows why, and can ask several agents at once and merge the
                 └───────────────────────────────┬─────────────────────────────────────┘
                                                 │  route: rules, or Claude decides
         ┌──────────────┬──────────────┬─────────┼────────┬──────────────┬──────────────┐
-     Claude        Perplexity      ChatGPT      Grok        MetaMuse        Muse.ai
-     lead,         web research    images,      X / social  Facebook /      video library
-     strategy,     with sources    2nd opinion  sentiment   Instagram       (hand-off)
+     Claude        Perplexity      ChatGPT      Grok        Muse (Meta)
+     lead,         web research    images,      X / social  Facebook /
+     strategy,     with sources    2nd opinion  sentiment   Instagram
      writing,
      code, merges
         │
@@ -30,8 +30,7 @@ Each agent has one job it is best at, listed in [`agents.json`](agents.json):
 | **Perplexity** | Researcher | "latest", "research", "sources", competitors, market numbers, fact checks |
 | **ChatGPT** | Generalist and image maker | Images, logos, mock-ups; second opinion on analysis and copy |
 | **Grok** | Social listener | X/Twitter, trending, sentiment, viral angles |
-| **MetaMuse** | Meta specialist | Facebook, Instagram, Reels creative and audiences |
-| **Muse.ai** | Video library (not a chat model) | Video, clips, transcripts: the hub tells you to do it in Muse.ai |
+| **Muse** (Meta) | Meta's agent | Facebook, Instagram, Reels creative and audiences |
 
 To change who gets what, edit an agent's `skills` in `agents.json`. The first skill listed counts
 double. The signals that detect each skill are the regular expressions at the top of
@@ -59,16 +58,50 @@ The **Macs** panel shows which of the five machines answer on SSH (port 22). Set
 `host`, and which agent or app it is dedicated to, in the `machines` list of `agents.json`. The hub
 does not run commands on them.
 
-## Set up
+## Install on a Mac
+
+1. **Install Node.js** (one time): download the LTS installer from [nodejs.org](https://nodejs.org/en/download) and run it.
+2. **Get the code.** In Terminal:
+   ```bash
+   cd ~
+   git clone https://github.com/jedi-jdogg/foresiteads3.git
+   cd foresiteads3
+   git checkout claude/multi-agent-interface-hub-d8ahj4
+   ```
+   macOS offers to install the developer tools the first time you run `git`; accept. The repository is
+   private, so git asks you to sign in to GitHub. When it asks for a password, use a personal access token
+   ([github.com/settings/tokens](https://github.com/settings/tokens)), or sign in once with
+   [GitHub Desktop](https://desktop.github.com) and clone from there instead.
+3. **Start it.** In Finder, open `foresiteads3/agent-hub` and double-click **`start-mac.command`**.
+   The first run installs packages, opens `.env` in TextEdit for your keys, then opens the console in your
+   browser at http://localhost:4747. Close the Terminal window to stop it; double-click again to restart.
+
+To update later: `cd ~/foresiteads3 && git pull`, then double-click `start-mac.command` again.
+
+Your keys stay in `agent-hub/.env` on that Mac. Git ignores the file, so it is never committed.
+
+### Getting the keys
+
+| Agent | `.env` line | Where |
+|---|---|---|
+| Claude | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys |
+| ChatGPT | `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| Grok | `XAI_API_KEY` | [console.x.ai](https://console.x.ai) |
+| Perplexity | `PERPLEXITY_API_KEY` | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api) |
+| Muse | `MUSE_API_KEY` and `MUSE_BASE_URL` | Meta's developer console for the Meta Model API: the key, and the OpenAI-compatible endpoint it lists |
+
+API keys are billed separately from ChatGPT Plus, Grok, Perplexity Pro or Claude subscriptions; each
+console needs a payment method or credits. You can start with only some of them: agents without a key
+stay greyed out and their work goes to the next best agent.
+
+## Command line
 
 ```bash
 cd agent-hub
 npm install
-cp .env.example .env      # paste in the API keys you have; agents without a key stay greyed out
+cp .env.example .env
 npm start                 # http://localhost:4747
 ```
-
-Or from the terminal:
 
 ```bash
 node bin/hub.js agents                                   # who is configured
@@ -80,23 +113,20 @@ node bin/hub.js machines
 npm test
 ```
 
-Keys: Anthropic (console.anthropic.com), OpenAI (platform.openai.com), xAI for Grok (console.x.ai),
-Perplexity (perplexity.ai/settings/api), Meta Llama API (llama.developer.meta.com). Model names
-default to the values in `agents.json` and can be overridden in `.env` (`CLAUDE_MODEL`,
-`OPENAI_MODEL`, `XAI_MODEL`, `PERPLEXITY_MODEL`, `META_MODEL`).
+Model names default to the values in `agents.json` and can be overridden in `.env` (`CLAUDE_MODEL`,
+`OPENAI_MODEL`, `XAI_MODEL`, `PERPLEXITY_MODEL`, `MUSE_MODEL`).
 
 The console listens on `127.0.0.1` only. It has no login, so do not expose it on a network address
 without putting authentication in front of it.
 
 ## Things to confirm
 
-- **MetaMuse** is set up against Meta's OpenAI-compatible Llama API. If you reach it another way,
-  set `META_BASE_URL` and `META_MODEL`; if it has no API, change its `provider` to `"handoff"` and
-  give it a `url`.
-- **Muse.ai** is treated as a video platform you hand work to. If you meant a different Muse
-  (a chat assistant with an API), give it `"provider": "openai-compatible"`, a `baseURL` and a key.
+- **Muse** is reached through the Meta Model API, which is in preview. The default model is
+  `muse-spark-1.3`; set `MUSE_MODEL` if your console lists a different one (Muse Wonder, for example).
+  The hub talks to Muse's model only. Things the Muse app does for you in the background, such as
+  email, travel and purchases, still happen in the Muse app.
 - **Mac host names** in `agents.json` are placeholders (`mac-1.local` …).
-- **OpenAI, Grok and Meta model names** are defaults; set the ones on your plans.
+- **ChatGPT, Grok and Perplexity model names** are defaults; set the ones on your plans.
 
 ## Layout
 
@@ -106,5 +136,6 @@ without putting authentication in front of it.
 | `src/router.js` | Task signals and agent scoring |
 | `src/hub.js` | Ask, smart routing, council and merge, logging |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
+| `start-mac.command` | Double-click launcher for macOS |
 | `src/server.js`, `public/index.html` | The web console |
 | `bin/hub.js` | CLI |
