@@ -80,18 +80,19 @@
       "role": "Meta's agent. Facebook, Instagram and Reels creative and audience ideas.",
       "provider": "openai-compatible",
       "baseURLEnv": "MUSE_BASE_URL",
-      "requiresBaseURL": true,
+      "requiresBaseURL": false,
       "model": "muse-spark-1.3",
       "modelEnv": "MUSE_MODEL",
       "keyEnv": "MUSE_API_KEY",
-      "notes": "The hub talks to Muse's models through the Meta Model API. Background tasks in the Muse app (email, travel, purchases) still happen in the app itself.",
-      "keyUrl": "https://ai.meta.com/",
-      "keyHint": "Meta developer console for the Meta Model API: copy the key and the OpenAI-compatible endpoint it lists.",
+      "notes": "Meta Model API (api.meta.ai), which is OpenAI-compatible. Muse Spark is the model; background tasks in the Muse app (email, travel, purchases) still happen in the app itself.",
+      "keyUrl": "https://dev.meta.ai",
+      "keyHint": "dev.meta.ai → API keys. The endpoint is filled in (api.meta.ai); only change it if Meta tells you to.",
       "tools": false,
       "altModels": [
-        "muse-spark-1.1",
+        "muse-spark-1.2",
         "muse-wonder"
-      ]
+      ],
+      "baseURL": "https://api.meta.ai/v1"
     }
   ],
   "machines": [

@@ -6,7 +6,7 @@ import { resolveAgent, publicAgent, checkPlaybook } from '../src/registry.js';
 
 const roster = JSON.parse(await readFile(new URL('../agents.json', import.meta.url), 'utf8'));
 const playbook = JSON.parse(await readFile(new URL('../playbook.json', import.meta.url), 'utf8'));
-const allKeys = { ...Object.fromEntries(roster.agents.map((a) => [a.keyEnv, 'test-key'])), MUSE_BASE_URL: 'https://muse.test/v1' };
+const allKeys = Object.fromEntries(roster.agents.map((a) => [a.keyEnv, 'test-key']));
 const agents = (env = allKeys) => roster.agents.map((a) => resolveAgent(a, env));
 const go = (prompt, env) => route(prompt, agents(env), playbook);
 
@@ -73,14 +73,6 @@ test('first choice not set up falls to its backup and says which key is missing'
   assert.ok(r.flags.some((f) => f.includes('PERPLEXITY_API_KEY')));
 });
 
-test('Muse with a key but no endpoint is skipped, and the flag names the endpoint', () => {
-  const env = { ...allKeys, MUSE_BASE_URL: '' };
-  assert.equal(agents(env).find((a) => a.id === 'muse').callable, false);
-  const r = go('Write Instagram Reels captions', env);
-  assert.notEqual(r.pick, 'muse');
-  assert.ok(r.flags.some((f) => f.includes('MUSE_BASE_URL')));
-});
-
 test('council uses the play council and only agents that are set up', () => {
   const ids = councilFor('Brainstorm hooks and angles', agents({ ...allKeys, XAI_API_KEY: '' }), playbook, 3);
   assert.deepEqual(ids, ['claude', 'muse', 'openai']);
@@ -111,6 +103,7 @@ test('model and base URL can be overridden from the environment', () => {
   assert.equal(muse.model, 'muse-wonder');
   assert.equal(muse.baseURL, 'https://example.test/v1');
   assert.equal(muse.callable, false);
+  assert.equal(resolveAgent(roster.agents.find((a) => a.id === 'muse'), { MUSE_API_KEY: 'k' }).baseURL, 'https://api.meta.ai/v1');
 });
 
 test('saveEnv replaces, appends and uncomments keys without touching other lines', async () => {

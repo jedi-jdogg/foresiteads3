@@ -131,7 +131,8 @@ fits two plays with different agents about equally. Suggest a council only when 
         if (!modelProblem) break;
       }
     }
-    agent.verified = false;
+    const st = lastErr?.status ?? lastErr?.statusCode;
+    agent.verified = st === 429 || /credit|billing|quota/i.test(lastErr?.message ?? '') ? 'billing' : false;
     const msg = friendlyError(lastErr);
     return { id: agentId, ok: false, error: tried.length > 1 ? `${msg} Tried models: ${tried.join(', ')}.` : msg };
   }

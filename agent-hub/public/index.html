@@ -573,6 +573,7 @@ function renderAgents(pick) {
     const state = a.preview ? '<span class="state" title="Sample answers until you connect it on your Mac">preview</span>'
       : !a.callable ? `<span class="state missing" title="Connect it in the Connect tab">not connected</span>`
       : a.verified === false ? '<span class="state missing" title="The saved key was rejected; fix it in the Connect tab">key rejected</span>'
+      : a.verified === 'billing' ? '<span class="state missing" title="The provider wants prepaid credit before this key works">no credit</span>'
       : '<span class="state ready">ready</span>';
     return `<div class="agent${picked}" data-id="${a.id}" style="--c:${colorOf(a.id)}" title="${esc(a.notes)}">
       <span class="stripe"></span>
@@ -618,6 +619,7 @@ function renderConnect() {
       : !a.callable ? (a.configured ? '<span class="status missing">needs endpoint</span>' : '<span class="status missing">not connected</span>')
       : a.verified === true ? '<span class="status ok">connected</span>'
       : a.verified === false ? '<span class="status bad">key rejected</span>'
+      : a.verified === 'billing' ? '<span class="status bad">no credit</span>'
       : '<span class="status missing" title="A key is saved but has not been tested since the hub started">saved, untested</span>';
     return `<div class="conn" data-id="${a.id}" style="--c:${colorOf(a.id)}"><span class="stripe"></span><div>
       <div class="head"><b>${esc(a.name)}</b><span class="vendor">${esc(a.vendor)} · ${esc(a.model)}</span>${status}</div>
