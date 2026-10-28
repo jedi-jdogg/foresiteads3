@@ -124,7 +124,18 @@ does not run commands on them.
    The first run installs packages, then opens the console in your browser at http://localhost:4747.
    Go to the **Connect** tab to add your keys (see below). Close the Terminal window to stop it; double-click again to restart.
 
-To update later: `cd ~/foresiteads3 && git pull`, then double-click `start-mac.command` again.
+### Keeping it updated
+
+Every time you double-click `start-mac.command` it pulls the latest version from GitHub before starting,
+so restarting the hub is updating it. The top bar of the console shows the build it is running and says
+when a newer one is waiting. To update without starting, double-click `update-mac.command`.
+
+Updates only ever fast-forward: if a file in the folder was edited by hand, the launcher says so and runs
+the installed version instead of overwriting anything. Your `.env`, logs and ratings are never touched.
+
+New versions come from this repository's branch. When Claude pushes a change, your next restart picks it
+up. To let Claude update or fix the install on the Mac directly, add the `foresiteads3` folder under
+Remote Control in the Claude desktop app (Settings → Claude Code → Remote Control).
 
 Your keys stay in `agent-hub/.env` on that Mac. Git ignores the file, so it is never committed.
 
@@ -192,7 +203,8 @@ without putting authentication in front of it.
 | `src/router.js` | Matches requests to plays; decides go or recommend |
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
-| `start-mac.command` | Double-click launcher for macOS |
+| `start-mac.command` | Double-click launcher for macOS: updates, installs, starts |
+| `update-mac.command` | Update without starting |
 | `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard and Log views |
 | `public/preview.html`, `scripts/build-preview.mjs` | The console with the roster baked in, runnable without the hub (routing is real, answers are samples). Rebuild after editing the playbook. |
 | `bin/hub.js` | CLI |
