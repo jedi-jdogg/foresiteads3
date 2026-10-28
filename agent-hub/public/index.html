@@ -689,7 +689,7 @@ $('#connect').addEventListener('click', async (e) => {
     const r = await (btn.dataset.act === 'save' ? api.connect(body) : api.test(body));
     if (r.agent) { const i = roster.agents.findIndex((a) => a.id === id); roster.agents[i] = { ...roster.agents[i], ...r.agent }; }
     msg.className = `msg ${r.ok ? 'ok' : 'bad'}`;
-    msg.textContent = r.ok ? `Connected. ${r.model} answered in ${(r.ms / 1000).toFixed(1)}s.` : r.error;
+    msg.textContent = r.ok ? `Connected. ${r.model} answered in ${(r.ms / 1000).toFixed(1)}s.${r.note ?? ''}` : r.error;
     if (r.ok) { $(`#key-${id}`).value = ''; }
     renderAgents(); $('#agentCount').textContent = `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} connected`;
     if (btn.dataset.act === 'save') { const saved = msg.textContent; renderConnect(); $(`#msg-${id}`).className = msg.className; $(`#msg-${id}`).textContent = saved; }

@@ -101,19 +101,38 @@ fits two plays with different agents about equally. Suggest a council only when 
     return this.test(agentId);
   }
 
+  // One tiny call. If the provider refuses the model (403/404/400 naming it) the alternates in agents.json are
+  // tried in turn; the first that answers is saved as the agent's model so later calls use it.
   async test(agentId) {
     const agent = this.agent(agentId);
     if (!agent.callable) return { id: agentId, ok: false, error: `Missing ${agent.apiKey ? agent.baseURLEnv : agent.keyEnv}.` };
     const started = Date.now();
-    try {
-      const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
-      const out = agent.provider === 'anthropic' ? await askClaude(agent, { ...req, effort: 'low' }) : await askOpenAICompatible(agent, req);
-      agent.verified = true;
-      return { id: agentId, ok: true, model: out.model ?? agent.model, ms: Date.now() - started };
-    } catch (err) {
-      agent.verified = false;
-      return { id: agentId, ok: false, error: friendlyError(err) };
+    const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
+    const attempt = (model) => agent.provider === 'anthropic' ? askClaude({ ...agent, model }, { ...req, effort: 'low' }) : askOpenAICompatible({ ...agent, model }, req);
+    const tried = [];
+    let lastErr;
+    for (const model of [agent.model, ...(agent.altModels ?? []).filter((m) => m !== agent.model)]) {
+      try {
+        const out = await attempt(model);
+        agent.verified = true;
+        let note = '';
+        if (model !== agent.model) {
+          if (agent.modelEnv) await saveEnv({ [agent.modelEnv]: model });
+          note = ` ${agent.model} was refused, so the hub switched to ${model}.`;
+          agent.model = model;
+        }
+        return { id: agentId, ok: true, model: out.model ?? model, ms: Date.now() - started, note };
+      } catch (err) {
+        lastErr = err;
+        tried.push(model);
+        const status = err.status ?? err.statusCode;
+        const modelProblem = status === 403 || status === 404 || (status === 400 && /model/i.test(err.message ?? ''));
+        if (!modelProblem) break;
+      }
     }
+    agent.verified = false;
+    const msg = friendlyError(lastErr);
+    return { id: agentId, ok: false, error: tried.length > 1 ? `${msg} Tried models: ${tried.join(', ')}.` : msg };
   }
 
   async call(agent, prompt, history = []) {
