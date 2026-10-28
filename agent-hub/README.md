@@ -108,6 +108,10 @@ does not run commands on them.
 
 ## Install on a Mac
 
+The quick way: paste the contents of [`install-mac.sh`](install-mac.sh) into Terminal. It installs Node.js
+and the GitHub CLI if they are missing, signs you in to GitHub in the browser, downloads the hub to
+`~/foresiteads3` and starts it. Running it again updates instead. The manual steps below do the same thing.
+
 1. **Install Node.js** (one time): download the LTS installer from [nodejs.org](https://nodejs.org/en/download) and run it.
 2. **Get the code.** In Terminal:
    ```bash
@@ -203,6 +207,7 @@ without putting authentication in front of it.
 | `src/router.js` | Matches requests to plays; decides go or recommend |
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
+| `install-mac.sh` | One-paste installer for macOS |
 | `start-mac.command` | Double-click launcher for macOS: updates, installs, starts |
 | `update-mac.command` | Update without starting |
 | `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard and Log views |
