@@ -30,12 +30,13 @@ export class Machines {
     try { return JSON.parse(await readFile(MACHINES_PATH, 'utf8')); } catch { return []; }
   }
   async save(list) { await writeFile(MACHINES_PATH, JSON.stringify(list, null, 2) + '\n'); }
-  async register({ id, host, user, name, note }) {
-    if (!/^[a-z0-9][a-z0-9-]{0,30}$/.test(id ?? '')) throw new Error('id must be lowercase letters, digits and dashes (e.g. mac-3)');
-    if (!host || !user) throw new Error('host (Tailscale name) and user (macOS short name) are required');
+  async register({ id, host, user, name, note, registeredBy }) {
+    if (!host) throw new Error("Missing the Mac's Tailscale name.");
+    if (!/^[a-z_][a-z0-9_.-]{0,31}$/i.test(user ?? '')) throw new Error('Enter the Mac login name (the short user name on that Mac; Terminal → whoami shows it).');
+    id = (id || host.split('.')[0]).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').slice(0, 31) || 'mac';
     const list = await this.list();
-    const i = list.findIndex((m) => m.id === id);
-    const entry = { id, host, user, name: name || id, note: note || '', addedAt: list[i]?.addedAt ?? new Date().toISOString() };
+    const i = list.findIndex((m) => m.id === id || m.host.toLowerCase() === host.toLowerCase());
+    const entry = { id: list[i]?.id ?? id, host, user, name: name || list[i]?.name || prettyName(host), note: note ?? list[i]?.note ?? '', addedAt: list[i]?.addedAt ?? new Date().toISOString(), registeredBy: registeredBy ?? list[i]?.registeredBy ?? 'hub' };
     if (i >= 0) list[i] = entry; else list.push(entry);
     await this.save(list);
     return entry;
@@ -171,12 +172,16 @@ export class Machines {
   // The paste-once script that prepares a worker Mac. Carries the hub's public key so no copying is needed.
   async setupScript({ hubHost, pubkey, hubUser, bare = false }) {
     const template = await readFile(new URL('../worker/setup-worker.sh', import.meta.url), 'utf8');
-    const body = template.replace('__HUB_PUBKEY__', pubkey).replace(/__HUB_HOST__/g, hubHost ?? 'the hub Mac').replace(/__HUB_USER__/g, hubUser ?? '');
+    const body = template.replace('__HUB_PUBKEY__', pubkey).replace(/__HUB_HOST__/g, hubHost ?? '').replace(/__HUB_USER__/g, hubUser ?? '').replace(/__HUB_PORT__/g, String(this.port ?? 4747));
     if (bare) return body;   // fetched by curl and piped to bash: no wrapper needed
     // Wrapped so the user's interactive shell (zsh) hands the whole text to bash untouched: no history
     // expansion on "!", no line-by-line execution. Same shape as the installer.
     return `bash <<'HUB_SETUP'\n${body.replace(/^#!.*\n/, '')}\nHUB_SETUP\n`;
   }
+}
+
+function prettyName(host) {
+  return host.split('.')[0].replace(/-\d+$/, '').split('-').map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ').replace(/^Jonathans /, "Jonathan's ");
 }
 
 function sshError(err) {

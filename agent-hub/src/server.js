@@ -121,7 +121,18 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
   ready.then(() => hub.machines.tailscale().then((ts) => {
     const ip = ts.self?.ip;
     if (!ip) return;
+    hub.machines.port = port;
     const worker = createServer(async (req, res) => {
+      // A worker announcing itself at the end of its setup script.
+      if (req.method === 'POST' && req.url === '/register') {
+        try {
+          const body = await readJson(req);
+          const peerIp = (req.socket.remoteAddress ?? '').replace(/^::ffff:/, '');
+          const peer = (await hub.machines.tailscale()).peers.find((p) => p.ip === peerIp);
+          const entry = await hub.machines.register({ host: peer?.host ?? body.host, user: body.user, name: body.name, note: body.note, registeredBy: 'worker' });
+          res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ ok: true, id: entry.id }));
+        } catch (err) { res.writeHead(400, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ error: err.message })); }
+      }
       if (req.method === 'GET' && (req.url === '/worker' || req.url === '/worker.sh')) {
         try {
           const pubkey = await hub.machines.ensureKey();
@@ -129,7 +140,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
           res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' }); return res.end(script);
         } catch (err) { res.writeHead(500); return res.end(`# ${err.message}\n`); }
       }
-      res.writeHead(404); res.end('Agent Hub: only /worker is served on this address.\n');
+      res.writeHead(404); res.end('Agent Hub: only /worker and /register are served on this address.\n');
     });
     worker.on('error', () => {});
     worker.listen(port, ip);

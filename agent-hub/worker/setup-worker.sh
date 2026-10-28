@@ -54,10 +54,15 @@ fi
 grep -q 'agent-hub' ~/.zshenv 2>/dev/null || printf '\n# agent-hub\nexport PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"\n' >> ~/.zshenv
 grep -q 'agent-hub' ~/.bashrc 2>/dev/null || printf '\n# agent-hub\nexport PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"\n' >> ~/.bashrc
 
-say "Done. Two things left to do by hand on this Mac:"
-echo "  1. Run:  claude   (once) and sign in with your Claude account, so headless tasks work."
-echo "  2. Optional: in the Claude desktop app, Settings → Claude Code → Remote Control, add ~/agent-hub-jobs/work"
-echo "     so Claude in a chat can reach this Mac directly too."
-echo
-echo "Then on the hub Mac, in Agent Hub → Machines, register this Mac as:"
-echo "  host: $MY_HOST    user: $(whoami)"
+# 6. Tell the hub about this Mac, so nothing has to be typed on the hub side.
+HUB_URL="http://__HUB_HOST__:__HUB_PORT__/register"
+MY_NAME=$(scutil --get ComputerName 2>/dev/null || hostname -s)
+if [ -n "__HUB_HOST__" ] && curl -fsS -m 8 -X POST "$HUB_URL" -H 'content-type: application/json' \
+     -d "{\"host\":\"$MY_HOST\",\"user\":\"$(whoami)\",\"name\":\"$MY_NAME\"}" >/dev/null 2>&1; then
+  say "Registered with the hub as $MY_HOST (login $(whoami)). It now shows under Registered Macs."
+else
+  say "Could not reach the hub to register automatically. On the hub Mac, Machines tab, this Mac's card: enter the login name  $(whoami)  and click Register."
+fi
+
+say "One thing left on this Mac: run   claude   once and sign in with your Claude account, so it can take tasks."
+echo "Optional: Claude desktop app → Settings → Claude Code → Remote Control → add ~/agent-hub-jobs/work, so Claude in a chat can reach this Mac directly too."

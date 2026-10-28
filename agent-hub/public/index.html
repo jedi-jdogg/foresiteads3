@@ -663,7 +663,7 @@ async function renderMachines() {
   const cards = o.machines.map((m) => `<div class="conn mach" data-id="${m.id}" style="--c:${m.online ? 'var(--good)' : 'var(--off)'}"><span class="stripe"></span><div>
       <div class="head"><b>${esc(m.name)}</b><span class="vendor">${esc(m.host)} · ${esc(m.user)}</span>
         <span class="status ${m.online ? 'ok' : m.online === null ? 'missing' : ''}">${m.online ? 'online' : m.online === null ? 'not on tailscale' : 'offline'}</span></div>
-      <div class="where">${esc(m.note || 'general purpose')}${m.running ? ` · <b>${m.running} job${m.running > 1 ? 's' : ''} running</b>` : ''}</div>
+      <div class="where">${esc(m.note || 'general purpose')}${m.registeredBy === 'worker' ? ' · set up by its own script' : ''}${m.running ? ` · <b>${m.running} job${m.running > 1 ? 's' : ''} running</b>` : ''}</div>
       <div class="row2">
         <select class="actsel" aria-label="Action">${actions.map((a) => `<option value="${a.id}">${esc(a.label)}</option>`).join('')}</select>
         <input class="actarg" placeholder="argument (URL, script name, or task)" style="flex:1;min-width:200px">
@@ -675,9 +675,10 @@ async function renderMachines() {
     </div></div>`).join('');
   const unreg = (o.unregistered ?? []).map((p) => `<div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
       <div class="head"><b>${esc(p.name ?? p.host)}</b><span class="vendor">${esc(p.host)}</span><span class="status ${p.online ? 'ok' : ''}">${p.online ? 'online' : 'offline'} · on Tailscale, not registered</span></div>
-      <div class="fields two"><label>Id<input id="reg-id-${esc(p.name)}" value="${esc((p.name ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '-'))}"></label><label>macOS user<input id="reg-user-${esc(p.name)}" placeholder="short name, e.g. jonathan"></label>
-        <label>Name<input id="reg-name-${esc(p.name)}" value="${esc(p.name ?? '')}"></label><label>What it is for / has signed in<input id="reg-note-${esc(p.name)}" placeholder="general purpose"></label></div>
-      <div class="row2"><button type="button" class="save" data-reg="${esc(p.name)}" data-host="${esc(p.host)}">Register</button><span class="msg" id="regmsg-${esc(p.name)}"></span></div>
+      <div class="where">If you ran the setup line on this Mac, it registers itself: click <b>Refresh</b>. Otherwise enter its login name here.</div>
+      <div class="fields two"><label>Mac login name <small>the short user name on that Mac (Terminal → <code>whoami</code>)</small><input id="reg-user-${esc(p.name)}" placeholder="e.g. jonathan"></label>
+        <label>What it's for <small>(optional)</small><input id="reg-note-${esc(p.name)}" placeholder="general purpose"></label></div>
+      <div class="row2"><button type="button" class="save" data-reg="${esc(p.name)}" data-host="${esc(p.host)}" data-name="${esc(p.name ?? '')}">Register</button><button type="button" class="test" data-refresh="1">Refresh</button><span class="msg" id="regmsg-${esc(p.name)}"></span></div>
     </div></div>`).join('');
   const jobRows = jobs.length ? jobs.map((j) => `<div class="logrow"><span class="t">${esc(new Date(j.startedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))}</span>
       <span class="p"><b>${esc(j.machine)}</b> · ${esc(j.action)} ${j.args?.prompt ? '· ' + esc(j.args.prompt.slice(0, 80)) : j.args?.name ? '· ' + esc(j.args.name) : ''}<br><span class="hint" style="white-space:pre-wrap">${esc((j.output || '').slice(-300))}</span></span>
@@ -707,11 +708,12 @@ $('#machinesView').addEventListener('click', async (e) => {
   if (reg) {
     const k = reg.dataset.reg, msg = $(`#regmsg-${CSS.escape(k)}`);
     try {
-      await api.registerMachine({ id: $(`#reg-id-${CSS.escape(k)}`).value.trim(), host: reg.dataset.host, user: $(`#reg-user-${CSS.escape(k)}`).value.trim(), name: $(`#reg-name-${CSS.escape(k)}`).value.trim(), note: $(`#reg-note-${CSS.escape(k)}`).value.trim() });
+      await api.registerMachine({ host: reg.dataset.host, user: $(`#reg-user-${CSS.escape(k)}`).value.trim(), name: reg.dataset.name, note: $(`#reg-note-${CSS.escape(k)}`).value.trim() });
       renderMachines();
     } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
     return;
   }
+  if (e.target.dataset.refresh) { renderMachines(); return; }
   if (e.target.id === 'copyCmd') {
     const input = $('#workerCmd'); input.select();
     let ok = false;

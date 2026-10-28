@@ -34,7 +34,14 @@ await M.save([]);
 after(async () => { if (realRegistry === null) await M.save([]); else await writeFile(MACHINES_PATH, realRegistry); });
 
 test('register validates ids and merges with Tailscale', async () => {
-  await assert.rejects(M.register({ id: 'Mac 1', host: 'x', user: 'u' }), /lowercase/);
+  await assert.rejects(M.register({ host: 'x.tail.ts.net', user: '' }), /login name/);
+  // Id and name derive from the Tailscale host when not given; re-registering the same host updates in place.
+  const auto = await M.register({ host: 'jonathans-mac-mini-1.tail.ts.net', user: 'jonathan' });
+  assert.equal(auto.id, 'jonathans-mac-mini-1');
+  assert.equal(auto.name, "Jonathan's Mac Mini");
+  await M.register({ host: 'jonathans-mac-mini-1.tail.ts.net', user: 'jonathan', note: 'spare' });
+  assert.equal((await M.list()).filter((m) => m.host.startsWith('jonathans')).length, 1);
+  await M.remove('jonathans-mac-mini-1');
   await M.register({ id: 'mac-1', host: 'mac-1.tail.ts.net', user: 'jonathan', name: 'Mac 1', note: 'Shopify signed in' });
   await M.register({ id: 'mac-down', host: 'mac-down.tail.ts.net', user: 'jonathan' });
   const o = await M.overview();
@@ -91,6 +98,7 @@ test('the setup script carries the hub key and leaves no placeholders', async ()
   assert.ok(!/^#!/m.test(text));
   assert.match(text, /HUB_PUBKEY='ssh-ed25519 AAAATEST agent-hub'/);
   assert.ok(!/__HUB_/.test(text));
+  assert.match(text, /http:\/\/hub\.tail\.ts\.net:4747\/register/);
   assert.match(text, /systemsetup -setremotelogin on/);
   assert.match(text, /authorized_keys/);
 });
