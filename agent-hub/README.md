@@ -20,32 +20,77 @@ whose strengths fit, shows why, and can ask several agents at once and merge the
             Foresite, GitHub) and Remote Control into the five Macs
 ```
 
-## How it organises the agents
+## The playbook: who takes what
 
-Each agent has one job it is best at, listed in [`agents.json`](agents.json):
+[`playbook.json`](playbook.json) is the decision matrix. Each **play** is a kind of work, with the
+words that signal it, a first-choice agent, backups in order, and the reason. Run
+`node bin/hub.js playbook` to print it, or open **Playbook** in the console sidebar.
 
-| Agent | Role | Gets sent |
-|---|---|---|
-| **Claude** (lead) | Conductor. Judgment, strategy, writing, code, long documents. Merges council answers. | Anything with no clear specialist; anything touching your connected apps or the Macs |
-| **Perplexity** | Researcher | "latest", "research", "sources", competitors, market numbers, fact checks |
-| **ChatGPT** | Generalist and image maker | Images, logos, mock-ups; second opinion on analysis and copy |
-| **Grok** | Social listener | X/Twitter, trending, sentiment, viral angles |
-| **Muse** (Meta) | Meta's agent | Facebook, Instagram, Reels creative and audiences |
+| Play | First choice → backups | Council | Why |
+|---|---|---|---|
+| Your connected apps | Claude | | Only Claude is wired to your MCP connectors |
+| Work on a Mac | Claude | | Claude Code with Remote Control operates the Macs |
+| Fact check | Perplexity → Claude | Perplexity, Claude, Grok | Live sources with citations; a second agent catches misses |
+| Live research | Perplexity → Grok → Claude | | Searches the web for every answer and cites it |
+| Social pulse | Grok → Perplexity → Claude | | Reads X in real time |
+| Facebook / Instagram | Muse → Claude → ChatGPT | | Meta's own agent |
+| Images and visuals | ChatGPT → Muse → Claude | | ChatGPT makes images; Claude doesn't |
+| Ideas and hooks | Claude → ChatGPT | Claude, Grok, Muse, ChatGPT | For ideas, range beats any single model |
+| Strategy and decisions | Claude → ChatGPT | Claude, ChatGPT, Perplexity | Judgment calls; big ones earn a second opinion |
+| Code and automation | Claude → ChatGPT | | Strongest coder; runs Claude Code on the Macs |
+| Numbers and analysis | Claude → ChatGPT | | Careful with numbers, says what it is unsure of |
+| Long documents | Claude → ChatGPT | | Reads very long documents in one go |
+| Writing | Claude → ChatGPT | | Natural voice, follows a brief closely |
+| General | Claude → ChatGPT | | Nothing more specific fits |
 
-To change who gets what, edit an agent's `skills` in `agents.json`. The first skill listed counts
-double. The signals that detect each skill are the regular expressions at the top of
-[`src/router.js`](src/router.js).
+The assignments are a starting point: each one is based on what that product is built for (Perplexity
+for live search, Grok for X, Muse for Meta's platforms, ChatGPT for images, Claude for reasoning,
+writing, code and your connectors). They are not measured on your work yet. The ratings below are how
+they get measured.
 
-## Four ways to ask
+### How a request is decided
+
+1. **Match.** Every play's signal words are checked against the request. The play with the most
+   distinct matching words wins. On a tie, the play higher in the file wins, so specific plays sit
+   above general ones.
+2. **Pick the agent.** The winning play's first choice, or its first backup that has a key in `.env`.
+   If it had to fall back, the hub says which key is missing.
+3. **Go or recommend.**
+   - **Go ahead** when one play clearly wins and it has no council: you get the answer straight away.
+   - **Recommend** when it is a **close call** (another play scores the same and would pick a different
+     agent) or the play has a **council** (fact checks, ideas, strategy). You get the options with
+     reasons and click one.
+   - The **When unsure** switch in the console (or `HUB_WHEN_UNSURE=pick` in `.env`, or `--pick` on the
+     command line) skips the question and goes with the first option.
+4. **Notes.** Plays with a note (your connected apps, the Macs) add it whenever they match, even when
+   another play wins. For example, "analyze Shopify ROAS" goes to Claude as analysis and reminds you that
+   live Shopify data needs Claude Code.
+
+**Smart** mode hands the same playbook to Claude, which reads the request the way a person would. Use
+it when the wording is unusual. It costs one extra Claude call.
+
+### Tuning it
+
+- **Rate answers.** Every answer card has 👍 / 👎. Ratings are saved under the play the request matched.
+  `node bin/hub.js scorecard` shows the tally per play and agent. When an agent keeps losing on a play,
+  move a backup up.
+- **Change who takes a play:** edit `primary`, `backup` or `council` in `playbook.json`.
+- **Teach it new words:** add them to that play's `signals`, for example a client's product names.
+- **Add a play:** copy one and change it. Keep `general` last.
+
+The hub checks the playbook when it starts, and refuses to start if a play names an agent that isn't
+in `agents.json`. Restart it after editing.
+
+## Ways to ask
 
 | Mode | What happens | Cost |
 |---|---|---|
-| **Auto** | Rules pick one agent. The console shows the pick and reason as you type. | One call |
-| **Smart** | Claude reads the request and the roster and picks. | Two calls |
-| **Council** | Up to three configured agents answer in parallel (the best fits, always including Claude), then Claude merges them, flags disagreements and gives a next step. | Four calls |
+| **Auto** | Follows the playbook. A clear fit goes straight through; otherwise you get options. The console shows the pick as you type. | One call |
+| **Smart** | Claude reads the playbook and the request and decides. | Two calls |
+| **Council** | Several agents answer in parallel, then Claude merges them, flags disagreements and gives a next step. | Up to five calls |
 | **Direct** | Click an agent and talk to it alone, with follow-up memory. | One call per turn |
 
-Every exchange is logged to `logs/YYYY-MM-DD.jsonl`, so you can see later who answered what.
+Every exchange is logged to `logs/YYYY-MM-DD.jsonl`, and ratings to `logs/feedback.jsonl`.
 
 ## Connectors and the Macs
 
@@ -133,8 +178,9 @@ without putting authentication in front of it.
 | Path | What it does |
 |---|---|
 | `agents.json` | The roster: agents, Macs, connectors |
-| `src/router.js` | Task signals and agent scoring |
-| `src/hub.js` | Ask, smart routing, council and merge, logging |
+| `playbook.json` | Which agent takes which kind of work, and why |
+| `src/router.js` | Matches requests to plays; decides go or recommend |
+| `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
 | `start-mac.command` | Double-click launcher for macOS |
 | `src/server.js`, `public/index.html` | The web console |

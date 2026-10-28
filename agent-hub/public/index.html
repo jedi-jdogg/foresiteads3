@@ -32,6 +32,12 @@
   .row .meta { color: var(--muted); margin-left: auto; font-size: 12px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { background: var(--soft); border-radius: 999px; padding: 2px 9px; font-size: 12px; color: var(--muted); }
+  .play { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .play:last-child { border-bottom: 0; }
+  .play b { font-weight: 600; }
+  .play .chain { color: var(--muted); font-size: 12px; }
+  .play.hit b { color: var(--accent); }
+  details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
   main { display: flex; flex-direction: column; max-width: 980px; width: 100%; margin: 0 auto; padding: 20px 24px; }
   #thread { flex: 1; }
   .empty { color: var(--muted); padding: 40px 0; }
@@ -40,6 +46,12 @@
   .you { background: var(--soft); border-radius: 10px; padding: 10px 14px; white-space: pre-wrap; }
   .route { color: var(--muted); font-size: 13px; margin: 8px 2px; }
   .flag { color: var(--warn); font-size: 13px; margin: 4px 2px; }
+  .recommend { background: var(--panel); border: 1px dashed var(--accent); border-radius: 10px; padding: 12px 14px; margin: 8px 0; }
+  .recommend p { margin: 0 0 8px; font-size: 14px; }
+  .option { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 8px; padding: 8px 12px; margin-top: 6px; font: inherit; font-size: 14px; cursor: pointer; }
+  .option:hover { border-color: var(--accent); }
+  .option small { display: block; color: var(--muted); font-size: 12.5px; }
   .answers { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
   .card.merged { border-color: var(--accent); grid-column: 1 / -1; }
@@ -47,6 +59,9 @@
   .card h3 small { color: var(--muted); font-weight: 400; }
   .card .body { white-space: pre-wrap; overflow-wrap: anywhere; }
   .card.err .body { color: var(--warn); }
+  .rate { margin-top: 8px; display: flex; gap: 6px; }
+  .rate button { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 13px; }
+  .rate button.on { border-color: var(--accent); background: var(--soft); }
   form { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0 4px; }
   textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
     background: var(--panel); color: var(--ink); font: inherit; }
@@ -56,8 +71,9 @@
   .seg button { border: 0; background: var(--panel); color: var(--ink); padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer; }
   .seg button + button { border-left: 1px solid var(--line); }
   .seg button.on { background: var(--ink); color: var(--bg); }
+  .unsure { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
   select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
-  #preview { color: var(--muted); font-size: 13px; flex: 1; min-width: 200px; }
+  #preview { color: var(--muted); font-size: 13px; flex-basis: 100%; min-height: 1.5em; }
   .send { margin-left: auto; background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 18px; font: inherit; font-weight: 600; cursor: pointer; }
   .send:disabled { opacity: .5; cursor: wait; }
   @media (max-width: 760px) {
@@ -74,6 +90,8 @@
     <p class="sub">One place to brief every agent.</p>
     <h2>Agents</h2>
     <div id="agents"></div>
+    <h2>Playbook</h2>
+    <details id="playbookBox"><summary>Which agent takes which work</summary><div id="playbook"></div></details>
     <h2>Macs</h2>
     <div id="machines"><div class="row">Checking…</div></div>
     <h2>Connected apps (via Claude)</h2>
@@ -83,13 +101,14 @@
   <main>
     <div id="thread">
       <div class="empty">
-        <p>Type what you need. The hub picks the agent whose strengths fit, and shows why before you send.</p>
+        <p>Type what you need. The playbook decides which agent fits, and the line under the box shows its pick before you send.</p>
         <ul>
-          <li><b>Auto</b>: one agent, picked by rules (instant, free).</li>
-          <li><b>Smart</b>: Claude reads the request and picks.</li>
+          <li><b>Auto</b>: follows the playbook. A clear fit goes straight through; a close call shows you the options.</li>
+          <li><b>Smart</b>: Claude reads the playbook and your request and decides.</li>
           <li><b>Council</b>: up to three agents answer, then Claude merges them and flags disagreements.</li>
           <li><b>Direct</b>: click an agent on the left to talk to it alone, with follow-ups.</li>
         </ul>
+        <p>Rate answers with 👍 / 👎. The ratings show which agent really does best at each kind of work.</p>
       </div>
     </div>
     <form id="composer">
@@ -102,8 +121,11 @@
           <button type="button" data-mode="agent">Direct</button>
         </div>
         <select id="agentSelect" hidden></select>
-        <span id="preview"></span>
+        <label class="unsure" id="unsureBox">When unsure:
+          <select id="unsure"><option value="ask">ask me</option><option value="pick">pick for me</option></select>
+        </label>
         <button class="send" id="send">Send</button>
+        <span id="preview"></span>
       </div>
     </form>
   </main>
@@ -113,8 +135,11 @@
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let roster = { agents: [] };
+let playbook = { plays: [] };
 let mode = 'auto';
 const histories = {}; // per agent, for Direct follow-ups
+const nameOf = (id) => roster.agents.find((a) => a.id === id)?.name ?? id;
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
 async function api(path, body) {
   const r = await fetch(path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
@@ -138,10 +163,19 @@ function renderAgents(pick) {
   }).join('');
 }
 
+function renderPlaybook(hitId) {
+  $('#playbook').innerHTML = playbook.plays.map((p) => {
+    const chain = [p.primary, ...(p.backup || [])].map(nameOf).join(' → ');
+    const council = p.council ? ` · council: ${p.council.map(nameOf).join(', ')}` : '';
+    return `<div class="play${p.id === hitId ? ' hit' : ''}" title="${esc(p.why)}"><b>${esc(p.label)}</b><div class="chain">${esc(chain + council)}</div></div>`;
+  }).join('');
+}
+
 function setMode(m) {
   mode = m;
   document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
   $('#agentSelect').hidden = m !== 'agent';
+  $('#unsureBox').hidden = m === 'agent' || m === 'council';
   preview();
 }
 
@@ -150,54 +184,95 @@ function preview() {
   clearTimeout(timer);
   const prompt = $('#prompt').value.trim();
   if (mode === 'agent') { $('#preview').textContent = `Direct to ${$('#agentSelect').selectedOptions[0]?.text ?? ''}, with follow-up memory.`; renderAgents(); return; }
-  if (!prompt) { $('#preview').textContent = ''; renderAgents(); return; }
+  if (!prompt) { $('#preview').textContent = ''; renderAgents(); renderPlaybook(); return; }
   timer = setTimeout(async () => {
     const r = await api('/api/route', { prompt });
-    $('#preview').textContent = mode === 'council' ? `Council led by ${r.reason}` : mode === 'smart' ? `Rules suggest ${r.reason}; Claude will decide.` : `→ ${r.reason}`;
+    const kind = r.confidence === 'low' ? 'close call' : 'council could help';
+    const next = r.decision === 'proceed' ? 'will answer' : $('#unsure').value === 'ask' ? `${kind}, will show you options` : `${kind}, will go with ${nameOf(r.pick)}`;
+    $('#preview').textContent = mode === 'council' ? `Council for "${r.play.label}"`
+      : mode === 'smart' ? `Playbook says ${r.reason}; Claude will decide.`
+      : `${r.reason} · ${next}`;
     renderAgents(r.pick);
+    renderPlaybook(r.play.id);
   }, 250);
 }
 
-function card(a, merged) {
+function card(a, play, prompt) {
+  const merged = a.id === 'merged';
   const cls = `card${merged ? ' merged' : ''}${a.error ? ' err' : ''}`;
   const meta = [a.model, a.ms && `${(a.ms / 1000).toFixed(1)}s`, a.truncated && 'cut off'].filter(Boolean).join(' · ');
-  return `<div class="${cls}"><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div></div>`;
+  const rate = a.error || a.handoff ? '' : `<div class="rate" data-agent="${esc(a.id)}" data-play="${esc(play)}">
+    <button type="button" data-rating="up" title="Good answer">👍</button><button type="button" data-rating="down" title="Poor answer">👎</button></div>`;
+  return `<div class="${cls}"><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${rate}</div>`;
 }
 
-$('#composer').addEventListener('submit', async (e) => {
+function renderResult(turn, prompt, r) {
+  const routing = r.routing || {};
+  const head = `<div class="you">${esc(prompt)}</div>`;
+  const flags = (routing.flags || []).map((f) => `<div class="flag">! ${esc(f)}</div>`).join('');
+  if (r.mode === 'recommend') {
+    const opts = routing.options.map((o, i) => {
+      const label = o.kind === 'council' ? `Council: ${o.agents.map(nameOf).join(', ')}` : nameOf(o.agentId);
+      return `<button type="button" class="option" data-i="${i}"><b>${esc(label)}</b> · ${esc(o.play)}<small>${esc(o.why)}</small></button>`;
+    }).join('');
+    const why = routing.confidence === 'low' ? 'This fits more than one kind of work.' : 'This is the kind of question where a second opinion pays off.';
+    turn.innerHTML = head + `<div class="recommend"><p>${esc(why)} Who should take it?</p>${opts}</div>` + flags;
+    turn.querySelectorAll('.option').forEach((b) => b.addEventListener('click', () => {
+      const o = routing.options[b.dataset.i];
+      run(turn, prompt, o.kind === 'council' ? { mode: 'council', agents: o.agents } : { mode: 'agent', agentId: o.agentId }, routing.play);
+    }));
+    return;
+  }
+  const play = routing.play?.id ?? '';
+  const who = r.mode === 'council' ? `Council (${routing.play?.label ?? ''}): ${routing.council.map(nameOf).join(', ')}` : `→ ${routing.reason ?? ''}`;
+  turn.innerHTML = head + `<div class="route" title="${esc(routing.play?.why)}">${esc(who)}</div>` + flags
+    + `<div class="answers">${r.answers.map((a) => card(a, play, prompt)).join('')}${r.synthesis ? card(r.synthesis, play, prompt) : ''}</div>`;
+  turn.querySelectorAll('.rate button').forEach((b) => b.addEventListener('click', async () => {
+    const box = b.parentElement;
+    await api('/api/feedback', { prompt, play: box.dataset.play, agentId: box.dataset.agent, rating: b.dataset.rating });
+    box.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  }));
+}
+
+async function run(turn, prompt, opts, play) {
+  turn.querySelector('.recommend')?.remove();
+  turn.insertAdjacentHTML('beforeend', '<div class="route">Working…</div>');
+  $('#send').disabled = true;
+  try {
+    const r = await api('/api/ask', { prompt, whenUnsure: $('#unsure').value, ...opts });
+    // Keep the playbook's play on answers you chose from a recommendation, so ratings land in the right row.
+    if (play && r.routing) r.routing.play = play;
+    renderResult(turn, prompt, r);
+    if (opts.mode === 'agent' && opts.history && !r.answers[0].error) opts.history.push({ role: 'user', content: prompt }, { role: 'assistant', content: r.answers[0].text });
+  } catch (err) {
+    turn.querySelector('.route:last-child').textContent = `Error: ${err.message}`;
+  } finally {
+    $('#send').disabled = false;
+  }
+}
+
+$('#composer').addEventListener('submit', (e) => {
   e.preventDefault();
   const prompt = $('#prompt').value.trim();
   if (!prompt) return;
   $('.empty')?.remove();
   const turn = document.createElement('div');
   turn.className = 'turn';
-  turn.innerHTML = `<div class="you">${esc(prompt)}</div><div class="route">Working…</div>`;
+  turn.innerHTML = `<div class="you">${esc(prompt)}</div>`;
   $('#thread').append(turn);
   turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  $('#send').disabled = true;
-  try {
-    const agentId = $('#agentSelect').value;
-    const history = mode === 'agent' ? (histories[agentId] ??= []) : [];
-    const r = await api('/api/ask', { prompt, mode, agentId, history });
-    const routing = r.routing || {};
-    const who = r.mode === 'council' ? `Council: ${routing.council.join(', ')}` : `→ ${routing.reason ?? ''}`;
-    turn.innerHTML = `<div class="you">${esc(prompt)}</div><div class="route">${esc(who)}</div>`
-      + (routing.flags || []).map((f) => `<div class="flag">! ${esc(f)}</div>`).join('')
-      + `<div class="answers">${r.answers.map((a) => card(a)).join('')}${r.synthesis ? card(r.synthesis, true) : ''}</div>`;
-    if (mode === 'agent' && !r.answers[0].error) history.push({ role: 'user', content: prompt }, { role: 'assistant', content: r.answers[0].text });
-    $('#prompt').value = '';
-    preview();
-  } catch (err) {
-    turn.querySelector('.route').textContent = `Error: ${err.message}`;
-  } finally {
-    $('#send').disabled = false;
-  }
+  const agentId = $('#agentSelect').value;
+  const opts = mode === 'agent' ? { mode, agentId, history: (histories[agentId] ??= []) } : { mode };
+  run(turn, prompt, opts);
+  $('#prompt').value = '';
+  preview();
 });
 
 $('#prompt').addEventListener('input', preview);
 $('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
 $('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));
 $('#agentSelect').addEventListener('change', preview);
+$('#unsure').addEventListener('change', () => { store.set('hub.unsure', $('#unsure').value); preview(); });
 $('#agents').addEventListener('click', (e) => {
   const el = e.target.closest('.agent');
   if (!el) return;
@@ -207,10 +282,12 @@ $('#agents').addEventListener('click', (e) => {
 });
 
 (async () => {
-  roster = await api('/api/roster');
+  [roster, playbook] = await Promise.all([api('/api/roster'), api('/api/playbook')]);
+  $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.filter((a) => a.provider !== 'handoff').map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
   $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
   renderAgents();
+  renderPlaybook();
   const machines = await api('/api/machines');
   $('#machines').innerHTML = machines.map((m) => `<div class="row"><span class="dot ${m.online ? 'ready' : ''}"></span>${esc(m.name)}
     <span class="meta">${esc(m.use)}</span></div>`).join('');

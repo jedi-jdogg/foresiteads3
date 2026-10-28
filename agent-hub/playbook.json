@@ -1,0 +1,163 @@
+{
+  "about": "Which agent takes which kind of work, and why. Plays are checked against every request; the play with the most matching terms wins. Order breaks ties, so specific plays come first. `council` lists agents worth asking together when one view is not enough. `note` is shown whenever the play matches, even if another play wins.",
+  "plays": [
+    {
+      "id": "connected-apps",
+      "label": "Your connected apps",
+      "signals": "\\b(shopify|klaviyo|gmail|inbox|slack|google drive|drive|calendar|calendly|bill\\.com|thoughtmetric|vibe|konvert|replit|foresite|github)\\b",
+      "primary": "claude",
+      "backup": [],
+      "why": "Claude is the only agent wired to your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive and the rest).",
+      "note": "Touches your connected apps. Those connectors live in Claude Code / claude.ai, not in this API call: run it there for live data."
+    },
+    {
+      "id": "mac-task",
+      "label": "Work on a Mac",
+      "signals": "\\b(macs?|machine|computer|desktop|laptop|install|on (my|the) (mac|computer)|run (it|this) on)\\b",
+      "primary": "claude",
+      "backup": [],
+      "why": "Claude Code with Remote Control is the agent that can operate the Macs.",
+      "note": "Needs hands on a Mac. Send it to the Mac running Claude Code (Remote Control) rather than an API chat."
+    },
+    {
+      "id": "fact-check",
+      "label": "Fact check",
+      "signals": "\\b(fact[- ]?check|verify|is it true|confirm whether|double[- ]check|accurate)\\b",
+      "primary": "perplexity",
+      "backup": [
+        "claude"
+      ],
+      "council": [
+        "perplexity",
+        "claude",
+        "grok"
+      ],
+      "why": "Perplexity checks against live sources and cites them. A second agent catches what one search misses."
+    },
+    {
+      "id": "live-research",
+      "label": "Live research",
+      "signals": "\\b(research|sources?|cite|citations?|look ?up|latest|news|today|this (week|month|year)|current(ly)?|right now|competitors?|market size|statistics|stats|benchmarks?|who is|what happened|announced)\\b",
+      "primary": "perplexity",
+      "backup": [
+        "grok",
+        "claude"
+      ],
+      "why": "Perplexity searches the web for every answer and returns clickable sources. The others answer from what they were trained on unless they search."
+    },
+    {
+      "id": "social-pulse",
+      "label": "Social pulse",
+      "signals": "\\b(twitter|tweets?|x\\.com|on x|viral|trending|sentiment|reddit|tiktok|influencers?|hashtags?|buzz|people saying)\\b",
+      "primary": "grok",
+      "backup": [
+        "perplexity",
+        "claude"
+      ],
+      "why": "Grok reads X in real time, so it knows what people are saying now and how they feel about it."
+    },
+    {
+      "id": "meta-platforms",
+      "label": "Facebook / Instagram",
+      "signals": "\\b(facebook|instagram|meta ads?|reels?|whatsapp|threads|fb|ig|advantage\\+)\\b",
+      "primary": "muse",
+      "backup": [
+        "claude",
+        "openai"
+      ],
+      "why": "Muse is Meta's own agent, built around Facebook, Instagram and Reels formats."
+    },
+    {
+      "id": "image-creative",
+      "label": "Images and visuals",
+      "signals": "\\b(images?|logo|picture|illustrat\\w*|photo\\w*|graphic|thumbnail|mock-?up|render|visual|banner)\\b",
+      "primary": "openai",
+      "backup": [
+        "muse",
+        "claude"
+      ],
+      "why": "ChatGPT makes images; Claude does not. Through the hub you get the concept and a ready-to-use image prompt. Generate the image in ChatGPT or with Foresite's generate-creative tool."
+    },
+    {
+      "id": "brainstorm",
+      "label": "Ideas and hooks",
+      "signals": "\\b(brainstorm|ideas?|names?|taglines?|angles?|hooks?|concepts?|slogans?|variations?)\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "council": [
+        "claude",
+        "grok",
+        "muse",
+        "openai"
+      ],
+      "why": "For ideas, range beats any single model. Each agent pulls in a different direction, and Claude picks the strongest."
+    },
+    {
+      "id": "strategy",
+      "label": "Strategy and decisions",
+      "signals": "\\b(plan|strategy|strategic|decide|should (we|i)|pros and cons|trade-?offs?|prioriti[sz]e|roadmap|recommend|which is better|worth it)\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "council": [
+        "claude",
+        "openai",
+        "perplexity"
+      ],
+      "why": "Claude is the lead for judgment calls. For bigger decisions a council adds a second opinion and current facts, and Claude weighs them."
+    },
+    {
+      "id": "code",
+      "label": "Code and automation",
+      "signals": "\\b(code|bug|script|api|deploy|function|repo|sql|javascript|python|html|css|webhook|error|automate|zapier|liquid)\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "why": "Claude is the strongest coder of the group and runs Claude Code on your Macs."
+    },
+    {
+      "id": "analysis",
+      "label": "Numbers and analysis",
+      "signals": "\\b(analy[sz]\\w*|data|spreadsheet|numbers|forecast|roas|cpa|cac|ltv|metrics|kpis?|report|budget|pricing|margin|attribution)\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "why": "Claude reasons carefully through numbers and says what it is unsure of. ChatGPT is a good second check on calculations."
+    },
+    {
+      "id": "long-documents",
+      "label": "Long documents",
+      "signals": "\\b(contract|pdf|document|transcript|terms|agreement|whole (file|doc)|read (this|the) (doc|file))\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "why": "Claude reads very long documents in one go and quotes them accurately."
+    },
+    {
+      "id": "writing",
+      "label": "Writing",
+      "signals": "\\b(write|draft|email|blog|copy|rewrite|edit|proposal|summari[sz]e|outline|headline|newsletter|sop|memo|reply)\\b",
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "why": "Claude writes in a natural voice and follows a brief closely."
+    },
+    {
+      "id": "general",
+      "label": "General",
+      "signals": null,
+      "primary": "claude",
+      "backup": [
+        "openai"
+      ],
+      "why": "No specialist fits, so the lead agent takes it."
+    }
+  ]
+}

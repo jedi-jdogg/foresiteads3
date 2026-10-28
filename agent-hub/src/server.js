@@ -15,7 +15,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       const url = new URL(req.url, 'http://hub');
       if (req.method === 'GET' && url.pathname === '/') return send(200, await readFile(PAGE), 'text/html; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/api/roster') {
-        return send(200, { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors });
+        return send(200, { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors, whenUnsure: hub.whenUnsure });
       }
       if (req.method === 'GET' && url.pathname === '/api/machines') {
         return send(200, await Promise.all((hub.roster.machines ?? []).map((m) => checkMachine(m))));
@@ -25,9 +25,15 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         return send(200, smart ? await hub.smartRoute(prompt) : hub.route(prompt));
       }
       if (req.method === 'POST' && url.pathname === '/api/ask') {
-        const { prompt, mode, agentId, history } = await readJson(req);
+        const { prompt, mode, agentId, agents, history, whenUnsure } = await readJson(req);
         if (!prompt?.trim()) return send(400, { error: 'Empty prompt.' });
-        return send(200, await hub.ask(prompt, { mode, agentId, history }));
+        return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure }));
+      }
+      if (req.method === 'GET' && url.pathname === '/api/playbook') return send(200, hub.playbook);
+      if (req.method === 'GET' && url.pathname === '/api/scorecard') return send(200, await hub.scorecard());
+      if (req.method === 'POST' && url.pathname === '/api/feedback') {
+        await hub.feedback(await readJson(req));
+        return send(200, { ok: true });
       }
       send(404, { error: 'Not found' });
     } catch (err) {
