@@ -165,6 +165,29 @@ marketing performance or customers rather than guessing; say which source each f
     return { ...out, used, ms: Date.now() - started };
   }
 
+  // Models the provider says this account can use, newest first. Perplexity's Agent API uses presets instead.
+  async listModels(agentId) {
+    const agent = this.agent(agentId);
+    if (!agent.callable) return { id: agentId, models: agent.modelChoices ?? [], live: false };
+    try {
+      let models;
+      if (agent.provider === 'perplexity') models = agent.modelChoices ?? [];
+      else if (agent.provider === 'anthropic') {
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        const page = await new Anthropic({ apiKey: agent.apiKey }).models.list({ limit: 100 });
+        models = page.data.sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).map((m) => m.id);
+      } else {
+        const { default: OpenAI } = await import('openai');
+        const page = await new OpenAI({ apiKey: agent.apiKey, ...(agent.baseURL ? { baseURL: agent.baseURL } : {}) }).models.list();
+        models = page.data.sort((x, y) => (y.created ?? 0) - (x.created ?? 0)).map((m) => m.id);
+        if (agent.id === 'openai') models = models.filter((m) => /^(gpt|o\d)/.test(m) && !/(audio|realtime|transcribe|tts|image|embedding|search|moderation|codex|instruct|\d{4}-\d{2}-\d{2})/.test(m));
+      }
+      return { id: agentId, models, live: true };
+    } catch (err) {
+      return { id: agentId, models: agent.modelChoices ?? [], live: false, error: friendlyError(err) };
+    }
+  }
+
   // Data sources: connect (save creds + test), test, list.
   async connectSource(id, values = {}) {
     const src = this.sources.get(id);

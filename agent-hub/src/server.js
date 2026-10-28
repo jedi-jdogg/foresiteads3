@@ -58,6 +58,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         const { agentId } = await readJson(req);
         return send(200, await hub.test(agentId));
       }
+      if (req.method === 'GET' && url.pathname === '/api/models') return send(200, await hub.listModels(url.searchParams.get('agent')));
       if (req.method === 'GET' && url.pathname === '/api/sources') return send(200, hub.publicSources());
       if (req.method === 'POST' && url.pathname === '/api/sources/connect') {
         const { id, values } = await readJson(req);

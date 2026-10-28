@@ -6,7 +6,7 @@
       "vendor": "Anthropic",
       "role": "Lead agent and conductor. Default for anything that needs judgment, and the agent that merges council answers.",
       "provider": "anthropic",
-      "model": "claude-opus-5-5",
+      "model": "claude-fable-5-1",
       "modelEnv": "CLAUDE_MODEL",
       "keyEnv": "ANTHROPIC_API_KEY",
       "notes": "Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off.",
@@ -14,9 +14,11 @@
       "keyHint": "Anthropic Console → API keys. Starts with sk-ant-.",
       "tools": true,
       "altModels": [
+        "claude-opus-5-5",
         "claude-sonnet-5-5"
       ],
       "modelChoices": [
+        "claude-fable-5-1",
         "claude-opus-5-5",
         "claude-sonnet-5-5",
         "claude-haiku-5-5"
@@ -96,7 +98,7 @@
       "role": "Social listener. What is trending on X and how people are reacting.",
       "provider": "openai-compatible",
       "baseURL": "https://api.x.ai/v1",
-      "model": "grok-4",
+      "model": "grok-4.6",
       "modelEnv": "XAI_MODEL",
       "keyEnv": "XAI_API_KEY",
       "notes": "Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy.",
@@ -104,13 +106,14 @@
       "keyHint": "xAI Console → API keys. Starts with xai-.",
       "tools": true,
       "altModels": [
-        "grok-4-latest",
-        "grok-3"
+        "grok-4.5",
+        "grok-4"
       ],
       "modelChoices": [
-        "grok-4",
-        "grok-4-latest",
-        "grok-3"
+        "grok-4.6",
+        "grok-4.5",
+        "grok-4.3",
+        "grok-4"
       ]
     },
     {

@@ -217,6 +217,7 @@
   .conn .fields { display: grid; gap: 8px; grid-template-columns: 1fr; margin-top: 10px; }
   .conn .fields.two { grid-template-columns: 1fr 1fr; }
   .conn label { display: grid; gap: 4px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .conn label small { text-transform: none; letter-spacing: 0; font: 12px var(--sans); color: var(--muted); }
   .conn input, .conn select { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel-2); font: 13.5px var(--mono); width: 100%; }
   .conn .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .conn .save { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; }
@@ -443,6 +444,7 @@ const Live = {
   route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
   feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
   connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body), version: () => http('/api/version'),
+  models: (agentId) => http(`/api/models?agent=${encodeURIComponent(agentId)}`),
   sources: () => http('/api/sources'), connectSource: (body) => http('/api/sources/connect', body), testSource: (body) => http('/api/sources/test', body),
 };
 
@@ -497,6 +499,7 @@ function makeDemo(snapshot) {
     feedback: async (f) => { feedback.push(f); return { ok: true }; },
     connect: async () => { throw new Error('Keys can only be saved on the Mac running the hub. Open this screen at http://localhost:4747 there.'); },
     test: async ({ agentId }) => ({ id: agentId, ok: true, model: agents.find((a) => a.id === agentId).model, ms: 0, sample: true }),
+    models: async (agentId) => ({ id: agentId, models: agents.find((a) => a.id === agentId).modelChoices ?? [], live: false }),
     sources: async () => (snapshot.sources ?? []).map((s) => ({ ...s, connected: false, needsAuth: false, missing: s.envs.filter((e) => !e.optional && !e.managed).map((e) => e.key), set: {}, preview: true })),
     connectSource: async () => { throw new Error('Data sources can only be connected on the Mac running the hub.'); },
     testSource: async ({ id }) => ({ id, ok: false, error: 'Preview only.' }),
@@ -607,10 +610,22 @@ function showView(v) {
   document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
   if (v === 'scorecard') renderScorecard();
   if (v === 'log') renderLog();
-  if (v === 'connect') { renderConnect(); renderSources(); }
+  if (v === 'connect') { renderConnect(); renderSources(); fillModels(); }
 }
 
 // ───────────────────────── connect ─────────────────────────
+async function fillModels() {
+  for (const a of roster.agents.filter((x) => x.callable && !x.preview)) {
+    try {
+      const r = await api.models(a.id);
+      const list = document.getElementById(`models-${a.id}`);
+      if (!list || !r.models?.length) continue;
+      list.innerHTML = r.models.slice(0, 40).map((m) => `<option value="${esc(m)}">`).join('');
+      const hint = document.getElementById(`modelhint-${a.id}`);
+      if (hint) hint.textContent = r.live ? `${r.models.length} models on this account, newest first` : 'suggested models (account list unavailable)';
+    } catch {}
+  }
+}
 function renderConnect() {
   $('#connectNotice').innerHTML = api.name === 'live' ? '' : `<div class="notice"><b>Preview.</b> Keys can only be saved on the Mac running the hub. There, open <code>http://localhost:4747</code> and this screen saves and tests each key for real. Below is what it looks like.</div>`;
   $('#connect').innerHTML = roster.agents.map((a) => {
@@ -629,7 +644,7 @@ function renderConnect() {
         ${needsURL ? `<label>Endpoint (base URL)<input id="url-${a.id}" value="${esc(a.baseURL ?? '')}" placeholder="https://…/v1"></label>` : ''}
       </div>
       <div class="fields two" style="margin-top:8px">
-        <label>Model<input id="model-${a.id}" list="models-${a.id}" value="${esc(a.model)}" autocomplete="off"><datalist id="models-${a.id}">${(a.modelChoices ?? []).map((m) => `<option value="${esc(m)}">`).join('')}</datalist></label>
+        <label>Model <small id="modelhint-${a.id}"></small><input id="model-${a.id}" list="models-${a.id}" value="${esc(a.model)}" autocomplete="off"><datalist id="models-${a.id}">${(a.modelChoices ?? []).map((m) => `<option value="${esc(m)}">`).join('')}</datalist></label>
         ${a.effortChoices ? `<label>Effort<select id="effort-${a.id}">${a.effortChoices.map((e) => `<option value="${e}"${e === a.effort ? ' selected' : ''}>${e}</option>`).join('')}</select></label>` : '<span></span>'}
       </div>
       <div class="row2">
