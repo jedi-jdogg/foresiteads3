@@ -149,7 +149,8 @@ fits two plays with different agents about equally. Suggest a council only when 
   // For the image play on ChatGPT: make the picture, then have the model describe what it made in one line.
   async image(agent, prompt) {
     const started = Date.now();
-    const img = await makeImage(agent, { prompt, model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1' });
+    const img = await makeImage(agent, { prompt, model: process.env.OPENAI_IMAGE_MODEL || undefined });
+    if (img.tried?.length && agent.modelEnv) await saveEnv({ OPENAI_IMAGE_MODEL: img.model }).catch(() => {});
     await mkdir(new URL('images/', LOG_DIR), { recursive: true });
     const file = `${Date.now().toString(36)}.png`;
     await writeFileFs(new URL(`images/${file}`, LOG_DIR), Buffer.from(img.b64, 'base64'));

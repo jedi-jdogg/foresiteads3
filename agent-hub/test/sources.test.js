@@ -188,16 +188,21 @@ test('the image play on ChatGPT makes a picture through the image API', async (t
   const seen = [];
   const server = createServer(async (req, res) => {
     let body = ''; for await (const c of req) body += c;
-    seen.push({ url: req.url, json: JSON.parse(body) });
+    const json = body ? JSON.parse(body) : {};
+    seen.push({ url: req.url, json });
     res.setHeader('content-type', 'application/json');
+    if (req.url.endsWith('/models')) return res.end(JSON.stringify({ data: [{ id: 'gpt-image-1.5', created: 5 }, { id: 'gpt-6-astra', created: 9 }, { id: 'gpt-image-2', created: 8 }, { id: 'gpt-image-2-edit', created: 8 }] }));
+    // The account no longer has gpt-image-1: the hub must fall through to what the account lists.
+    if (json.model === 'gpt-image-1') { res.statusCode = 404; return res.end(JSON.stringify({ error: { message: "The model 'gpt-image-1' does not exist.", type: 'invalid_request_error' } })); }
     res.end(JSON.stringify({ created: 1, data: [{ b64_json: Buffer.from('png-bytes').toString('base64'), revised_prompt: 'a batting roll on a quilt' }] }));
   });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   t.after(() => server.close());
   const agent = { id: 'openai', apiKey: 'k', baseURL: `http://127.0.0.1:${server.address().port}/v1` };
-  const img = await makeImage(agent, { prompt: 'A batting roll on a quilt, product shot' });
-  assert.equal(seen[0].url, '/v1/images/generations');
-  assert.equal(seen[0].json.model, 'gpt-image-1');
+  const img = await makeImage(agent, { prompt: 'A batting roll on a quilt, product shot', model: 'gpt-image-1' });
+  const gens = seen.filter((x) => x.url === '/v1/images/generations').map((x) => x.json.model);
+  assert.deepEqual(gens, ['gpt-image-1', 'gpt-image-2']);   // stale name refused, newest listed model used
+  assert.equal(img.model, 'gpt-image-2');
   assert.equal(Buffer.from(img.b64, 'base64').toString(), 'png-bytes');
   assert.equal(img.revisedPrompt, 'a batting roll on a quilt');
 });

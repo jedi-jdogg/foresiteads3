@@ -79,10 +79,30 @@ async function askChat(agent, { system, messages, tools = [], exec }) {
   }
 }
 
-// A picture from OpenAI's image model. Returns PNG bytes (base64) plus the prompt the model actually used.
-export async function makeImage(agent, { prompt, size = '1024x1024', model = 'gpt-image-1' }) {
-  const r = await client(agent).images.generate({ model, prompt, size, n: 1 });
-  const d = r.data?.[0];
-  if (!d?.b64_json) throw new Error('No image came back.');
-  return { b64: d.b64_json, revisedPrompt: d.revised_prompt, model };
+// The image models this account can use, newest first, asked of OpenAI rather than remembered.
+export async function imageModels(agent) {
+  const page = await client(agent).models.list();
+  return page.data.filter((m) => /^gpt-image/.test(m.id) && !/edit/.test(m.id)).sort((x, y) => (y.created ?? 0) - (x.created ?? 0)).map((m) => m.id);
+}
+
+// A picture from OpenAI's image model. Tries the preferred model, then whatever image models the account
+// lists, newest first, so a renamed model never leaves the hub unable to make a picture.
+export async function makeImage(agent, { prompt, size = '1024x1024', model }) {
+  const tried = [];
+  const candidates = [...(model ? [model] : []), ...(await imageModels(agent).catch(() => [])), 'gpt-image-2', 'gpt-image-1.5', 'gpt-image-1'];
+  let lastErr;
+  for (const m of [...new Set(candidates)]) {
+    try {
+      const r = await client(agent).images.generate({ model: m, prompt, size, n: 1 });
+      const d = r.data?.[0];
+      if (!d?.b64_json) throw new Error('No image came back.');
+      return { b64: d.b64_json, revisedPrompt: d.revised_prompt, model: m, tried };
+    } catch (err) {
+      lastErr = err;
+      tried.push(m);
+      const missing = err.status === 404 || /does not exist|not found|unsupported model|invalid model/i.test(err.message ?? '');
+      if (!missing) throw err;
+    }
+  }
+  throw new Error(`No image model worked (tried ${tried.join(', ')}): ${lastErr?.message ?? 'unknown error'}`);
 }
