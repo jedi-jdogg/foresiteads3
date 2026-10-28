@@ -18,7 +18,22 @@ if [ "$(node -p 'typeof process.loadEnvFile')" != "function" ]; then
   exit 1
 fi
 
-if [ ! -d node_modules ]; then
+# Pull the latest version from GitHub when online. Fast-forward only, so a local edit is never overwritten.
+if git -C .. rev-parse --git-dir >/dev/null 2>&1; then
+  before=$(git -C .. rev-parse HEAD)
+  if git -C .. pull --ff-only --quiet 2>/dev/null; then
+    after=$(git -C .. rev-parse HEAD)
+    if [ "$before" != "$after" ]; then
+      echo "Updated to the latest version:"
+      git -C .. log --oneline "$before..$after" -- agent-hub | sed 's/^/  /'
+      rm -rf node_modules/.package-lock.json
+    fi
+  else
+    echo "Could not check for updates (offline, or local changes). Running the installed version."
+  fi
+fi
+
+if [ ! -d node_modules ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then
   echo "Installing packages (first run only)..."
   npm install --no-audit --no-fund
 fi
@@ -31,5 +46,5 @@ fi
 port=$(grep -E '^HUB_PORT=' .env | cut -d= -f2)
 port=${port:-4747}
 (sleep 1.5 && open "http://localhost:$port/#connect") &
-echo "Agent Hub running at http://localhost:$port. Close this window to stop it."
+echo "Agent Hub $(git -C .. rev-parse --short HEAD 2>/dev/null) running at http://localhost:$port. Close this window to stop it."
 exec node bin/hub.js serve

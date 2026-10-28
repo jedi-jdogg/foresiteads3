@@ -281,6 +281,7 @@
         <a href="#connect" data-view="connect">Connect</a>
       </nav>
       <span class="modebadge" id="modebadge">connecting…</span>
+      <span class="hint" id="version" title="Build running on this Mac. Restart with start-mac.command to update."></span>
     </div>
 
     <!-- Ask -->
@@ -429,7 +430,7 @@ const Live = {
   roster: () => http('/api/roster'), playbook: () => http('/api/playbook'), machines: () => http('/api/machines'),
   route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
   feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
-  connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body),
+  connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body), version: () => http('/api/version'),
 };
 
 // Preview mode: the same playbook, run in the page, with sample answers so the interface can be tried without keys.
@@ -524,6 +525,10 @@ async function boot() {
   badge.textContent = api.name === 'live' ? 'Live' : 'Preview · sample answers';
   badge.title = api.name === 'live' ? 'Connected to the hub on this Mac.' : 'The hub is not running here. Routing is real; answers are samples.';
   playbook = await api.playbook();
+  if (api.version) api.version().then((v) => {
+    $('#version').textContent = v.behind ? `build ${v.local} · update available: restart with start-mac.command` : `build ${v.local} · ${v.date}`;
+    if (v.behind) $('#version').style.color = 'var(--warn)';
+  }).catch(() => {});
 
   $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');

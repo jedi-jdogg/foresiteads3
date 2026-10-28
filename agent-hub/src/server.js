@@ -1,5 +1,8 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const run = promisify(execFile);
 import { publicAgent, checkMachine } from './registry.js';
 
 const PAGE = new URL('../public/index.html', import.meta.url);
@@ -40,6 +43,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure }));
       }
       if (req.method === 'GET' && url.pathname === '/api/playbook') return send(200, hub.playbook);
+      if (req.method === 'GET' && url.pathname === '/api/version') return send(200, await version());
       if (req.method === 'GET' && url.pathname === '/api/scorecard') return send(200, await hub.scorecard());
       if (req.method === 'GET' && url.pathname === '/api/log') return send(200, await hub.recent());
       if (req.method === 'POST' && url.pathname === '/api/connect') {
@@ -70,4 +74,14 @@ async function readJson(req) {
     if (raw.length > MAX_BODY) throw new Error('Request too large.');
   }
   return raw ? JSON.parse(raw) : {};
+}
+
+// Which build is running, and whether GitHub has a newer one. Never pulls: the launcher does that on restart.
+async function version() {
+  const git = (...args) => run('git', ['-C', new URL('..', import.meta.url).pathname, ...args]).then((r) => r.stdout.trim()).catch(() => '');
+  const local = await git('rev-parse', '--short', 'HEAD');
+  const date = await git('log', '-1', '--format=%cs');
+  await git('fetch', '--quiet');
+  const behind = Number(await git('rev-list', '--count', 'HEAD..@{u}')) || 0;
+  return { local, date, behind };
 }
