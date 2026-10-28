@@ -58,7 +58,7 @@ export function resolveAgent(agent, env = process.env) {
 
 // What the browser and CLI may see: never the key.
 export function publicAgent({ apiKey, ...rest }) {
-  return { ...rest, configured: Boolean(apiKey), missing: rest.callable ? null : apiKey ? rest.baseURLEnv : rest.keyEnv };
+  return { ...rest, configured: Boolean(apiKey), missing: rest.callable ? null : apiKey ? rest.baseURLEnv : rest.keyEnv, verified: rest.verified ?? null };
 }
 
 // TCP check on the SSH port. Says whether a Mac is reachable, nothing more.

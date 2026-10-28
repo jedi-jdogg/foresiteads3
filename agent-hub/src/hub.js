@@ -108,8 +108,10 @@ fits two plays with different agents about equally. Suggest a council only when 
     try {
       const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
       const out = agent.provider === 'anthropic' ? await askClaude(agent, { ...req, effort: 'low' }) : await askOpenAICompatible(agent, req);
+      agent.verified = true;
       return { id: agentId, ok: true, model: out.model ?? agent.model, ms: Date.now() - started };
     } catch (err) {
+      agent.verified = false;
       return { id: agentId, ok: false, error: friendlyError(err) };
     }
   }
@@ -247,10 +249,12 @@ and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${pa
 function friendlyError(err) {
   const status = err.status ?? err.statusCode;
   const msg = err.message ?? String(err);
-  if (status === 401 || /invalid.*key|authentication|unauthorized/i.test(msg)) return 'The key was rejected. Check it was copied in full and is still active.';
-  if (status === 403) return 'The key works but this account is not allowed to use that model. Check the plan or the model name.';
-  if (status === 404 && /model/i.test(msg)) return `Model not found. Set a model your account lists in .env.`;
-  if (status === 429 || /quota|billing|insufficient/i.test(msg)) return 'The provider refused for billing or rate-limit reasons. Add credit or a payment method on their console.';
+  const tail = status ? ` (HTTP ${status}: ${msg.replace(/^\d+\s*/, '').slice(0, 140)})` : ` (${msg.slice(0, 140)})`;
+  if (status === 401 || /invalid.*key|authentication|unauthorized/i.test(msg)) return `The key was rejected. It must be an API key from the provider's developer console, copied in full${tail}`;
+  if (status === 403) return `The key works but this account is not allowed to use that model. Check the plan or the model name${tail}`;
+  if (status === 404 && /model/i.test(msg)) return `Model not found. Set a model your account lists in .env${tail}`;
+  if (status === 429 || /quota|billing|insufficient|credit/i.test(msg)) return `The provider refused for billing or rate-limit reasons. Add credit or a payment method on their console${tail}`;
+  if (status === 400) return `The provider rejected the request${tail}`;
   if (/ENOTFOUND|ECONNREFUSED|fetch failed|getaddrinfo/i.test(msg)) return 'Could not reach the endpoint. Check the base URL and your connection.';
   return msg.length > 200 ? msg.slice(0, 197) + '…' : msg;
 }
