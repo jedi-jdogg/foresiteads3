@@ -4,7 +4,8 @@ import { resolveAgent, saveEnv } from './registry.js';
 import { Sources, loadSources, publicSource } from './sources/registry.js';
 import { Machines } from './machines.js';
 import { askClaude } from './providers/anthropic.js';
-import { askOpenAICompatible } from './providers/openai-compatible.js';
+import { askOpenAICompatible, makeImage } from './providers/openai-compatible.js';
+import { writeFile as writeFileFs } from 'node:fs/promises';
 import { askPerplexity } from './providers/perplexity.js';
 
 const LOG_DIR = new URL('../logs/', import.meta.url);
@@ -145,7 +146,21 @@ fits two plays with different agents about equally. Suggest a council only when 
     return { id: agentId, ok: false, error: tried.length > 1 ? `${msg} Tried models: ${tried.join(', ')}.` : msg };
   }
 
-  async call(agent, prompt, history = []) {
+  // For the image play on ChatGPT: make the picture, then have the model describe what it made in one line.
+  async image(agent, prompt) {
+    const started = Date.now();
+    const img = await makeImage(agent, { prompt, model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1' });
+    await mkdir(new URL('images/', LOG_DIR), { recursive: true });
+    const file = `${Date.now().toString(36)}.png`;
+    await writeFileFs(new URL(`images/${file}`, LOG_DIR), Buffer.from(img.b64, 'base64'));
+    return {
+      text: `Image made with ${img.model}.${img.revisedPrompt ? `\n\nPrompt used: ${img.revisedPrompt}` : ''}\n\nSaved on this Mac as agent-hub/logs/images/${file}. Say what to change and I will redo it.`,
+      images: [`/images/${file}`], model: img.model, ms: Date.now() - started, used: [{ name: 'openai__image', input: { prompt: prompt.slice(0, 120) }, ok: true }],
+    };
+  }
+
+  async call(agent, prompt, history = [], { play } = {}) {
+    if (play === 'image-creative' && agent.id === 'openai' && agent.callable) return this.image(agent, prompt);
     if (agent.provider === 'handoff') {
       return { text: `This one belongs in ${agent.name} (${agent.url}), which the hub does not chat with. ${agent.handoff ?? ''}`.trim(), handoff: true };
     }
@@ -224,13 +239,13 @@ marketing performance or customers rather than guessing; say which source each f
       result = await this.council(prompt, { size: councilSize, agents });
     } else if (mode === 'agent') {
       const routing = { ...this.route(prompt), pick: agentId, reason: `${this.agent(agentId).name}: chosen by you`, decision: 'proceed', flags: [] };
-      result = { mode, routing, answers: [await this.settle(this.agent(agentId), prompt, history)] };
+      result = { mode, routing, answers: [await this.settle(this.agent(agentId), prompt, history, { play: routing.play?.id })] };
     } else {
       const routing = mode === 'smart' ? await this.smartRoute(prompt) : this.route(prompt);
       if (routing.decision === 'recommend' && whenUnsure === 'ask') {
         result = { mode: 'recommend', routing, answers: [] };
       } else {
-        result = { mode, routing, answers: [await this.settle(this.agent(routing.pick), prompt, history)] };
+        result = { mode, routing, answers: [await this.settle(this.agent(routing.pick), prompt, history, { play: routing.play?.id })] };
       }
     }
     await this.record(prompt, result);
@@ -257,9 +272,9 @@ and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${pa
   }
 
   // Never let one agent's failure sink the whole request.
-  async settle(agent, prompt, history) {
+  async settle(agent, prompt, history, opts = {}) {
     try {
-      return { id: agent.id, name: agent.name, ...(await this.call(agent, prompt, history)) };
+      return { id: agent.id, name: agent.name, ...(await this.call(agent, prompt, history, opts)) };
     } catch (err) {
       return { id: agent.id, name: agent.name, error: err.message };
     }

@@ -60,6 +60,10 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         if (!prompt?.trim()) return send(400, { error: 'Empty prompt.' });
         return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure }));
       }
+      if (req.method === 'GET' && /^\/images\/[a-z0-9]+\.png$/.test(url.pathname)) {
+        const png = await readFile(new URL(`../logs${url.pathname}`, import.meta.url));
+        res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'private, max-age=86400' }); return res.end(png);
+      }
       if (req.method === 'GET' && url.pathname === '/api/playbook') return send(200, hub.playbook);
       if (req.method === 'GET' && url.pathname === '/api/version') return send(200, await version());
       if (req.method === 'GET' && url.pathname === '/api/scorecard') return send(200, await hub.scorecard());

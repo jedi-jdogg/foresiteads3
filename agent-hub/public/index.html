@@ -558,6 +558,7 @@ const TRY = [
 
 let api, roster = { agents: [] }, playbook = { plays: [] }, mode = 'auto';
 const histories = {};
+const thread = [];   // recent exchanges in this window, shared across modes
 const nameOf = (id) => id === 'merged' ? 'Merged answer' : (roster.agents.find((a) => a.id === id)?.name ?? id);
 const colorOf = (id) => id.startsWith('mac:') ? 'var(--good)' : `var(--${['claude', 'perplexity', 'openai', 'grok', 'muse', 'merged'].includes(id) ? id : 'accent'})`;
 
@@ -912,8 +913,9 @@ function card(a, play, prompt) {
     <button type="button" class="rate" data-rating="up" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Good answer">👍</button>
     <button type="button" class="rate" data-rating="down" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Poor answer">👎</button></div>`;
   const used = (a.used ?? []).length ? `<div class="used">${a.used.map((u) => `<span class="${u.ok === false ? 'bad' : ''}" title="${esc(JSON.stringify(u.input ?? {}))}">${esc(u.name.replace('__', ' · '))}${u.prefetched ? ' (pre-fetched)' : ''}</span>`).join('')}</div>` : '';
+  const pics = (a.images ?? []).map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Generated image" style="max-width:100%;border-radius:8px;border:1px solid var(--line);margin-top:8px"></a>`).join('');
   return `<div class="card${merged ? ' merged' : ''}${a.error ? ' err' : ''}" style="--c:${colorOf(a.id)}"><span class="stripe"></span>
-    <div><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${used}${foot}</div></div>`;
+    <div><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${pics}${used}${foot}</div></div>`;
 }
 
 function renderResult(turn, prompt, r) {
@@ -959,7 +961,11 @@ async function run(turn, prompt, opts, play) {
     const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, ...opts });
     if (play && r.routing) r.routing.play = play;
     renderResult(turn, prompt, r);
-    if (opts.mode === 'agent' && opts.history && !r.answers[0].error) opts.history.push({ role: 'user', content: prompt }, { role: 'assistant', content: r.answers[0].text });
+    const first = r.answers?.[0];
+    if (first && !first.error && first.text) {
+      if (opts.mode === 'agent' && opts.history) opts.history.push({ role: 'user', content: prompt }, { role: 'assistant', content: first.text });
+      thread.push({ role: 'user', content: prompt }, { role: 'assistant', content: `[${first.name}] ${first.text.slice(0, 1500)}` });
+    }
   } catch (err) {
     turn.querySelector('#working').outerHTML = `<div class="flag">${esc(err.message)}</div>`;
   } finally {
@@ -976,7 +982,8 @@ function submit(prompt) {
   turn.innerHTML = `<div class="you"><div class="bubble">${esc(prompt)}</div><span class="at">${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>`;
   $('#thread').append(turn);
   const agentId = $('#agentSelect').value;
-  const opts = mode === 'agent' ? { mode, agentId, history: (histories[agentId] ??= []) } : { mode };
+  // Direct keeps a memory per agent; Auto and Smart share the thread's recent exchanges so follow-ups make sense.
+  const opts = mode === 'agent' ? { mode, agentId, history: (histories[agentId] ??= []) } : { mode, history: thread.slice(-8) };
   run(turn, prompt, opts);
   $('#prompt').value = '';
   preview();

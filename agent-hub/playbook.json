@@ -15,7 +15,9 @@
       "label": "Hands-on task (on a Mac)",
       "signals": "\\b(on (a|the|my|any) mac|on (a|the) (computer|machine)|use (a|the|my) mac|download|install|screenshot|create (a |an )?(file|folder|spreadsheet|csv|pdf|deck|doc)|save (it|the|a) (file|csv|pdf)|export (the|a|to)|open .* in (chrome|safari|the browser)|log ?in to|fill (in|out)|click|upload|zip|unzip|rename (the )?files?|organi[sz]e (the )?(files|folder|downloads))\\b",
       "primary": "mac:any",
-      "backup": ["claude"],
+      "backup": [
+        "claude"
+      ],
       "why": "Work that needs hands on a computer: files, a signed-in browser, downloads, exports. A Mac's own Claude Code does it on your subscription and reports back."
     },
     {
@@ -75,7 +77,7 @@
         "muse",
         "claude"
       ],
-      "why": "ChatGPT makes images; Claude does not. Through the hub you get the concept and a ready-to-use image prompt. Generate the image in ChatGPT or with Foresite's generate-creative tool."
+      "why": "ChatGPT makes the image itself (OpenAI's image model) and shows it here; Claude cannot make pictures. Say what to change and ask again to redo it."
     },
     {
       "id": "brainstorm",

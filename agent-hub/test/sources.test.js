@@ -74,6 +74,14 @@ function standIn() {
       return res.end(JSON.stringify({ id: 'm2', type: 'message', role: 'assistant', model: json.model, stop_reason: 'end_turn', stop_details: null, usage: { input_tokens: 1, output_tokens: 1 },
         content: [{ type: 'text', text: `Revenue was $${result.current.revenue} across ${result.current.orders} orders.` }] }));
     }
+    if (req.url.endsWith('/responses')) {
+      const last = json.input.at(-1);
+      if (last.type !== 'function_call_output') {
+        return res.end(JSON.stringify({ id: 'r1', model: json.model, status: 'completed', usage: {}, output: [{ type: 'function_call', call_id: 'c1', name: 'shopify__sales_summary', arguments: '{"days":7}' }] }));
+      }
+      const result = JSON.parse(last.output);
+      return res.end(JSON.stringify({ id: 'r2', model: json.model, status: 'completed', usage: {}, output_text: `GPT: ${result.current.orders} orders`, output: [{ type: 'message', content: [{ type: 'output_text', text: `GPT: ${result.current.orders} orders` }] }] }));
+    }
     if (req.url.endsWith('/chat/completions')) {
       const last = json.messages.at(-1);
       if (last.role !== 'tool') {
@@ -108,10 +116,23 @@ test('Claude and an OpenAI-compatible agent can both call a Shopify tool and ans
   const toolRequest = seen.find((s) => s.url.endsWith('/v1/messages'));
   assert.ok(toolRequest.json.tools.some((x) => x.name === 'shopify__sales_summary'));
 
-  const gpt = { id: 'openai', provider: 'openai-compatible', model: 'gpt-5', apiKey: 'k', baseURL: `http://127.0.0.1:${port}/v1`, tools: true };
+  // Grok-style host: Chat Completions with tool calls.
+  const gpt = { id: 'grok', provider: 'openai-compatible', model: 'grok-4.6', apiKey: 'k', baseURL: `http://127.0.0.1:${port}/v1`, tools: true };
   const b = await askOpenAICompatible(gpt, { system: 'x', messages: [{ role: 'user', content: 'How were sales this week?' }], tools, exec });
   assert.equal(b.text, 'GPT: 2 orders');
   assert.equal(b.used.length, 1);
+  // OpenAI itself: the Responses API, with reasoning effort and function tools in the new shape.
+  const oai = { id: 'openai', provider: 'openai-compatible', model: 'gpt-6-astra', apiKey: 'k', baseURL: `http://127.0.0.1:${port}/api.openai.com/v1`, tools: true, effort: 'medium' };
+  seen.length = 0;
+  const c = await askOpenAICompatible(oai, { system: 'brief', messages: [{ role: 'user', content: 'Sales?' }], tools, exec });
+  assert.equal(c.text, 'GPT: 2 orders');
+  assert.equal(c.used[0].name, 'shopify__sales_summary');
+  const first = seen.find((x) => x.url.endsWith('/responses')).json;
+  assert.equal(first.instructions, 'brief');
+  assert.deepEqual(first.reasoning, { effort: 'medium' });
+  assert.equal(first.tools[0].type, 'function');
+  assert.equal(first.tools[0].name, 'shopify__sales_summary');
+  assert.equal(first.tools[0].parameters.type, 'object');
 
   // An agent without tool support gets no tools in its request.
   const pplx = { ...gpt, id: 'perplexity', tools: false };
@@ -160,4 +181,23 @@ test('Perplexity Agent API: preset request, output_text and search_results sourc
   await askPerplexity({ ...agent, model: 'perplexity/sonar' }, { messages: [{ role: 'user', content: 'x' }] });
   assert.equal(seen[1].json.model, 'perplexity/sonar');
   assert.deepEqual(seen[1].json.tools, [{ type: 'web_search' }]);
+});
+
+test('the image play on ChatGPT makes a picture through the image API', async (t) => {
+  const { makeImage } = await import('../src/providers/openai-compatible.js');
+  const seen = [];
+  const server = createServer(async (req, res) => {
+    let body = ''; for await (const c of req) body += c;
+    seen.push({ url: req.url, json: JSON.parse(body) });
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ created: 1, data: [{ b64_json: Buffer.from('png-bytes').toString('base64'), revised_prompt: 'a batting roll on a quilt' }] }));
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  t.after(() => server.close());
+  const agent = { id: 'openai', apiKey: 'k', baseURL: `http://127.0.0.1:${server.address().port}/v1` };
+  const img = await makeImage(agent, { prompt: 'A batting roll on a quilt, product shot' });
+  assert.equal(seen[0].url, '/v1/images/generations');
+  assert.equal(seen[0].json.model, 'gpt-image-1');
+  assert.equal(Buffer.from(img.b64, 'base64').toString(), 'png-bytes');
+  assert.equal(img.revisedPrompt, 'a batting roll on a quilt');
 });
