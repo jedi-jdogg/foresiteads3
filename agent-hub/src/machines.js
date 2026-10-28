@@ -61,6 +61,7 @@ export class Machines {
   // Registered Macs merged with what Tailscale sees, plus Tailscale Macs not yet registered.
   async overview() {
     const [list, ts] = await Promise.all([this.list(), this.tailscale()]);
+    const workerUrl = this.workerUrl ?? null;
     const byHost = new Map(ts.peers.map((p) => [p.host.toLowerCase(), p]));
     const short = (h) => h.toLowerCase().split('.')[0];
     const machines = list.map((m) => {
@@ -69,7 +70,7 @@ export class Machines {
     });
     const known = new Set(list.map((m) => short(m.host)));
     const unregistered = ts.peers.filter((p) => !known.has(short(p.host)) && p.host !== ts.self?.host);
-    return { tailscale: ts.ok, tailscaleError: ts.error, self: ts.self, machines, unregistered };
+    return { tailscale: ts.ok, tailscaleError: ts.error, self: ts.self, machines, unregistered, workerUrl };
   }
 
   // ── ssh ──
@@ -168,9 +169,10 @@ export class Machines {
   }
 
   // The paste-once script that prepares a worker Mac. Carries the hub's public key so no copying is needed.
-  async setupScript({ hubHost, pubkey, hubUser }) {
+  async setupScript({ hubHost, pubkey, hubUser, bare = false }) {
     const template = await readFile(new URL('../worker/setup-worker.sh', import.meta.url), 'utf8');
     const body = template.replace('__HUB_PUBKEY__', pubkey).replace(/__HUB_HOST__/g, hubHost ?? 'the hub Mac').replace(/__HUB_USER__/g, hubUser ?? '');
+    if (bare) return body;   // fetched by curl and piped to bash: no wrapper needed
     // Wrapped so the user's interactive shell (zsh) hands the whole text to bash untouched: no history
     // expansion on "!", no line-by-line execution. Same shape as the installer.
     return `bash <<'HUB_SETUP'\n${body.replace(/^#!.*\n/, '')}\nHUB_SETUP\n`;

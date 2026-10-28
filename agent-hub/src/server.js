@@ -115,7 +115,27 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       send(500, { error: err.message });
     }
   });
-  return new Promise((resolve) => server.listen(port, host, () => resolve(server)));
+  const ready = new Promise((resolve) => server.listen(port, host, () => resolve(server)));
+  // A second, tiny listener on the Tailscale address serves only the worker setup script, so a new Mac can
+  // fetch it with one line (curl … | bash). Nothing else is reachable from the network.
+  ready.then(() => hub.machines.tailscale().then((ts) => {
+    const ip = ts.self?.ip;
+    if (!ip) return;
+    const worker = createServer(async (req, res) => {
+      if (req.method === 'GET' && (req.url === '/worker' || req.url === '/worker.sh')) {
+        try {
+          const pubkey = await hub.machines.ensureKey();
+          const script = await hub.machines.setupScript({ hubHost: ts.self?.host, pubkey, hubUser: process.env.USER, bare: true });
+          res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' }); return res.end(script);
+        } catch (err) { res.writeHead(500); return res.end(`# ${err.message}\n`); }
+      }
+      res.writeHead(404); res.end('Agent Hub: only /worker is served on this address.\n');
+    });
+    worker.on('error', () => {});
+    worker.listen(port, ip);
+    hub.machines.workerUrl = `http://${(ts.self?.host ?? ip).replace(/\.$/, '')}:${port}/worker`;
+  }).catch(() => {}));
+  return ready;
 }
 
 function redirectUri(req, port) {

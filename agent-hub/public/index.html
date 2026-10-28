@@ -488,7 +488,7 @@ function makeDemo(snapshot) {
     name: 'preview',
     roster: async () => ({ agents, connectors: snapshot.connectors, whenUnsure: 'ask' }),
     playbook: async () => snapshot.playbook,
-    machines: async () => ({ tailscale: true, self: { host: 'hub-mac.tailnet.ts.net' }, machines: [
+    machines: async () => ({ tailscale: true, self: { host: 'hub-mac.tailnet.ts.net' }, workerUrl: 'http://hub-mac.tailnet.ts.net:4747/worker', machines: [
       { id: 'mac-1', name: 'Mac 1', host: 'mac-1.tailnet.ts.net', user: 'jonathan', note: 'Chrome signed in to Shopify admin', online: true, running: 1 },
       { id: 'mac-2', name: 'Mac 2', host: 'mac-2.tailnet.ts.net', user: 'jonathan', note: 'general purpose', online: true, running: 0 },
       { id: 'mac-3', name: 'Mac 3', host: 'mac-3.tailnet.ts.net', user: 'jonathan', note: 'general purpose', online: false, running: 0 } ],
@@ -691,9 +691,13 @@ async function renderMachines() {
     ${unreg || '<div class="empty">Every Mac Tailscale can see is registered.</div>'}
     <h2 style="margin-top:26px">Set up a new worker Mac</h2>
     <div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
-      <div class="where">On the new Mac: install Tailscale and sign in, then paste this script into Terminal. It turns on Remote Login, trusts this hub's key, installs Claude Code and creates the jobs folder. Then register the Mac above.</div>
-      <div class="row2"><button type="button" class="save" id="copySetup">Copy setup script</button><button type="button" class="test" id="showSetup">Show</button><span class="msg" id="setupmsg"></span></div>
+      <div class="where">On the new Mac: install Tailscale and sign in, open Terminal, and paste this one line. It fetches the setup from this hub over Tailscale and runs it: Remote Login on, this hub's key trusted, Claude Code installed, jobs folder created. Then register the Mac above.</div>
+      ${o.workerUrl ? `<div class="fields" style="margin-top:8px"><label>One line to paste on the new Mac<input id="workerCmd" readonly value="curl -fsSL ${esc(o.workerUrl)} | bash" onclick="this.select()"></label></div>
+      <div class="row2"><button type="button" class="save" id="copyCmd">Copy the line</button><span class="msg" id="cmdmsg"></span></div>
+      <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">If the new Mac cannot reach the hub: paste the full script instead</summary>` : '<div class="notice" style="margin-top:8px">The one-line command appears here once Tailscale is running on this Mac. Until then, use the full script below.</div>'}
+      <div class="row2"><button type="button" class="save" id="copySetup">Copy full setup script</button><button type="button" class="test" id="showSetup">Show</button><span class="msg" id="setupmsg"></span></div>
       <pre id="setupText" hidden style="font:12px var(--mono);white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:40vh;overflow:auto"></pre>
+      ${o.workerUrl ? '</details>' : ''}
     </div></div>
     <h2 style="margin-top:26px">Jobs</h2>${jobRows}`;
   refreshRailMachines();
@@ -706,6 +710,14 @@ $('#machinesView').addEventListener('click', async (e) => {
       await api.registerMachine({ id: $(`#reg-id-${CSS.escape(k)}`).value.trim(), host: reg.dataset.host, user: $(`#reg-user-${CSS.escape(k)}`).value.trim(), name: $(`#reg-name-${CSS.escape(k)}`).value.trim(), note: $(`#reg-note-${CSS.escape(k)}`).value.trim() });
       renderMachines();
     } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+    return;
+  }
+  if (e.target.id === 'copyCmd') {
+    const input = $('#workerCmd'); input.select();
+    let ok = false;
+    try { await navigator.clipboard.writeText(input.value); ok = true; } catch {}
+    if (!ok) { try { ok = document.execCommand('copy'); } catch {} }
+    $('#cmdmsg').className = `msg ${ok ? 'ok' : ''}`; $('#cmdmsg').textContent = ok ? 'Copied.' : 'Select the line and press ⌘C.';
     return;
   }
   if (e.target.id === 'copySetup' || e.target.id === 'showSetup') {
