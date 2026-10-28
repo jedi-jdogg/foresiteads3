@@ -1,0 +1,18 @@
+{
+  "name": "foresite-agent-hub",
+  "version": "1.0.0",
+  "description": "One console over Claude, OpenAI, Grok, Perplexity, Meta and Muse.ai: routes each request to the agent best suited to it, or asks several and merges the answers.",
+  "type": "module",
+  "bin": { "agent-hub": "./bin/hub.js" },
+  "scripts": {
+    "start": "node bin/hub.js serve",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "openai": "^7.45.1"
+  },
+  "engines": { "node": ">=20.12" },
+  "license": "UNLICENSED",
+  "private": true
+}

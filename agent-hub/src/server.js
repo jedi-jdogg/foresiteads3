@@ -1,0 +1,47 @@
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { publicAgent, checkMachine } from './registry.js';
+
+const PAGE = new URL('../public/index.html', import.meta.url);
+const MAX_BODY = 1_000_000;
+
+export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
+  const server = createServer(async (req, res) => {
+    const send = (status, body, type = 'application/json') => {
+      res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
+      res.end(type === 'application/json' ? JSON.stringify(body) : body);
+    };
+    try {
+      const url = new URL(req.url, 'http://hub');
+      if (req.method === 'GET' && url.pathname === '/') return send(200, await readFile(PAGE), 'text/html; charset=utf-8');
+      if (req.method === 'GET' && url.pathname === '/api/roster') {
+        return send(200, { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors });
+      }
+      if (req.method === 'GET' && url.pathname === '/api/machines') {
+        return send(200, await Promise.all((hub.roster.machines ?? []).map((m) => checkMachine(m))));
+      }
+      if (req.method === 'POST' && url.pathname === '/api/route') {
+        const { prompt, smart } = await readJson(req);
+        return send(200, smart ? await hub.smartRoute(prompt) : hub.route(prompt));
+      }
+      if (req.method === 'POST' && url.pathname === '/api/ask') {
+        const { prompt, mode, agentId, history } = await readJson(req);
+        if (!prompt?.trim()) return send(400, { error: 'Empty prompt.' });
+        return send(200, await hub.ask(prompt, { mode, agentId, history }));
+      }
+      send(404, { error: 'Not found' });
+    } catch (err) {
+      send(500, { error: err.message });
+    }
+  });
+  return new Promise((resolve) => server.listen(port, host, () => resolve(server)));
+}
+
+async function readJson(req) {
+  let raw = '';
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > MAX_BODY) throw new Error('Request too large.');
+  }
+  return raw ? JSON.parse(raw) : {};
+}

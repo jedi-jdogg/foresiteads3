@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Hub</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1db;
+    --accent: #c4562b; --ok: #2f7d4f; --warn: #a86a00; --off: #a9a7a0; --soft: #f0eee9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --panel: #1f1f1d; --ink: #ecebe6; --muted: #9d9b94; --line: #33322f;
+      --accent: #e0774a; --ok: #5fbf86; --warn: #e0a640; --off: #5f5e59; --soft: #282825; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+  aside { border-right: 1px solid var(--line); padding: 20px 16px; background: var(--panel); overflow-y: auto; }
+  h1 { font-size: 18px; margin: 0 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
+  .agent { padding: 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
+  .agent:hover { border-color: var(--accent); }
+  .agent.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .agent .top { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .agent .vendor { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .agent .role { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); flex: none; }
+  .dot.ready { background: var(--ok); } .dot.handoff { background: var(--warn); }
+  .row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 3px 0; }
+  .row .meta { color: var(--muted); margin-left: auto; font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--soft); border-radius: 999px; padding: 2px 9px; font-size: 12px; color: var(--muted); }
+  main { display: flex; flex-direction: column; max-width: 980px; width: 100%; margin: 0 auto; padding: 20px 24px; }
+  #thread { flex: 1; }
+  .empty { color: var(--muted); padding: 40px 0; }
+  .empty li { margin: 6px 0; }
+  .turn { margin-bottom: 26px; }
+  .you { background: var(--soft); border-radius: 10px; padding: 10px 14px; white-space: pre-wrap; }
+  .route { color: var(--muted); font-size: 13px; margin: 8px 2px; }
+  .flag { color: var(--warn); font-size: 13px; margin: 4px 2px; }
+  .answers { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card.merged { border-color: var(--accent); grid-column: 1 / -1; }
+  .card h3 { margin: 0 0 6px; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
+  .card h3 small { color: var(--muted); font-weight: 400; }
+  .card .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .card.err .body { color: var(--warn); }
+  form { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0 4px; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    background: var(--panel); color: var(--ink); font: inherit; }
+  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: var(--panel); color: var(--ink); padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--ink); color: var(--bg); }
+  select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
+  #preview { color: var(--muted); font-size: 13px; flex: 1; min-width: 200px; }
+  .send { margin-left: auto; background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+  .send:disabled { opacity: .5; cursor: wait; }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Agent Hub</h1>
+    <p class="sub">One place to brief every agent.</p>
+    <h2>Agents</h2>
+    <div id="agents"></div>
+    <h2>Macs</h2>
+    <div id="machines"><div class="row">Checking…</div></div>
+    <h2>Connected apps (via Claude)</h2>
+    <div id="connectors" class="chips"></div>
+  </aside>
+
+  <main>
+    <div id="thread">
+      <div class="empty">
+        <p>Type what you need. The hub picks the agent whose strengths fit, and shows why before you send.</p>
+        <ul>
+          <li><b>Auto</b>: one agent, picked by rules (instant, free).</li>
+          <li><b>Smart</b>: Claude reads the request and picks.</li>
+          <li><b>Council</b>: up to three agents answer, then Claude merges them and flags disagreements.</li>
+          <li><b>Direct</b>: click an agent on the left to talk to it alone, with follow-ups.</li>
+        </ul>
+      </div>
+    </div>
+    <form id="composer">
+      <textarea id="prompt" placeholder="e.g. What are competitors in the quilting space running on Instagram this month?"></textarea>
+      <div class="controls">
+        <div class="seg" id="modes">
+          <button type="button" data-mode="auto" class="on">Auto</button>
+          <button type="button" data-mode="smart">Smart</button>
+          <button type="button" data-mode="council">Council</button>
+          <button type="button" data-mode="agent">Direct</button>
+        </div>
+        <select id="agentSelect" hidden></select>
+        <span id="preview"></span>
+        <button class="send" id="send">Send</button>
+      </div>
+    </form>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let roster = { agents: [] };
+let mode = 'auto';
+const histories = {}; // per agent, for Direct follow-ups
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+function status(a) {
+  if (a.provider === 'handoff') return ['handoff', 'hand-off'];
+  return a.configured ? ['ready', 'ready'] : ['', `add ${a.keyEnv}`];
+}
+
+function renderAgents(pick) {
+  $('#agents').innerHTML = roster.agents.map((a) => {
+    const [cls, label] = status(a);
+    const picked = (mode === 'agent' ? $('#agentSelect').value === a.id : pick === a.id) ? ' picked' : '';
+    return `<div class="agent${picked}" data-id="${a.id}" title="${esc(a.notes)}">
+      <div class="top"><span class="dot ${cls}"></span>${esc(a.name)} <span class="vendor">${esc(a.vendor)} · ${esc(label)}</span></div>
+      <div class="role">${esc(a.role)}</div></div>`;
+  }).join('');
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  $('#agentSelect').hidden = m !== 'agent';
+  preview();
+}
+
+let timer;
+function preview() {
+  clearTimeout(timer);
+  const prompt = $('#prompt').value.trim();
+  if (mode === 'agent') { $('#preview').textContent = `Direct to ${$('#agentSelect').selectedOptions[0]?.text ?? ''}, with follow-up memory.`; renderAgents(); return; }
+  if (!prompt) { $('#preview').textContent = ''; renderAgents(); return; }
+  timer = setTimeout(async () => {
+    const r = await api('/api/route', { prompt });
+    $('#preview').textContent = mode === 'council' ? `Council led by ${r.reason}` : mode === 'smart' ? `Rules suggest ${r.reason}; Claude will decide.` : `→ ${r.reason}`;
+    renderAgents(r.pick);
+  }, 250);
+}
+
+function card(a, merged) {
+  const cls = `card${merged ? ' merged' : ''}${a.error ? ' err' : ''}`;
+  const meta = [a.model, a.ms && `${(a.ms / 1000).toFixed(1)}s`, a.truncated && 'cut off'].filter(Boolean).join(' · ');
+  return `<div class="${cls}"><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div></div>`;
+}
+
+$('#composer').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const prompt = $('#prompt').value.trim();
+  if (!prompt) return;
+  $('.empty')?.remove();
+  const turn = document.createElement('div');
+  turn.className = 'turn';
+  turn.innerHTML = `<div class="you">${esc(prompt)}</div><div class="route">Working…</div>`;
+  $('#thread').append(turn);
+  turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  $('#send').disabled = true;
+  try {
+    const agentId = $('#agentSelect').value;
+    const history = mode === 'agent' ? (histories[agentId] ??= []) : [];
+    const r = await api('/api/ask', { prompt, mode, agentId, history });
+    const routing = r.routing || {};
+    const who = r.mode === 'council' ? `Council: ${routing.council.join(', ')}` : `→ ${routing.reason ?? ''}`;
+    turn.innerHTML = `<div class="you">${esc(prompt)}</div><div class="route">${esc(who)}</div>`
+      + (routing.flags || []).map((f) => `<div class="flag">! ${esc(f)}</div>`).join('')
+      + `<div class="answers">${r.answers.map((a) => card(a)).join('')}${r.synthesis ? card(r.synthesis, true) : ''}</div>`;
+    if (mode === 'agent' && !r.answers[0].error) history.push({ role: 'user', content: prompt }, { role: 'assistant', content: r.answers[0].text });
+    $('#prompt').value = '';
+    preview();
+  } catch (err) {
+    turn.querySelector('.route').textContent = `Error: ${err.message}`;
+  } finally {
+    $('#send').disabled = false;
+  }
+});
+
+$('#prompt').addEventListener('input', preview);
+$('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
+$('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));
+$('#agentSelect').addEventListener('change', preview);
+$('#agents').addEventListener('click', (e) => {
+  const el = e.target.closest('.agent');
+  if (!el) return;
+  $('#agentSelect').value = el.dataset.id;
+  setMode('agent');
+  $('#prompt').focus();
+});
+
+(async () => {
+  roster = await api('/api/roster');
+  $('#agentSelect').innerHTML = roster.agents.filter((a) => a.provider !== 'handoff').map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
+  renderAgents();
+  const machines = await api('/api/machines');
+  $('#machines').innerHTML = machines.map((m) => `<div class="row"><span class="dot ${m.online ? 'ready' : ''}"></span>${esc(m.name)}
+    <span class="meta">${esc(m.use)}</span></div>`).join('');
+})();
+</script>
+</body>
+</html>

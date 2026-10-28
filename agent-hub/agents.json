@@ -1,0 +1,90 @@
+{
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude",
+      "vendor": "Anthropic",
+      "role": "Lead agent and conductor. Default for anything that needs judgment, and the agent that merges council answers.",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "modelEnv": "CLAUDE_MODEL",
+      "keyEnv": "ANTHROPIC_API_KEY",
+      "skills": ["strategy", "writing", "code", "analysis", "long-documents", "connectors", "machines"],
+      "notes": "Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off."
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "vendor": "Perplexity",
+      "role": "Researcher. Live web search with cited sources.",
+      "provider": "openai-compatible",
+      "baseURL": "https://api.perplexity.ai",
+      "model": "sonar-pro",
+      "modelEnv": "PERPLEXITY_MODEL",
+      "keyEnv": "PERPLEXITY_API_KEY",
+      "skills": ["research", "current-events", "fact-check"],
+      "notes": "Use when the answer depends on what is on the web today, or when you need sources you can click."
+    },
+    {
+      "id": "openai",
+      "name": "ChatGPT",
+      "vendor": "OpenAI",
+      "role": "Generalist and image maker. Second opinion on analysis and copy.",
+      "provider": "openai-compatible",
+      "model": "gpt-5",
+      "modelEnv": "OPENAI_MODEL",
+      "keyEnv": "OPENAI_API_KEY",
+      "skills": ["images", "analysis", "writing", "brainstorm"],
+      "notes": "Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only."
+    },
+    {
+      "id": "grok",
+      "name": "Grok",
+      "vendor": "xAI",
+      "role": "Social listener. What is trending on X and how people are reacting.",
+      "provider": "openai-compatible",
+      "baseURL": "https://api.x.ai/v1",
+      "model": "grok-4",
+      "modelEnv": "XAI_MODEL",
+      "keyEnv": "XAI_API_KEY",
+      "skills": ["social", "current-events", "brainstorm"],
+      "notes": "Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy."
+    },
+    {
+      "id": "meta",
+      "name": "MetaMuse",
+      "vendor": "Meta",
+      "role": "Meta platforms specialist. Facebook, Instagram and Reels creative and audience ideas.",
+      "provider": "openai-compatible",
+      "baseURL": "https://api.llama.com/compat/v1",
+      "baseURLEnv": "META_BASE_URL",
+      "model": "Llama-4-Maverick-17B-128E-Instruct-FP8",
+      "modelEnv": "META_MODEL",
+      "keyEnv": "META_API_KEY",
+      "skills": ["meta-ads", "social", "brainstorm"],
+      "notes": "Defaults to Meta's OpenAI-compatible Llama API. If MetaMuse is reached another way, set META_BASE_URL and META_MODEL."
+    },
+    {
+      "id": "museai",
+      "name": "Muse.ai",
+      "vendor": "Muse.ai",
+      "role": "Video library. Hosting, transcripts and search inside your videos.",
+      "provider": "handoff",
+      "url": "https://muse.ai",
+      "keyEnv": "MUSEAI_API_KEY",
+      "skills": ["video"],
+      "notes": "Not a chat model. The hub tells you to take video work there instead of calling it.",
+      "handoff": "Search or transcribe the video there, then paste the transcript back here if you want another agent to work with it."
+    }
+  ],
+
+  "machines": [
+    { "id": "mac-1", "name": "Mac 1", "host": "mac-1.local", "access": "ssh", "agent": "claude", "use": "Claude Code / Remote Control" },
+    { "id": "mac-2", "name": "Mac 2", "host": "mac-2.local", "access": "ssh", "agent": "claude", "use": "Claude Code / Remote Control" },
+    { "id": "mac-3", "name": "Mac 3", "host": "mac-3.local", "access": "ssh", "agent": "openai", "use": "ChatGPT desktop" },
+    { "id": "mac-4", "name": "Mac 4", "host": "mac-4.local", "access": "ssh", "agent": "grok", "use": "Browser sessions" },
+    { "id": "mac-5", "name": "Mac 5", "host": "mac-5.local", "access": "ssh", "agent": "perplexity", "use": "Perplexity Comet / research" }
+  ],
+
+  "connectors": ["Shopify", "Klaviyo", "Gmail", "Slack", "Google Drive", "Google Calendar", "Calendly", "Bill.com", "ThoughtMetric", "Vibe", "Konvert", "Replit", "Foresite", "GitHub"]
+}
