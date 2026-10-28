@@ -17,9 +17,12 @@ export async function askOpenAICompatible(agent, { system, messages, tools = [],
   const used = [];
   let usage = { input: 0, output: 0 };
   for (let round = 0; round <= MAX_ROUNDS; round++) {
+    // reasoning_effort is an OpenAI parameter; other OpenAI-compatible hosts may reject it, so only send it to OpenAI.
+    const isOpenAI = !agent.baseURL || /api\.openai\.com/.test(agent.baseURL);
     const response = await client(agent).chat.completions.create({
       model: agent.model,
       messages: convo,
+      ...(isOpenAI && agent.effort ? { reasoning_effort: agent.effort } : {}),
       ...(useTools ? { tools: tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })) } : {}),
     });
     usage = { input: usage.input + (response.usage?.prompt_tokens ?? 0), output: usage.output + (response.usage?.completion_tokens ?? 0) };

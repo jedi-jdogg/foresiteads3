@@ -216,8 +216,8 @@ node bin/hub.js machines
 npm test
 ```
 
-Model names default to the values in `agents.json` and can be overridden in `.env` (`CLAUDE_MODEL`,
-`OPENAI_MODEL`, `XAI_MODEL`, `PERPLEXITY_MODEL`, `MUSE_MODEL`).
+Each agent's model (and, for Claude and ChatGPT, reasoning effort) can be changed on its card in the Connect
+tab; the choice is saved to `.env` (`CLAUDE_MODEL`, `OPENAI_MODEL`, `OPENAI_EFFORT`, …) and tested on the spot.
 
 The console listens on `127.0.0.1` only. It has no login, so do not expose it on a network address
 without putting authentication in front of it.

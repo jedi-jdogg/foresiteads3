@@ -50,8 +50,8 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       if (req.method === 'GET' && url.pathname === '/api/scorecard') return send(200, await hub.scorecard());
       if (req.method === 'GET' && url.pathname === '/api/log') return send(200, await hub.recent());
       if (req.method === 'POST' && url.pathname === '/api/connect') {
-        const { agentId, apiKey, baseURL, model } = await readJson(req);
-        const result = await hub.connect(agentId, { apiKey, baseURL, model });
+        const { agentId, apiKey, baseURL, model, effort } = await readJson(req);
+        const result = await hub.connect(agentId, { apiKey, baseURL, model, effort });
         return send(200, { ...result, agent: publicAgent(hub.agent(agentId)) });
       }
       if (req.method === 'POST' && url.pathname === '/api/test') {

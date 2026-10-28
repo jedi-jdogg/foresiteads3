@@ -50,6 +50,7 @@ export function resolveAgent(agent, env = process.env) {
   return {
     ...agent,
     model: (agent.modelEnv && env[agent.modelEnv]) || agent.model,
+    effort: (agent.effortEnv && env[agent.effortEnv]) || agent.effort,
     baseURL,
     apiKey: key || undefined,
     callable: agent.provider !== 'handoff' && Boolean(key) && (!agent.requiresBaseURL || Boolean(baseURL)),

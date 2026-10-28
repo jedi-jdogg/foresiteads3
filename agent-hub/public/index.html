@@ -217,7 +217,7 @@
   .conn .fields { display: grid; gap: 8px; grid-template-columns: 1fr; margin-top: 10px; }
   .conn .fields.two { grid-template-columns: 1fr 1fr; }
   .conn label { display: grid; gap: 4px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-  .conn input { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel-2); font: 13.5px var(--mono); width: 100%; }
+  .conn input, .conn select { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel-2); font: 13.5px var(--mono); width: 100%; }
   .conn .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .conn .save { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; }
   .conn .save:disabled { opacity: .5; cursor: wait; }
@@ -628,6 +628,10 @@ function renderConnect() {
         <label>API key<input type="password" autocomplete="off" id="key-${a.id}" placeholder="${a.configured ? '•••••••• saved, paste to replace' : 'paste key'}"></label>
         ${needsURL ? `<label>Endpoint (base URL)<input id="url-${a.id}" value="${esc(a.baseURL ?? '')}" placeholder="https://…/v1"></label>` : ''}
       </div>
+      <div class="fields two" style="margin-top:8px">
+        <label>Model<input id="model-${a.id}" list="models-${a.id}" value="${esc(a.model)}" autocomplete="off"><datalist id="models-${a.id}">${(a.modelChoices ?? []).map((m) => `<option value="${esc(m)}">`).join('')}</datalist></label>
+        ${a.effortChoices ? `<label>Effort<select id="effort-${a.id}">${a.effortChoices.map((e) => `<option value="${e}"${e === a.effort ? ' selected' : ''}>${e}</option>`).join('')}</select></label>` : '<span></span>'}
+      </div>
       <div class="row2">
         <button type="button" class="save" data-act="save">Save &amp; test</button>
         ${a.callable && !a.preview ? '<button type="button" class="test" data-act="test">Test again</button>' : ''}
@@ -681,9 +685,13 @@ $('#connect').addEventListener('click', async (e) => {
   const body = { agentId: id };
   if (btn.dataset.act === 'save') {
     const key = $(`#key-${id}`).value.trim(), url = $(`#url-${id}`)?.value.trim();
+    const model = $(`#model-${id}`)?.value.trim(), effort = $(`#effort-${id}`)?.value;
+    const agent = roster.agents.find((a) => a.id === id);
     if (key) body.apiKey = key;
     if (url !== undefined) body.baseURL = url;
-    if (!key && url === undefined) { msg.className = 'msg bad'; msg.textContent = 'Paste a key first.'; return; }
+    if (model && model !== agent.model) body.model = model;
+    if (effort && effort !== agent.effort) body.effort = effort;
+    if (!key && !agent.configured) { msg.className = 'msg bad'; msg.textContent = 'Paste a key first.'; return; }
   }
   box.querySelectorAll('button').forEach((b) => (b.disabled = true));
   msg.className = 'msg'; msg.textContent = 'Testing…';

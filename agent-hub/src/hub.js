@@ -90,12 +90,13 @@ fits two plays with different agents about equally. Suggest a council only when 
   }
 
   // Save an agent's key (and endpoint) to .env, re-resolve it, and prove the connection with one tiny call.
-  async connect(agentId, { apiKey, baseURL, model } = {}) {
+  async connect(agentId, { apiKey, baseURL, model, effort } = {}) {
     const agent = this.agent(agentId);
     const updates = {};
     if (apiKey !== undefined) updates[agent.keyEnv] = apiKey;
     if (baseURL !== undefined && agent.baseURLEnv) updates[agent.baseURLEnv] = baseURL;
     if (model !== undefined && agent.modelEnv) updates[agent.modelEnv] = model;
+    if (effort !== undefined && agent.effortEnv) updates[agent.effortEnv] = effort;
     await saveEnv(updates);
     const fresh = resolveAgent(this.roster.agents.find((a) => a.id === agentId) ?? agent);
     Object.assign(agent, fresh);
@@ -132,7 +133,7 @@ fits two plays with different agents about equally. Suggest a council only when 
       }
     }
     const st = lastErr?.status ?? lastErr?.statusCode;
-    agent.verified = st === 429 || /credit|billing|quota/i.test(lastErr?.message ?? '') ? 'billing' : false;
+    agent.verified = st === 429 || st === 402 || /credit|billing|quota/i.test(lastErr?.message ?? '') ? 'billing' : false;
     const msg = friendlyError(lastErr);
     return { id: agentId, ok: false, error: tried.length > 1 ? `${msg} Tried models: ${tried.join(', ')}.` : msg };
   }
@@ -159,7 +160,7 @@ marketing performance or customers rather than guessing; say which source each f
       }
     }
     const req = { system, messages: [...history, { role: 'user', content: prompt }], tools: agent.tools ? tools : [], exec };
-    const out = await provider(agent.provider)(agent, req);
+    const out = await provider(agent.provider)(agent, { ...req, effort: agent.effort ?? 'medium' });
     const used = [...(out.used ?? []), ...prefetched.map((p) => ({ name: p.name, prefetched: true, ok: p.ok, ms: p.ms }))];
     return { ...out, used, ms: Date.now() - started };
   }
@@ -280,7 +281,7 @@ function friendlyError(err) {
   if (status === 401 || /invalid.*key|authentication|unauthorized/i.test(msg)) return `The key was rejected. It must be an API key from the provider's developer console, copied in full${tail}`;
   if (status === 403) return `The key works but this account is not allowed to use that model. Check the plan or the model name${tail}`;
   if (status === 404 && /model/i.test(msg)) return `Model not found. Set a model your account lists in .env${tail}`;
-  if (status === 429 || /quota|billing|insufficient|credit/i.test(msg)) return `The provider refused for billing or rate-limit reasons. Add credit or a payment method on their console${tail}`;
+  if (status === 429 || status === 402 || /quota|billing|insufficient|credit/i.test(msg)) return `The provider refused for billing or rate-limit reasons. Add credit or a payment method on their console${tail}`;
   if (status === 400) return `The provider rejected the request${tail}`;
   if (/ENOTFOUND|ECONNREFUSED|fetch failed|getaddrinfo/i.test(msg)) return 'Could not reach the endpoint. Check the base URL and your connection.';
   return msg.length > 200 ? msg.slice(0, 197) + '…' : msg;

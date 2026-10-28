@@ -15,6 +15,20 @@
       "tools": true,
       "altModels": [
         "claude-sonnet-5-5"
+      ],
+      "modelChoices": [
+        "claude-opus-5-5",
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5"
+      ],
+      "effortEnv": "CLAUDE_EFFORT",
+      "effort": "medium",
+      "effortChoices": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
       ]
     },
     {
@@ -34,6 +48,13 @@
       "altModels": [
         "perplexity/sonar",
         "preset:low"
+      ],
+      "modelChoices": [
+        "preset:fast",
+        "preset:low",
+        "preset:medium",
+        "preset:high",
+        "perplexity/sonar"
       ]
     },
     {
@@ -42,7 +63,7 @@
       "vendor": "OpenAI",
       "role": "Generalist and image maker. Second opinion on analysis and copy.",
       "provider": "openai-compatible",
-      "model": "gpt-5",
+      "model": "gpt-6-astra",
       "modelEnv": "OPENAI_MODEL",
       "keyEnv": "OPENAI_API_KEY",
       "notes": "Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only.",
@@ -50,8 +71,22 @@
       "keyHint": "OpenAI Platform → API keys. Starts with sk-. Separate from ChatGPT Plus.",
       "tools": true,
       "altModels": [
-        "gpt-5-mini",
-        "gpt-4.1"
+        "gpt-5",
+        "gpt-5-mini"
+      ],
+      "modelChoices": [
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-6-luna",
+        "gpt-5",
+        "gpt-5-mini"
+      ],
+      "effortEnv": "OPENAI_EFFORT",
+      "effort": "medium",
+      "effortChoices": [
+        "low",
+        "medium",
+        "high"
       ]
     },
     {
@@ -69,6 +104,11 @@
       "keyHint": "xAI Console → API keys. Starts with xai-.",
       "tools": true,
       "altModels": [
+        "grok-4-latest",
+        "grok-3"
+      ],
+      "modelChoices": [
+        "grok-4",
         "grok-4-latest",
         "grok-3"
       ]
@@ -92,7 +132,12 @@
         "muse-spark-1.2",
         "muse-wonder"
       ],
-      "baseURL": "https://api.meta.ai/v1"
+      "baseURL": "https://api.meta.ai/v1",
+      "modelChoices": [
+        "muse-spark-1.3",
+        "muse-spark-1.2",
+        "muse-wonder"
+      ]
     }
   ],
   "machines": [
