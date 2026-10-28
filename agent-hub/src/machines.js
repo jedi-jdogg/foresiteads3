@@ -170,7 +170,10 @@ export class Machines {
   // The paste-once script that prepares a worker Mac. Carries the hub's public key so no copying is needed.
   async setupScript({ hubHost, pubkey, hubUser }) {
     const template = await readFile(new URL('../worker/setup-worker.sh', import.meta.url), 'utf8');
-    return template.replace('__HUB_PUBKEY__', pubkey).replace(/__HUB_HOST__/g, hubHost ?? 'the hub Mac').replace(/__HUB_USER__/g, hubUser ?? '');
+    const body = template.replace('__HUB_PUBKEY__', pubkey).replace(/__HUB_HOST__/g, hubHost ?? 'the hub Mac').replace(/__HUB_USER__/g, hubUser ?? '');
+    // Wrapped so the user's interactive shell (zsh) hands the whole text to bash untouched: no history
+    // expansion on "!", no line-by-line execution. Same shape as the installer.
+    return `bash <<'HUB_SETUP'\n${body.replace(/^#!.*\n/, '')}\nHUB_SETUP\n`;
   }
 }
 

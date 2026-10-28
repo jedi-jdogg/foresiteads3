@@ -20,10 +20,14 @@ fi
 MY_HOST=$("$TS" status --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))')
 say "This Mac on Tailscale: $MY_HOST  (user: $(whoami))"
 
-# 2. Remote Login (SSH). Needs your Mac password once.
+# 2. Remote Login (SSH). Needs your Mac password once; nothing shows while you type it.
 if ! sudo systemsetup -getremotelogin 2>/dev/null | grep -qi on; then
-  say "Turning on Remote Login (your Mac password is for this step)."
-  sudo systemsetup -setremotelogin on
+  say "Turning on Remote Login. Type your Mac password and press Enter (nothing appears while you type)."
+  if ! sudo systemsetup -setremotelogin on; then
+    say "Could not turn on Remote Login here. Turn it on by hand: System Settings → General → Sharing → Remote Login (on), then paste this again."
+    open "x-apple.systempreferences:com.apple.Sharing-Settings.extension" 2>/dev/null || true
+    exit 1
+  fi
 fi
 
 # 3. Trust the hub's key, and only that key, for this user.

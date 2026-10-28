@@ -86,6 +86,9 @@ test('agent tools expose list/run/job with the allowlist as an enum', async () =
 
 test('the setup script carries the hub key and leaves no placeholders', async () => {
   const text = await M.setupScript({ hubHost: 'hub.tail.ts.net', pubkey: 'ssh-ed25519 AAAATEST agent-hub', hubUser: 'jonathan' });
+  assert.match(text, /^bash <<'HUB_SETUP'\n/);
+  assert.match(text, /\nHUB_SETUP\n$/);
+  assert.ok(!/^#!/m.test(text));
   assert.match(text, /HUB_PUBKEY='ssh-ed25519 AAAATEST agent-hub'/);
   assert.ok(!/__HUB_/.test(text));
   assert.match(text, /systemsetup -setremotelogin on/);
