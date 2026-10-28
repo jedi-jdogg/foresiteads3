@@ -3,7 +3,10 @@ import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const run = promisify(execFile);
-import { publicAgent, checkMachine } from './registry.js';
+import { publicAgent, checkMachine, saveEnv } from './registry.js';
+import { randomBytes } from 'node:crypto';
+
+const oauthStates = new Map();
 
 const PAGE = new URL('../public/index.html', import.meta.url);
 
@@ -55,6 +58,39 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         const { agentId } = await readJson(req);
         return send(200, await hub.test(agentId));
       }
+      if (req.method === 'GET' && url.pathname === '/api/sources') return send(200, hub.publicSources());
+      if (req.method === 'POST' && url.pathname === '/api/sources/connect') {
+        const { id, values } = await readJson(req);
+        const result = await hub.connectSource(id, values);
+        return send(200, { ...result, source: hub.publicSources().find((s) => s.id === id) });
+      }
+      if (req.method === 'POST' && url.pathname === '/api/sources/test') {
+        const { id } = await readJson(req);
+        return send(200, await hub.sources.test(id));
+      }
+      // Google OAuth: start sends the browser to Google; callback stores the refresh token and returns to Connect.
+      if (req.method === 'GET' && url.pathname === '/api/oauth/google/start') {
+        const src = hub.sources.get('google');
+        if (!src.creds.GOOGLE_CLIENT_ID || !src.creds.GOOGLE_CLIENT_SECRET) return send(400, { error: 'Save the Google client ID and secret first.' });
+        const { authUrl } = await import('./sources/google.js');
+        const state = randomBytes(16).toString('hex');
+        oauthStates.set(state, Date.now());
+        res.writeHead(302, { location: authUrl(src.creds, redirectUri(req, port), state) });
+        return res.end();
+      }
+      if (req.method === 'GET' && url.pathname === '/api/oauth/google/callback') {
+        const state = url.searchParams.get('state');
+        if (!state || !oauthStates.has(state)) return send(400, { error: 'Sign-in did not start from this hub. Try Connect again.' });
+        oauthStates.delete(state);
+        if (url.searchParams.get('error')) return send(400, { error: `Google refused: ${url.searchParams.get('error')}` });
+        const src = hub.sources.get('google');
+        const { exchangeCode } = await import('./sources/google.js');
+        const refresh = await exchangeCode(src.creds, url.searchParams.get('code'), redirectUri(req, port));
+        await saveEnv({ GOOGLE_REFRESH_TOKEN: refresh });
+        hub.sources.refresh();
+        res.writeHead(302, { location: '/#connect' });
+        return res.end();
+      }
       if (req.method === 'POST' && url.pathname === '/api/feedback') {
         await hub.feedback(await readJson(req));
         return send(200, { ok: true });
@@ -65,6 +101,10 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
     }
   });
   return new Promise((resolve) => server.listen(port, host, () => resolve(server)));
+}
+
+function redirectUri(req, port) {
+  return `http://${req.headers.host ?? `localhost:${port}`}/api/oauth/google/callback`;
 }
 
 async function readJson(req) {

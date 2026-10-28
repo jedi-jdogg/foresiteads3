@@ -226,6 +226,14 @@
   .conn .msg.ok { color: var(--good); } .conn .msg.bad { color: var(--bad); }
   .conn .where { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
   .conn .where a { color: var(--accent); }
+  .src .fields { grid-template-columns: 1fr; }
+  .src .fields.two { grid-template-columns: 1fr 1fr; }
+  .src label small { text-transform: none; letter-spacing: 0; font: 12px var(--sans); color: var(--muted); }
+  .src .tools { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .src .tools span { font: 11.5px var(--mono); color: var(--muted); background: var(--panel-2); border-radius: 4px; padding: 0 6px; }
+  .used { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .used span { font: 11.5px var(--mono); color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 0 6px; }
+  .used span.bad { color: var(--bad); background: transparent; border: 1px solid var(--bad); }
   .notice { background: var(--panel); border: 1px solid var(--warn); border-radius: var(--radius); padding: 12px 14px; color: var(--ink); margin-bottom: 14px; font-size: 13.5px; }
   .notice b { color: var(--warn); }
 
@@ -364,7 +372,11 @@
           </div>
         </div>
         <div id="connectNotice"></div>
+        <h2 style="margin-top:4px">Agents</h2>
         <div id="connect"></div>
+        <h2 style="margin-top:26px">Data sources</h2>
+        <p class="rail-note" style="margin:-4px 0 12px">Connected sources are readable by every agent. Claude, ChatGPT and Grok query them directly while answering; for Perplexity and Muse the hub pulls a summary first when the request mentions the source. Read-only: nothing here can change anything in these accounts.</p>
+        <div id="sources"></div>
         <p class="rail-note" style="margin-top:12px">API usage is billed by each provider separately from any ChatGPT Plus, Perplexity Pro, Grok or Claude subscription. Each console needs a card or credits before its key works.</p>
       </div></div>
     </section>
@@ -431,6 +443,7 @@ const Live = {
   route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
   feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
   connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body), version: () => http('/api/version'),
+  sources: () => http('/api/sources'), connectSource: (body) => http('/api/sources/connect', body), testSource: (body) => http('/api/sources/test', body),
 };
 
 // Preview mode: the same playbook, run in the page, with sample answers so the interface can be tried without keys.
@@ -484,6 +497,9 @@ function makeDemo(snapshot) {
     feedback: async (f) => { feedback.push(f); return { ok: true }; },
     connect: async () => { throw new Error('Keys can only be saved on the Mac running the hub. Open this screen at http://localhost:4747 there.'); },
     test: async ({ agentId }) => ({ id: agentId, ok: true, model: agents.find((a) => a.id === agentId).model, ms: 0, sample: true }),
+    sources: async () => (snapshot.sources ?? []).map((s) => ({ ...s, connected: false, needsAuth: false, missing: s.envs.filter((e) => !e.optional && !e.managed).map((e) => e.key), set: {}, preview: true })),
+    connectSource: async () => { throw new Error('Data sources can only be connected on the Mac running the hub.'); },
+    testSource: async ({ id }) => ({ id, ok: false, error: 'Preview only.' }),
     scorecard: async () => {
       const t = new Map();
       for (const f of feedback) { const k = `${f.play}|${f.agentId}`; const r = t.get(k) || { play: f.play, agent: f.agentId, up: 0, down: 0 }; r[f.rating]++; t.set(k, r); }
@@ -533,6 +549,10 @@ async function boot() {
   $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
   $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
+  api.sources?.().then((list) => {
+    const live = list.filter((s) => s.connected);
+    if (live.length) $('#connectors').innerHTML = live.map((s) => `<span class="chip" style="color:var(--good)">${esc(s.name)}</span>`).join('') + roster.connectors.filter((c) => !live.some((s) => s.name.includes(c))).map((c) => `<span class="chip">${esc(c)}</span>`).join('');
+  }).catch(() => {});
   $('#agentCount').textContent = api.name === 'live' ? `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} connected` : 'preview';
   $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
   renderAgents();
@@ -584,7 +604,7 @@ function showView(v) {
   document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
   if (v === 'scorecard') renderScorecard();
   if (v === 'log') renderLog();
-  if (v === 'connect') renderConnect();
+  if (v === 'connect') { renderConnect(); renderSources(); }
 }
 
 // ───────────────────────── connect ─────────────────────────
@@ -608,6 +628,44 @@ function renderConnect() {
     </div></div>`;
   }).join('');
 }
+let sourceList = [];
+async function renderSources() {
+  sourceList = await api.sources();
+  $('#sources').innerHTML = sourceList.map((s) => {
+    const status = s.preview ? '<span class="status">preview</span>' : s.connected ? '<span class="status ok">connected</span>' : s.needsAuth ? '<span class="status missing">sign in needed</span>' : '<span class="status missing">not connected</span>';
+    const fields = s.envs.filter((e) => !e.managed).map((e) => `<label>${esc(e.label)}${e.optional ? ' <small>(optional)</small>' : ''}
+      <input type="${e.secret ? 'password' : 'text'}" autocomplete="off" id="src-${s.id}-${e.key}" placeholder="${s.set?.[e.key] ? '•••••••• saved, paste to replace' : esc(e.hint ?? '')}" title="${esc(e.hint ?? '')}"></label>`).join('');
+    const oauth = s.auth === 'oauth' ? `<a class="test" style="text-decoration:none;display:inline-block" href="/api/oauth/google/start">${s.needsAuth ? 'Sign in with Google' : 'Sign in again'}</a>` : '';
+    return `<div class="conn src" data-id="${s.id}" style="--c:var(--accent)"><span class="stripe"></span><div>
+      <div class="head"><b>${esc(s.name)}</b><span class="vendor">${esc(s.auth === 'oauth' ? 'OAuth' : s.auth === 'mcp' ? 'MCP server' : 'API key')}</span>${status}</div>
+      <div class="fields ${s.envs.filter((e) => !e.managed).length > 1 ? 'two' : ''}">${fields}</div>
+      <div class="row2"><button type="button" class="save" data-act="save">Save &amp; test</button>${s.connected && !s.preview ? '<button type="button" class="test" data-act="test">Test again</button>' : ''}${oauth}<span class="msg" id="srcmsg-${s.id}"></span></div>
+      ${s.prefetch?.length ? `<div class="tools">${s.prefetch.map((t) => `<span>${esc(t)}</span>`).join('')}<span>+ tools agents can call</span></div>` : ''}
+    </div></div>`;
+  }).join('');
+}
+$('#sources').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const box = btn.closest('.conn'), id = box.dataset.id, msg = $(`#srcmsg-${id}`);
+  const src = sourceList.find((s) => s.id === id);
+  const values = {};
+  for (const en of src.envs.filter((x) => !x.managed)) { const v = $(`#src-${id}-${en.key}`)?.value.trim(); if (v) values[en.key] = v; }
+  if (btn.dataset.act === 'save' && !Object.keys(values).length) { msg.className = 'msg bad'; msg.textContent = 'Fill in at least one field first.'; return; }
+  box.querySelectorAll('button').forEach((b) => (b.disabled = true));
+  msg.className = 'msg'; msg.textContent = 'Testing…';
+  try {
+    const r = await (btn.dataset.act === 'save' ? api.connectSource({ id, values }) : api.testSource({ id }));
+    msg.className = `msg ${r.ok ? 'ok' : 'bad'}`;
+    msg.textContent = r.ok ? `Connected. ${r.summary ?? ''}` : r.error;
+    if (btn.dataset.act === 'save') { const saved = msg.textContent, cls = msg.className; await renderSources(); $(`#srcmsg-${id}`).className = cls; $(`#srcmsg-${id}`).textContent = saved; }
+    else box.querySelectorAll('button').forEach((b) => (b.disabled = false));
+  } catch (err) {
+    msg.className = 'msg bad'; msg.textContent = err.message;
+    box.querySelectorAll('button').forEach((b) => (b.disabled = false));
+  }
+});
+
 $('#connect').addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
@@ -670,8 +728,9 @@ function card(a, play, prompt) {
   const foot = a.error ? '' : `<div class="foot">${a.sample ? '<span class="sample">sample</span>' : '<span class="sample"></span>'}
     <button type="button" class="rate" data-rating="up" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Good answer">👍</button>
     <button type="button" class="rate" data-rating="down" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Poor answer">👎</button></div>`;
+  const used = (a.used ?? []).length ? `<div class="used">${a.used.map((u) => `<span class="${u.ok === false ? 'bad' : ''}" title="${esc(JSON.stringify(u.input ?? {}))}">${esc(u.name.replace('__', ' · '))}${u.prefetched ? ' (pre-fetched)' : ''}</span>`).join('')}</div>` : '';
   return `<div class="card${merged ? ' merged' : ''}${a.error ? ' err' : ''}" style="--c:${colorOf(a.id)}"><span class="stripe"></span>
-    <div><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${foot}</div></div>`;
+    <div><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${used}${foot}</div></div>`;
 }
 
 function renderResult(turn, prompt, r) {

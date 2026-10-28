@@ -26,6 +26,8 @@ export async function loadRoster(path = ROSTER_PATH, env = process.env, playbook
   roster.agents = roster.agents.map((a) => resolveAgent(a, env));
   roster.playbook = JSON.parse(await readFile(playbookPath, 'utf8'));
   checkPlaybook(roster.playbook, roster.agents);
+  const { loadSources } = await import('./sources/registry.js');
+  roster.sources = await loadSources();
   return roster;
 }
 

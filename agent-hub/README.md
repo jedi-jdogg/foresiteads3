@@ -95,6 +95,31 @@ has four views: **Ask** (the thread), **Playbook** (every play with a tester tha
 hits), **Scorecard** (ratings by play and agent) and **Log** (today's requests). Open `public/preview.html` in
 a browser to try the interface before adding any keys; it routes for real and shows sample answers.
 
+## Data sources: what every agent can read
+
+Beyond the agents' own knowledge, the hub can read your business data and hand it to whichever agent is
+answering. Sources are listed in [`sources.json`](sources.json) and connected in the **Connect** tab under
+**Data sources**, each with a Save & test button. Everything is read-only.
+
+| Source | How it connects | What agents can ask |
+|---|---|---|
+| Shopify | Custom-app Admin API token | sales summary vs previous period, top products, product search, recent orders, low stock |
+| Klaviyo | Private API key | recent campaigns, campaign performance, flows, list and segment sizes |
+| Triple Whale | API key + shop domain | blended summary (spend, ROAS, MER), attribution by channel |
+| Meta Ads | System-user token + ad account | insights by account/campaign/ad set, active campaigns and budgets |
+| Google | One OAuth sign-in (client ID/secret from your Cloud project) | GA4 overview and top pages; Google Ads campaigns (with developer token); Merchant Center product status; Business Profile reviews |
+| Vista Social | API key | profiles, scheduled posts, recent posts |
+| Foresite / Instant.one, Vibe | Any MCP server URL + token | whatever tools that server publishes |
+
+How agents use them:
+- **Claude, ChatGPT and Grok** support tool calling, so they query sources themselves while answering, as
+  many times as the question needs, and the answer card lists each call made.
+- **Perplexity and Muse** cannot call tools. When a request mentions a connected source (sales, email,
+  ROAS, traffic…), the hub fetches that source's summary first and hands it over as context.
+
+To add a source: a module in `src/sources/` exporting `test(creds)` and `tools(creds)`, and an entry in
+`sources.json`. A vendor with an MCP server needs no code: copy the `foresite` entry and change the env names.
+
 ## Connectors and the Macs
 
 The hub calls each agent's API. That keeps it simple and safe, but an API call does not carry your
@@ -212,6 +237,7 @@ without putting authentication in front of it.
 |---|---|
 | `agents.json` | The roster: agents, Macs, connectors |
 | `playbook.json` | Which agent takes which kind of work, and why |
+| `sources.json`, `src/sources/` | Data sources and the tools they expose to agents |
 | `src/router.js` | Matches requests to plays; decides go or recommend |
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |

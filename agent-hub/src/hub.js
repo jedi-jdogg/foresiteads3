@@ -1,6 +1,7 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import { route, councilFor } from './router.js';
 import { resolveAgent, saveEnv } from './registry.js';
+import { Sources, loadSources, publicSource } from './sources/registry.js';
 import { askClaude } from './providers/anthropic.js';
 import { askOpenAICompatible } from './providers/openai-compatible.js';
 
@@ -20,6 +21,7 @@ export class Hub {
     this.playbook = roster.playbook;
     this.log = log;
     this.whenUnsure = whenUnsure;
+    this.sources = new Sources(roster.sources ?? []);
   }
 
   agent(id) {
@@ -117,11 +119,38 @@ fits two plays with different agents about equally. Suggest a council only when 
       return { text: `This one belongs in ${agent.name} (${agent.url}), which the hub does not chat with. ${agent.handoff ?? ''}`.trim(), handoff: true };
     }
     if (!agent.callable) throw new Error(`${agent.name} isn't set up (${agent.apiKey ? agent.baseURLEnv : agent.keyEnv} missing from .env).`);
-    const req = { system: BRIEF, messages: [...history, { role: 'user', content: prompt }] };
     const started = Date.now();
+    const tools = await this.sources.tools();
+    const exec = (name, input) => this.sources.call(name, input);
+    let system = BRIEF;
+    let prefetched = [];
+    if (tools.length && agent.tools) {
+      system += ` You can read live business data with the tools provided. Use them whenever the question is about the store, \
+marketing performance or customers rather than guessing; say which source each figure came from and the date window.`;
+    } else if (tools.length) {
+      // This agent cannot call tools: fetch the summaries the request seems to need and hand them over as context.
+      prefetched = await this.sources.prefetch(prompt);
+      if (prefetched.length) {
+        const pack = prefetched.map((p) => `### ${p.name} (${p.ok ? 'ok' : 'failed'})\n${JSON.stringify(p.ok ? p.result : { error: p.error }).slice(0, 12000)}`).join('\n\n');
+        system += `\n\nLive data pulled for this request (cite the source and window when you use it):\n${pack}`;
+      }
+    }
+    const req = { system, messages: [...history, { role: 'user', content: prompt }], tools: agent.tools ? tools : [], exec };
     const out = agent.provider === 'anthropic' ? await askClaude(agent, req) : await askOpenAICompatible(agent, req);
-    return { ...out, ms: Date.now() - started };
+    const used = [...(out.used ?? []), ...prefetched.map((p) => ({ name: p.name, prefetched: true, ok: p.ok, ms: p.ms }))];
+    return { ...out, used, ms: Date.now() - started };
   }
+
+  // Data sources: connect (save creds + test), test, list.
+  async connectSource(id, values = {}) {
+    const src = this.sources.get(id);
+    const allowed = new Set(src.envs.map((e) => e.key));
+    const updates = Object.fromEntries(Object.entries(values).filter(([k, v]) => allowed.has(k) && v !== undefined));
+    await saveEnv(updates);
+    this.sources.refresh();
+    return this.sources.test(id);
+  }
+  publicSources() { return this.sources.list.map(publicSource); }
 
   // mode: 'auto' (playbook), 'smart' (Claude reads the playbook), 'agent' (named), 'council' (several, merged).
   // In auto and smart, a close call or a council-worthy play comes back as a recommendation when whenUnsure is 'ask'.

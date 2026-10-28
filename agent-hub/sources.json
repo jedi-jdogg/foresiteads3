@@ -1,0 +1,104 @@
+{
+  "about": "Data sources the hub can read on behalf of any agent. Each has an auth method, the .env variables it needs, and the tools it exposes (defined in src/sources/<module>.js). Agents that support tool calling (Claude, ChatGPT, Grok) call these tools themselves; for the others the hub fetches a summary first when the request mentions the source.",
+  "sources": [
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "module": "shopify",
+      "auth": "token",
+      "envs": [
+        { "key": "SHOPIFY_STORE", "label": "Store", "hint": "The part before .myshopify.com, e.g. lindas-electric-quilters" },
+        { "key": "SHOPIFY_ADMIN_TOKEN", "label": "Admin API token", "secret": true, "hint": "Shopify admin → Settings → Apps → Develop apps → create a custom app with read_products, read_orders, read_all_orders, read_inventory, read_customers, read_reports → install → reveal token (shpat_…)" }
+      ],
+      "mentions": "\\b(shopify|store|orders?|sales|revenue|aov|products?|inventory|skus?|customers?|catalog)\\b",
+      "prefetch": ["sales_summary"]
+    },
+    {
+      "id": "klaviyo",
+      "name": "Klaviyo",
+      "module": "klaviyo",
+      "auth": "token",
+      "envs": [
+        { "key": "KLAVIYO_API_KEY", "label": "Private API key", "secret": true, "hint": "Klaviyo → Settings → API keys → Create private key with read access (pk_…)" }
+      ],
+      "mentions": "\\b(klaviyo|email|sms|flows?|campaigns?|subscribers?|newsletter|list growth)\\b",
+      "prefetch": ["recent_campaigns"]
+    },
+    {
+      "id": "triplewhale",
+      "name": "Triple Whale",
+      "module": "triplewhale",
+      "auth": "token",
+      "envs": [
+        { "key": "TRIPLEWHALE_API_KEY", "label": "API key", "secret": true, "hint": "Triple Whale → Settings → API keys" },
+        { "key": "TRIPLEWHALE_SHOP", "label": "Shop domain", "hint": "e.g. lindas-electric-quilters.myshopify.com" }
+      ],
+      "mentions": "\\b(triple ?whale|roas|mer|blended|attribution|cac|ad spend|pixel)\\b",
+      "prefetch": ["summary"]
+    },
+    {
+      "id": "meta_ads",
+      "name": "Meta Ads",
+      "module": "meta",
+      "auth": "token",
+      "envs": [
+        { "key": "META_ADS_TOKEN", "label": "System user token", "secret": true, "hint": "Meta Business Suite → Business settings → Users → System users → Generate token with ads_read (long-lived)" },
+        { "key": "META_AD_ACCOUNT_ID", "label": "Ad account ID", "hint": "Numbers only, from Ads Manager (act_ prefix added automatically)" }
+      ],
+      "mentions": "\\b(meta ads?|facebook ads?|instagram ads?|fb ads?|advantage\\+|ad sets?|campaigns?|cpm|ctr|cpc)\\b",
+      "prefetch": ["insights"]
+    },
+    {
+      "id": "google",
+      "name": "Google (Analytics, Ads, Merchant Center, Business Profile)",
+      "module": "google",
+      "auth": "oauth",
+      "envs": [
+        { "key": "GOOGLE_CLIENT_ID", "label": "OAuth client ID", "hint": "Google Cloud console → APIs & Services → Credentials → OAuth client (Desktop or Web, redirect http://localhost:4747/api/oauth/google/callback)" },
+        { "key": "GOOGLE_CLIENT_SECRET", "label": "OAuth client secret", "secret": true },
+        { "key": "GA4_PROPERTY_ID", "label": "GA4 property ID", "hint": "Numbers only, from Analytics admin" },
+        { "key": "GOOGLE_ADS_CUSTOMER_ID", "label": "Google Ads customer ID", "hint": "Digits only, no dashes", "optional": true },
+        { "key": "GOOGLE_ADS_DEVELOPER_TOKEN", "label": "Google Ads developer token", "secret": true, "hint": "Google Ads → Tools → API Center", "optional": true },
+        { "key": "MERCHANT_CENTER_ID", "label": "Merchant Center ID", "optional": true },
+        { "key": "GOOGLE_REFRESH_TOKEN", "label": "Refresh token", "secret": true, "managed": true }
+      ],
+      "mentions": "\\b(google|analytics|ga4|sessions|traffic|conversion rate|google ads|search ads|pmax|shopping ads|merchant center|business profile|gbp|google reviews|maps)\\b",
+      "prefetch": ["ga4_overview"]
+    },
+    {
+      "id": "vistasocial",
+      "name": "Vista Social",
+      "module": "vistasocial",
+      "auth": "token",
+      "envs": [
+        { "key": "VISTASOCIAL_API_KEY", "label": "API key", "secret": true, "hint": "Vista Social → Settings → API (needs a plan with API access)" }
+      ],
+      "mentions": "\\b(vista ?social|scheduled posts?|social calendar|publishing queue)\\b",
+      "prefetch": ["upcoming_posts"]
+    },
+    {
+      "id": "foresite",
+      "name": "Foresite / Instant.one",
+      "module": "mcp",
+      "auth": "mcp",
+      "envs": [
+        { "key": "FORESITE_MCP_URL", "label": "MCP server URL", "hint": "The Foresite MCP endpoint you connected in claude.ai" },
+        { "key": "FORESITE_MCP_TOKEN", "label": "Token", "secret": true, "hint": "Bearer token or API key for that endpoint" }
+      ],
+      "mentions": "\\b(foresite|instant\\.?one|instant|identification|identif(y|ied) visitors|flows?)\\b",
+      "prefetch": []
+    },
+    {
+      "id": "vibe",
+      "name": "Vibe (CTV)",
+      "module": "mcp",
+      "auth": "mcp",
+      "envs": [
+        { "key": "VIBE_MCP_URL", "label": "MCP server URL", "hint": "Vibe's MCP endpoint (the one connected in claude.ai)" },
+        { "key": "VIBE_MCP_TOKEN", "label": "Token", "secret": true }
+      ],
+      "mentions": "\\b(vibe|ctv|connected tv|streaming tv|tv ads?)\\b",
+      "prefetch": []
+    }
+  ]
+}
