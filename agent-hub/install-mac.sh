@@ -66,7 +66,12 @@ else
   gh repo clone "$REPO" "$DEST" -- --branch "$BRANCH" --quiet
 fi
 
-# 5. Make the launchers double-clickable and start
-chmod +x "$DEST/agent-hub/"*.command
-say "Installed. Starting the Agent Hub. Next time, double-click  $DEST/agent-hub/start-mac.command"
-open -a Terminal "$DEST/agent-hub/start-mac.command"
+# 5. Build the Mac app and open it. Falls back to the Terminal launcher if the app cannot be built.
+chmod +x "$DEST/agent-hub/"*.command "$DEST/agent-hub/app/"*.sh
+if bash "$DEST/agent-hub/app/build-app.sh"; then
+  say "Installed. Agent Hub is in your Applications folder; opening it now."
+  open -a "Agent Hub"
+else
+  say "Installed, but the app could not be built. Starting the hub in Terminal instead; paste the error above to Claude."
+  open -a Terminal "$DEST/agent-hub/start-mac.command"
+fi

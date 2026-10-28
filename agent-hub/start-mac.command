@@ -43,8 +43,15 @@ if [ ! -f .env ]; then
   echo "Created agent-hub/.env. Add your API keys in the Connect tab once the console opens."
 fi
 
+# Keep the Mac app current: rebuild it when its source is newer than the installed binary.
+for APP in "/Applications/Agent Hub.app" "$HOME/Applications/Agent Hub.app"; do
+  if [ -d "$APP" ] && [ app/main.swift -nt "$APP/Contents/MacOS/AgentHub" ]; then
+    echo "Updating the Agent Hub app…"; bash app/build-app.sh --quiet || echo "App rebuild failed; the old app still works."
+  fi
+done
+
 port=$(grep -E '^HUB_PORT=' .env | cut -d= -f2)
 port=${port:-4747}
-(sleep 1.5 && open "http://localhost:$port/#connect") &
+[ -n "$HUB_NO_OPEN" ] || (sleep 1.5 && open "http://localhost:$port/#connect") &
 echo "Agent Hub $(git -C .. rev-parse --short HEAD 2>/dev/null) running at http://localhost:$port. Close this window to stop it."
 exec node bin/hub.js serve

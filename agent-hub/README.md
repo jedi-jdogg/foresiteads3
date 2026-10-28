@@ -128,6 +128,14 @@ and the GitHub CLI if they are missing, signs you in to GitHub in the browser, d
    The first run installs packages, then opens the console in your browser at http://localhost:4747.
    Go to the **Connect** tab to add your keys (see below). Close the Terminal window to stop it; double-click again to restart.
 
+### The Mac app
+
+The installer also builds **Agent Hub.app** into your Applications folder (keep it in the Dock). It opens a
+window with the console, starts the hub behind it, and stops the hub when you quit. Launching it also pulls
+the latest version first, like the Terminal launcher does. The app is built on your Mac from
+[`app/main.swift`](app/main.swift) by [`app/build-app.sh`](app/build-app.sh); when that source changes, the
+next launch rebuilds it.
+
 ### Keeping it updated
 
 Every time you double-click `start-mac.command` it pulls the latest version from GitHub before starting,
@@ -208,6 +216,7 @@ without putting authentication in front of it.
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
 | `install-mac.sh` | One-paste installer for macOS |
+| `app/` | The Mac app: Swift source, icon, build script |
 | `start-mac.command` | Double-click launcher for macOS: updates, installs, starts |
 | `update-mac.command` | Update without starting |
 | `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard and Log views |
