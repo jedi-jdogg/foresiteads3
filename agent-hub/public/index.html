@@ -644,6 +644,7 @@ function showView(v) {
 
 // ───────────────────────── machines ─────────────────────────
 let machineActions = [];
+let setupScriptText = null;
 async function refreshRailMachines() {
   try {
     const o = await api.machines();
@@ -682,6 +683,7 @@ async function renderMachines() {
       <span class="p"><b>${esc(j.machine)}</b> · ${esc(j.action)} ${j.args?.prompt ? '· ' + esc(j.args.prompt.slice(0, 80)) : j.args?.name ? '· ' + esc(j.args.name) : ''}<br><span class="hint" style="white-space:pre-wrap">${esc((j.output || '').slice(-300))}</span></span>
       <span class="r"><span class="chip" style="color:${j.status === 'done' ? 'var(--good)' : j.status === 'running' ? 'var(--accent)' : 'var(--bad)'}">${esc(j.status)}</span></span></div>`).join('')
     : '<div class="empty">No jobs yet this session.</div>';
+  api.setupScript().then((t) => { setupScriptText = t; }).catch(() => {});
   el.innerHTML = `${notice}
     <h2 style="margin-top:4px">Registered Macs <span class="count">${o.self ? 'hub: ' + esc(o.self.host) : ''}</span></h2>
     ${cards || '<div class="empty">None yet. Macs on your Tailscale network appear below; register each one after running the setup script on it.</div>'}
@@ -707,10 +709,21 @@ $('#machinesView').addEventListener('click', async (e) => {
     return;
   }
   if (e.target.id === 'copySetup' || e.target.id === 'showSetup') {
-    const text = await api.setupScript();
+    // The clipboard only accepts writes in the moment after a click, so the script text is fetched ahead of time.
+    const text = setupScriptText ?? await api.setupScript();
+    setupScriptText = text;
     if (e.target.id === 'showSetup') { $('#setupText').textContent = text; $('#setupText').hidden = !$('#setupText').hidden; return; }
-    try { await navigator.clipboard.writeText(text); $('#setupmsg').className = 'msg ok'; $('#setupmsg').textContent = 'Copied. Paste it into Terminal on the new Mac.'; }
-    catch { $('#setupText').textContent = text; $('#setupText').hidden = false; $('#setupmsg').textContent = 'Select the text below and copy it.'; }
+    let copied = false;
+    try { await navigator.clipboard.writeText(text); copied = true; } catch {}
+    if (!copied) {
+      // Older WebKit: a hidden textarea + execCommand still works inside the click.
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.append(ta); ta.focus(); ta.select();
+      try { copied = document.execCommand('copy'); } catch {}
+      ta.remove();
+    }
+    if (copied) { $('#setupmsg').className = 'msg ok'; $('#setupmsg').textContent = 'Copied. Paste it into Terminal on the new Mac.'; }
+    else { $('#setupText').textContent = text; $('#setupText').hidden = false; $('#setupmsg').className = 'msg'; $('#setupmsg').textContent = 'Copy did not work in this window: select the text below (click in it, ⌘A, ⌘C).'; }
     return;
   }
   const btn = e.target.closest('button[data-act]');
