@@ -9,7 +9,9 @@
       "model": "claude-opus-5-5",
       "modelEnv": "CLAUDE_MODEL",
       "keyEnv": "ANTHROPIC_API_KEY",
-      "notes": "Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off."
+      "notes": "Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off.",
+      "keyUrl": "https://console.anthropic.com/settings/keys",
+      "keyHint": "Anthropic Console → API keys. Starts with sk-ant-."
     },
     {
       "id": "perplexity",
@@ -21,7 +23,9 @@
       "model": "sonar-pro",
       "modelEnv": "PERPLEXITY_MODEL",
       "keyEnv": "PERPLEXITY_API_KEY",
-      "notes": "Use when the answer depends on what is on the web today, or when you need sources you can click."
+      "notes": "Use when the answer depends on what is on the web today, or when you need sources you can click.",
+      "keyUrl": "https://www.perplexity.ai/settings/api",
+      "keyHint": "Perplexity → Settings → API. Starts with pplx-."
     },
     {
       "id": "openai",
@@ -32,7 +36,9 @@
       "model": "gpt-5",
       "modelEnv": "OPENAI_MODEL",
       "keyEnv": "OPENAI_API_KEY",
-      "notes": "Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only."
+      "notes": "Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only.",
+      "keyUrl": "https://platform.openai.com/api-keys",
+      "keyHint": "OpenAI Platform → API keys. Starts with sk-. Separate from ChatGPT Plus."
     },
     {
       "id": "grok",
@@ -44,7 +50,9 @@
       "model": "grok-4",
       "modelEnv": "XAI_MODEL",
       "keyEnv": "XAI_API_KEY",
-      "notes": "Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy."
+      "notes": "Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy.",
+      "keyUrl": "https://console.x.ai",
+      "keyHint": "xAI Console → API keys. Starts with xai-."
     },
     {
       "id": "muse",
@@ -57,7 +65,9 @@
       "model": "muse-spark-1.3",
       "modelEnv": "MUSE_MODEL",
       "keyEnv": "MUSE_API_KEY",
-      "notes": "The hub talks to Muse's models through the Meta Model API. Background tasks in the Muse app (email, travel, purchases) still happen in the app itself."
+      "notes": "The hub talks to Muse's models through the Meta Model API. Background tasks in the Muse app (email, travel, purchases) still happen in the app itself.",
+      "keyUrl": "https://ai.meta.com/",
+      "keyHint": "Meta developer console for the Meta Model API: copy the key and the OpenAI-compatible endpoint it lists."
     }
   ],
   "machines": [

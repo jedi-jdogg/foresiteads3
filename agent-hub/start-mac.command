@@ -25,16 +25,11 @@ fi
 
 if [ ! -f .env ]; then
   cp .env.example .env
-  echo
-  echo "Created agent-hub/.env. It is opening in TextEdit now:"
-  echo "paste in your API keys, save, then come back here and press any key."
-  open -e .env
-  read -n 1 -s -r -p ""
-  echo
+  echo "Created agent-hub/.env. Add your API keys in the Connect tab once the console opens."
 fi
 
 port=$(grep -E '^HUB_PORT=' .env | cut -d= -f2)
 port=${port:-4747}
-(sleep 1.5 && open "http://localhost:$port") &
+(sleep 1.5 && open "http://localhost:$port/#connect") &
 echo "Agent Hub running at http://localhost:$port. Close this window to stop it."
 exec node bin/hub.js serve

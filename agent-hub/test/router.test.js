@@ -112,3 +112,19 @@ test('model and base URL can be overridden from the environment', () => {
   assert.equal(muse.baseURL, 'https://example.test/v1');
   assert.equal(muse.callable, false);
 });
+
+test('saveEnv replaces, appends and uncomments keys without touching other lines', async () => {
+  const { saveEnv } = await import('../src/registry.js');
+  const { writeFile, readFile, mkdtemp } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'hub-env-'));
+  const path = join(dir, '.env');
+  await writeFile(path, '# keys\nANTHROPIC_API_KEY=old\n# MUSE_MODEL=muse-spark-1.3\nHUB_PORT=4747\n');
+  const env = {};
+  await saveEnv({ ANTHROPIC_API_KEY: 'new\n', MUSE_MODEL: 'muse-wonder', XAI_API_KEY: 'xai-1' }, path, env);
+  const text = await readFile(path, 'utf8');
+  assert.equal(text, '# keys\nANTHROPIC_API_KEY=new\nMUSE_MODEL=muse-wonder\nHUB_PORT=4747\nXAI_API_KEY=xai-1\n');
+  assert.deepEqual(env, { ANTHROPIC_API_KEY: 'new', MUSE_MODEL: 'muse-wonder', XAI_API_KEY: 'xai-1' });
+  await assert.rejects(saveEnv({ 'bad key': 'x' }, path, env), /Refusing/);
+});

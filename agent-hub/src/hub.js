@@ -1,5 +1,6 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import { route, councilFor } from './router.js';
+import { resolveAgent, saveEnv } from './registry.js';
 import { askClaude } from './providers/anthropic.js';
 import { askOpenAICompatible } from './providers/openai-compatible.js';
 
@@ -83,6 +84,32 @@ fits two plays with different agents about equally. Suggest a council only when 
       flags,
       by: 'claude',
     };
+  }
+
+  // Save an agent's key (and endpoint) to .env, re-resolve it, and prove the connection with one tiny call.
+  async connect(agentId, { apiKey, baseURL, model } = {}) {
+    const agent = this.agent(agentId);
+    const updates = {};
+    if (apiKey !== undefined) updates[agent.keyEnv] = apiKey;
+    if (baseURL !== undefined && agent.baseURLEnv) updates[agent.baseURLEnv] = baseURL;
+    if (model !== undefined && agent.modelEnv) updates[agent.modelEnv] = model;
+    await saveEnv(updates);
+    const fresh = resolveAgent(this.roster.agents.find((a) => a.id === agentId) ?? agent);
+    Object.assign(agent, fresh);
+    return this.test(agentId);
+  }
+
+  async test(agentId) {
+    const agent = this.agent(agentId);
+    if (!agent.callable) return { id: agentId, ok: false, error: `Missing ${agent.apiKey ? agent.baseURLEnv : agent.keyEnv}.` };
+    const started = Date.now();
+    try {
+      const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
+      const out = agent.provider === 'anthropic' ? await askClaude(agent, { ...req, effort: 'low' }) : await askOpenAICompatible(agent, req);
+      return { id: agentId, ok: true, model: out.model ?? agent.model, ms: Date.now() - started };
+    } catch (err) {
+      return { id: agentId, ok: false, error: friendlyError(err) };
+    }
   }
 
   async call(agent, prompt, history = []) {
@@ -185,4 +212,16 @@ and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${pa
     }
     return [...tally.values()].sort((a, b) => a.play.localeCompare(b.play) || (b.up - b.down) - (a.up - a.down));
   }
+}
+
+// Turn provider errors into a line that says what to do.
+function friendlyError(err) {
+  const status = err.status ?? err.statusCode;
+  const msg = err.message ?? String(err);
+  if (status === 401 || /invalid.*key|authentication|unauthorized/i.test(msg)) return 'The key was rejected. Check it was copied in full and is still active.';
+  if (status === 403) return 'The key works but this account is not allowed to use that model. Check the plan or the model name.';
+  if (status === 404 && /model/i.test(msg)) return `Model not found. Set a model your account lists in .env.`;
+  if (status === 429 || /quota|billing|insufficient/i.test(msg)) return 'The provider refused for billing or rate-limit reasons. Add credit or a payment method on their console.';
+  if (/ENOTFOUND|ECONNREFUSED|fetch failed|getaddrinfo/i.test(msg)) return 'Could not reach the endpoint. Check the base URL and your connection.';
+  return msg.length > 200 ? msg.slice(0, 197) + '…' : msg;
 }

@@ -204,6 +204,31 @@
   .logrow .p { min-width: 0; overflow-wrap: anywhere; }
   .logrow .r { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 
+  /* Connect view */
+  .conn { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; grid-template-columns: 4px 1fr; gap: 14px; margin-bottom: 10px; }
+  .conn .stripe { border-radius: 2px; background: var(--c); }
+  .conn .head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .conn .head b { font-size: 15px; }
+  .conn .head .vendor { color: var(--muted); font: 12px var(--mono); }
+  .conn .status { margin-left: auto; font: 500 12px var(--mono); padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .conn .status.ok { color: var(--good); border-color: var(--good); }
+  .conn .status.bad { color: var(--bad); border-color: var(--bad); }
+  .conn .status.missing { color: var(--warn); border-color: var(--warn); }
+  .conn .fields { display: grid; gap: 8px; grid-template-columns: 1fr; margin-top: 10px; }
+  .conn .fields.two { grid-template-columns: 1fr 1fr; }
+  .conn label { display: grid; gap: 4px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .conn input { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel-2); font: 13.5px var(--mono); width: 100%; }
+  .conn .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .conn .save { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; }
+  .conn .save:disabled { opacity: .5; cursor: wait; }
+  .conn .test { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 6px 12px; }
+  .conn .msg { font-size: 13px; color: var(--muted); }
+  .conn .msg.ok { color: var(--good); } .conn .msg.bad { color: var(--bad); }
+  .conn .where { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .conn .where a { color: var(--accent); }
+  .notice { background: var(--panel); border: 1px solid var(--warn); border-radius: var(--radius); padding: 12px 14px; color: var(--ink); margin-bottom: 14px; font-size: 13.5px; }
+  .notice b { color: var(--warn); }
+
   /* Phone */
   .railtoggle { display: none; }
   @media (max-width: 860px) {
@@ -213,6 +238,7 @@
     .railtoggle { display: inline-block; margin-left: auto; border: 1px solid var(--line); background: var(--panel-2); border-radius: 7px; padding: 4px 10px; font-size: 13px; }
     .topbar, .scroll, .composer { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
     .playrow, .scorerow { grid-template-columns: 1fr; }
+    .conn .fields.two { grid-template-columns: 1fr; }
     .playrow .why, .playrow .words, .playrow .note { grid-column: 1; }
     .bar { grid-template-columns: 90px 1fr 64px; }
     .logrow { grid-template-columns: 56px 1fr; }
@@ -252,6 +278,7 @@
         <a href="#playbook" data-view="playbook">Playbook</a>
         <a href="#scorecard" data-view="scorecard">Scorecard</a>
         <a href="#log" data-view="log">Log</a>
+        <a href="#connect" data-view="connect">Connect</a>
       </nav>
       <span class="modebadge" id="modebadge">connecting…</span>
     </div>
@@ -326,6 +353,21 @@
       </div></div>
     </section>
 
+    <!-- Connect -->
+    <section class="view" id="view-connect">
+      <div class="scroll"><div class="col">
+        <div class="pb-head">
+          <div>
+            <h3>Connect your agents</h3>
+            <p>Paste each agent's API key and press Save &amp; test. The hub makes one tiny call to prove the connection, then keeps the key in <code>agent-hub/.env</code> on this Mac. Keys never leave this machine and are never shown again here. Agents without a key stay greyed out and their work goes to the next best agent.</p>
+          </div>
+        </div>
+        <div id="connectNotice"></div>
+        <div id="connect"></div>
+        <p class="rail-note" style="margin-top:12px">API usage is billed by each provider separately from any ChatGPT Plus, Perplexity Pro, Grok or Claude subscription. Each console needs a card or credits before its key works.</p>
+      </div></div>
+    </section>
+
     <!-- Log -->
     <section class="view" id="view-log">
       <div class="scroll"><div class="col">
@@ -387,6 +429,7 @@ const Live = {
   roster: () => http('/api/roster'), playbook: () => http('/api/playbook'), machines: () => http('/api/machines'),
   route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
   feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
+  connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body),
 };
 
 // Preview mode: the same playbook, run in the page, with sample answers so the interface can be tried without keys.
@@ -399,7 +442,7 @@ const SAMPLES = {
 };
 const short = (p) => p.length > 70 ? p.slice(0, 67) + '…' : p;
 function makeDemo(snapshot) {
-  const agents = snapshot.agents.map((a) => ({ ...a, callable: true, configured: true, missing: null }));
+  const agents = snapshot.agents.map((a) => ({ ...a, callable: true, configured: true, missing: null, preview: true }));
   const log = [], feedback = [];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const answer = async (id, prompt) => {
@@ -438,6 +481,8 @@ function makeDemo(snapshot) {
       return result;
     },
     feedback: async (f) => { feedback.push(f); return { ok: true }; },
+    connect: async () => { throw new Error('Keys can only be saved on the Mac running the hub. Open this screen at http://localhost:4747 there.'); },
+    test: async ({ agentId }) => ({ id: agentId, ok: true, model: agents.find((a) => a.id === agentId).model, ms: 0, sample: true }),
     scorecard: async () => {
       const t = new Map();
       for (const f of feedback) { const k = `${f.play}|${f.agentId}`; const r = t.get(k) || { play: f.play, agent: f.agentId, up: 0, down: 0 }; r[f.rating]++; t.set(k, r); }
@@ -483,10 +528,13 @@ async function boot() {
   $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
   $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
-  $('#agentCount').textContent = `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} ready`;
+  $('#agentCount').textContent = api.name === 'live' ? `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} connected` : 'preview';
   $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
   renderAgents();
   renderPlaybook();
+  if (api.name === 'live' && !roster.agents.some((a) => a.callable)) {
+    $('#starter').insertAdjacentHTML('afterbegin', '<div class="notice"><b>No agents connected yet.</b> Open the <a href="#connect">Connect</a> tab, paste each key and test it. Until then every request will fail.</div>');
+  }
   showView(location.hash.slice(1) || 'ask');
   api.machines().then((ms) => {
     $('#macCount').textContent = `${ms.filter((m) => m.online).length}/${ms.length} online`;
@@ -497,7 +545,8 @@ async function boot() {
 function renderAgents(pick) {
   $('#agents').innerHTML = roster.agents.map((a) => {
     const picked = (mode === 'agent' ? $('#agentSelect').value === a.id : pick === a.id) ? ' picked' : '';
-    const state = a.callable ? '<span class="state ready">ready</span>' : `<span class="state missing" title="Add ${esc(a.missing)} to .env">add key</span>`;
+    const state = a.preview ? '<span class="state" title="Sample answers until you connect it on your Mac">preview</span>'
+      : a.callable ? '<span class="state ready">ready</span>' : `<span class="state missing" title="Connect it in the Connect tab">not connected</span>`;
     return `<div class="agent${picked}" data-id="${a.id}" style="--c:${colorOf(a.id)}" title="${esc(a.notes)}">
       <span class="stripe"></span>
       <div><div class="top">${esc(a.name)} <span class="vendor">${esc(a.vendor)}</span>${state}</div><div class="role">${esc(a.role)}</div></div></div>`;
@@ -525,12 +574,61 @@ function renderPlaybook(hit) {
 }
 
 function showView(v) {
-  if (!['ask', 'playbook', 'scorecard', 'log'].includes(v)) v = 'ask';
+  if (!['ask', 'playbook', 'scorecard', 'log', 'connect'].includes(v)) v = 'ask';
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('on', el.id === `view-${v}`));
   document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
   if (v === 'scorecard') renderScorecard();
   if (v === 'log') renderLog();
+  if (v === 'connect') renderConnect();
 }
+
+// ───────────────────────── connect ─────────────────────────
+function renderConnect() {
+  $('#connectNotice').innerHTML = api.name === 'live' ? '' : `<div class="notice"><b>Preview.</b> Keys can only be saved on the Mac running the hub. There, open <code>http://localhost:4747</code> and this screen saves and tests each key for real. Below is what it looks like.</div>`;
+  $('#connect').innerHTML = roster.agents.map((a) => {
+    const needsURL = Boolean(a.requiresBaseURL);
+    const status = a.preview ? '<span class="status">preview</span>' : a.callable ? '<span class="status ok">connected</span>' : a.configured ? '<span class="status missing">needs endpoint</span>' : '<span class="status missing">not connected</span>';
+    return `<div class="conn" data-id="${a.id}" style="--c:${colorOf(a.id)}"><span class="stripe"></span><div>
+      <div class="head"><b>${esc(a.name)}</b><span class="vendor">${esc(a.vendor)} · ${esc(a.model)}</span>${status}</div>
+      <div class="where">${esc(a.keyHint ?? '')} ${a.keyUrl ? `<a href="${esc(a.keyUrl)}" target="_blank" rel="noopener">Get a key ↗</a>` : ''}</div>
+      <div class="fields ${needsURL ? 'two' : ''}">
+        <label>API key<input type="password" autocomplete="off" id="key-${a.id}" placeholder="${a.configured ? '•••••••• saved, paste to replace' : 'paste key'}"></label>
+        ${needsURL ? `<label>Endpoint (base URL)<input id="url-${a.id}" value="${esc(a.baseURL ?? '')}" placeholder="https://…/v1"></label>` : ''}
+      </div>
+      <div class="row2">
+        <button type="button" class="save" data-act="save">Save &amp; test</button>
+        ${a.callable && !a.preview ? '<button type="button" class="test" data-act="test">Test again</button>' : ''}
+        <span class="msg" id="msg-${a.id}"></span>
+      </div>
+    </div></div>`;
+  }).join('');
+}
+$('#connect').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const box = btn.closest('.conn'), id = box.dataset.id, msg = $(`#msg-${id}`);
+  const body = { agentId: id };
+  if (btn.dataset.act === 'save') {
+    const key = $(`#key-${id}`).value.trim(), url = $(`#url-${id}`)?.value.trim();
+    if (key) body.apiKey = key;
+    if (url !== undefined) body.baseURL = url;
+    if (!key && url === undefined) { msg.className = 'msg bad'; msg.textContent = 'Paste a key first.'; return; }
+  }
+  box.querySelectorAll('button').forEach((b) => (b.disabled = true));
+  msg.className = 'msg'; msg.textContent = 'Testing…';
+  try {
+    const r = await (btn.dataset.act === 'save' ? api.connect(body) : api.test(body));
+    if (r.agent) { const i = roster.agents.findIndex((a) => a.id === id); roster.agents[i] = { ...roster.agents[i], ...r.agent }; }
+    msg.className = `msg ${r.ok ? 'ok' : 'bad'}`;
+    msg.textContent = r.ok ? `Connected. ${r.model} answered in ${(r.ms / 1000).toFixed(1)}s.` : r.error;
+    if (r.ok) { $(`#key-${id}`).value = ''; }
+    renderAgents(); $('#agentCount').textContent = `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} connected`;
+    if (btn.dataset.act === 'save') { const saved = msg.textContent; renderConnect(); $(`#msg-${id}`).className = msg.className; $(`#msg-${id}`).textContent = saved; }
+  } catch (err) {
+    msg.className = 'msg bad'; msg.textContent = err.message;
+    box.querySelectorAll('button').forEach((b) => (b.disabled = false));
+  }
+});
 window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
 
 function setMode(m) {

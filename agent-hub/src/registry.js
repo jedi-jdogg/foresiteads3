@@ -1,7 +1,24 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { connect } from 'node:net';
 
 export const ROSTER_PATH = new URL('../agents.json', import.meta.url);
+export const ENV_PATH = new URL('../.env', import.meta.url);
+
+// Set or replace KEY=value lines in .env (created from scratch if missing) and in process.env.
+// Values are written as given; the hub only ever reads them back as environment variables.
+export async function saveEnv(updates, path = ENV_PATH, env = process.env) {
+  let text = '';
+  try { text = await readFile(path, 'utf8'); } catch {}
+  const lines = text.replace(/\n+$/, '').split('\n').filter((l, i, arr) => !(i === 0 && l === '' && arr.length === 1));
+  for (const [key, value] of Object.entries(updates)) {
+    if (!/^[A-Z][A-Z0-9_]*$/.test(key)) throw new Error(`Refusing to write "${key}" to .env`);
+    const clean = String(value ?? '').replace(/[\r\n]/g, '').trim();
+    const i = lines.findIndex((l) => l.startsWith(`${key}=`) || l.startsWith(`# ${key}=`));
+    if (i >= 0) lines[i] = `${key}=${clean}`; else lines.push(`${key}=${clean}`);
+    if (clean) env[key] = clean; else delete env[key];
+  }
+  await writeFile(path, lines.join('\n').replace(/\n*$/, '\n'));
+}
 export const PLAYBOOK_PATH = new URL('../playbook.json', import.meta.url);
 
 export async function loadRoster(path = ROSTER_PATH, env = process.env, playbookPath = PLAYBOOK_PATH) {

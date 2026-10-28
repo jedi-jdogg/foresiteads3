@@ -121,12 +121,19 @@ does not run commands on them.
    ([github.com/settings/tokens](https://github.com/settings/tokens)), or sign in once with
    [GitHub Desktop](https://desktop.github.com) and clone from there instead.
 3. **Start it.** In Finder, open `foresiteads3/agent-hub` and double-click **`start-mac.command`**.
-   The first run installs packages, opens `.env` in TextEdit for your keys, then opens the console in your
-   browser at http://localhost:4747. Close the Terminal window to stop it; double-click again to restart.
+   The first run installs packages, then opens the console in your browser at http://localhost:4747.
+   Go to the **Connect** tab to add your keys (see below). Close the Terminal window to stop it; double-click again to restart.
 
 To update later: `cd ~/foresiteads3 && git pull`, then double-click `start-mac.command` again.
 
 Your keys stay in `agent-hub/.env` on that Mac. Git ignores the file, so it is never committed.
+
+### Connecting the agents
+
+Open the **Connect** tab in the console (http://localhost:4747/#connect). For each agent, paste the key,
+press **Save & test**, and the hub makes one tiny call to prove it works before saving the key to
+`agent-hub/.env`. Muse also needs its endpoint (base URL). Agents you have not connected stay greyed out
+and their work goes to the next best agent, so you can start with one or two.
 
 ### Getting the keys
 
