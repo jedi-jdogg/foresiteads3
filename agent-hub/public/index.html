@@ -559,7 +559,7 @@ const TRY = [
 let api, roster = { agents: [] }, playbook = { plays: [] }, mode = 'auto';
 const histories = {};
 const nameOf = (id) => id === 'merged' ? 'Merged answer' : (roster.agents.find((a) => a.id === id)?.name ?? id);
-const colorOf = (id) => `var(--${['claude', 'perplexity', 'openai', 'grok', 'muse', 'merged'].includes(id) ? id : 'accent'})`;
+const colorOf = (id) => id.startsWith('mac:') ? 'var(--good)' : `var(--${['claude', 'perplexity', 'openai', 'grok', 'muse', 'merged'].includes(id) ? id : 'accent'})`;
 
 async function boot() {
   try {
@@ -587,7 +587,8 @@ async function boot() {
     const live = list.filter((s) => s.connected);
     if (live.length) $('#connectors').innerHTML = live.map((s) => `<span class="chip" style="color:var(--good)">${esc(s.name)}</span>`).join('') + roster.connectors.filter((c) => !live.some((s) => s.name.includes(c))).map((c) => `<span class="chip">${esc(c)}</span>`).join('');
   }).catch(() => {});
-  $('#agentCount').textContent = api.name === 'live' ? `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} connected` : 'preview';
+  const core = roster.agents.filter((a) => a.provider !== 'worker');
+  $('#agentCount').textContent = api.name === 'live' ? `${core.filter((a) => a.callable).length}/${core.length} connected` : 'preview';
   $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
   renderAgents();
   renderPlaybook();
@@ -599,7 +600,7 @@ async function boot() {
 }
 
 function renderAgents(pick) {
-  $('#agents').innerHTML = roster.agents.map((a) => {
+  $('#agents').innerHTML = roster.agents.filter((a) => a.provider !== 'worker').map((a) => {
     const picked = (mode === 'agent' ? $('#agentSelect').value === a.id : pick === a.id) ? ' picked' : '';
     const state = a.preview ? '<span class="state" title="Sample answers until you connect it on your Mac">preview</span>'
       : !a.callable ? `<span class="state missing" title="Connect it in the Connect tab">not connected</span>`
@@ -766,7 +767,7 @@ $('#machinesView').addEventListener('click', async (e) => {
 
 // ───────────────────────── connect ─────────────────────────
 async function fillModels() {
-  for (const a of roster.agents.filter((x) => x.callable && !x.preview)) {
+  for (const a of roster.agents.filter((x) => x.callable && !x.preview && x.provider !== 'worker')) {
     try {
       const r = await api.models(a.id);
       const list = document.getElementById(`models-${a.id}`);
@@ -779,7 +780,7 @@ async function fillModels() {
 }
 function renderConnect() {
   $('#connectNotice').innerHTML = api.name === 'live' ? '' : `<div class="notice"><b>Preview.</b> Keys can only be saved on the Mac running the hub. There, open <code>http://localhost:4747</code> and this screen saves and tests each key for real. Below is what it looks like.</div>`;
-  $('#connect').innerHTML = roster.agents.map((a) => {
+  $('#connect').innerHTML = roster.agents.filter((a) => a.provider !== 'worker').map((a) => {
     const needsURL = Boolean(a.requiresBaseURL);
     const status = a.preview ? '<span class="status">preview</span>'
       : !a.callable ? (a.configured ? '<span class="status missing">needs endpoint</span>' : '<span class="status missing">not connected</span>')
@@ -951,7 +952,8 @@ function renderResult(turn, prompt, r) {
 
 async function run(turn, prompt, opts, play) {
   turn.querySelector('.recommend')?.remove();
-  turn.insertAdjacentHTML('beforeend', `<div class="route working" id="working">${opts.mode === 'council' ? 'asking the council…' : opts.mode === 'smart' ? 'Claude is reading the playbook…' : 'working…'}</div>`);
+  const onMac = (opts.agentId ?? '').startsWith('mac:');
+  turn.insertAdjacentHTML('beforeend', `<div class="route working" id="working">${opts.mode === 'council' ? 'asking the council…' : opts.mode === 'smart' ? 'Claude is reading the playbook…' : onMac ? 'Claude Code is working on the Mac. This can take a few minutes…' : 'working…'}</div>`);
   $('#send').disabled = true;
   try {
     const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, ...opts });

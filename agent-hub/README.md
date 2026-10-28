@@ -140,6 +140,14 @@ What can run on a worker is the allowlist in [`actions.json`](actions.json), and
 | `script` | Run a shell script from `~/agent-hub-jobs` on that Mac. You put scripts there; agents can only run what exists |
 | `claude` | Hand that Mac's Claude Code a task to do on its own, inside `~/agent-hub-jobs/work` |
 
+**Each Mac is also an agent.** Once registered and online, a Mac appears in Ask (Direct mode) as
+"*Name* (Claude Code)", plus "Any free Mac". Sending it a request hands the task to that Mac's own Claude
+Code, which works in `~/agent-hub-jobs/work` and replies with a summary when done, on your Claude
+subscription rather than an API key. The playbook's **Hands-on task** play routes requests that need a
+computer (download, create a file, export, open something in the browser…) to "Any free Mac", falling back to
+Claude when none is online. Macs never fill a council automatically. What the worker's Claude Code may use is
+the tool list on the `claude` action in `actions.json` (files, web, open, Python, Node).
+
 Agents see the same actions as tools (`machines__list`, `machines__run`, `machines__job`). Long actions run
 in the background and report back as jobs; the tab shows them. The registry of Macs is `machines.json`
 (per install, not committed) and job output lands in `logs/jobs/`.

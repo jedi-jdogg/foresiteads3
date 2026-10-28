@@ -30,6 +30,7 @@ function resolve(play, byId) {
 }
 
 function notSetUp(a) {
+  if (a.provider === 'worker') return `is unavailable (${a.missing ?? 'offline'})`;
   return `isn't set up (add ${a.apiKey || !a.keyEnv ? a.baseURLEnv : a.keyEnv} to .env)`;
 }
 
@@ -79,8 +80,9 @@ export function councilFor(prompt, agents, playbook, size = 3) {
   const r = route(prompt, agents, playbook);
   const fromPlays = r.matched.map((m) => m.agent);
   const play = playbook.plays.find((p) => p.id === r.play.id);
-  const candidates = [...(play.council ?? []), r.pick, ...fromPlays, ...agents.map((a) => a.id)];
-  const ids = [...new Set(candidates)].filter((id) => byId.get(id)?.callable);
+  // Macs never fill a council automatically; they join only when a play names them or they are the pick.
+  const candidates = [...(play.council ?? []), r.pick, ...fromPlays, ...agents.filter((a) => a.council !== false).map((a) => a.id)];
+  const ids = [...new Set(candidates)].filter((id) => byId.get(id)?.callable && (byId.get(id).council !== false || (play.council ?? []).includes(id) || id === r.pick));
   const picked = ids.slice(0, size);
   const lead = agents[0]?.id;
   if (lead && ids.includes(lead) && !picked.includes(lead)) picked[picked.length - 1] = lead;

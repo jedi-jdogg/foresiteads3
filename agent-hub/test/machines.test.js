@@ -102,3 +102,14 @@ test('the setup script carries the hub key and leaves no placeholders', async ()
   assert.match(text, /systemsetup -setremotelogin on/);
   assert.match(text, /authorized_keys/);
 });
+
+test('a Mac acts as an agent: the task runs through Claude Code there and the summary comes back', async () => {
+  await M.overview();
+  const agents = M.agents();
+  const mac1 = agents.find((a) => a.id === 'mac:mac-1');
+  assert.equal(mac1.callable, true);
+  assert.equal(agents.find((a) => a.id === 'mac:mac-down').callable, false);
+  assert.equal(agents.find((a) => a.id === 'mac:any').machine, 'mac-1');
+  const out = await M.runAndWait('mac-1', 'Make a hello.txt');
+  assert.match(out.text, /claude -p 'Make a hello.txt' --output-format text --permission-mode acceptEdits --allowedTools/);
+});

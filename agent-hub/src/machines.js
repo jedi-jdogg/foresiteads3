@@ -27,9 +27,41 @@ export class Machines {
 
   // ── registry ──
   async list() {
-    try { return JSON.parse(await readFile(MACHINES_PATH, 'utf8')); } catch { return []; }
+    try { this.cached = JSON.parse(await readFile(MACHINES_PATH, 'utf8')); } catch { this.cached = []; }
+    return this.cached;
   }
-  async save(list) { await writeFile(MACHINES_PATH, JSON.stringify(list, null, 2) + '\n'); }
+  async save(list) { this.cached = list; await writeFile(MACHINES_PATH, JSON.stringify(list, null, 2) + '\n'); }
+
+  // The Macs as agents: one per registered Mac plus "any free Mac". Online state comes from the last overview().
+  agents() {
+    const online = this.online ?? new Map();
+    const macs = (this.cached ?? []).map((m) => ({
+      id: `mac:${m.id}`, name: `${m.name} (Claude Code)`, vendor: 'your Mac', provider: 'worker', machine: m.id, tools: false, council: false,
+      role: `Does hands-on work on ${m.name}${m.note ? `: ${m.note}` : ''}. Files, browser, exports, scripts, anything Claude Code can do there. Runs on your Claude subscription.`,
+      callable: online.get(m.id) === true, verified: online.get(m.id) === true ? true : null, keyEnv: null, missing: online.get(m.id) === true ? null : 'offline',
+    }));
+    const free = macs.find((a) => a.callable && !(this.busy?.get(a.machine)));
+    macs.push({ id: 'mac:any', name: 'Any free Mac (Claude Code)', vendor: 'your Macs', provider: 'worker', machine: free?.machine ?? null, tools: false, council: false,
+      role: 'Hands-on work on whichever Mac is online and idle: create or edit files, work in a browser, run scripts, export data. Runs on your Claude subscription.',
+      callable: Boolean(free), verified: free ? true : null, keyEnv: null, missing: free ? null : (this.cached?.length ? 'no Mac is online' : 'no Macs registered') });
+    return macs;
+  }
+
+  // Run a Claude Code task and wait for it (for use as an agent answer).
+  async runAndWait(machineId, prompt, { timeoutMs = 15 * 60 * 1000 } = {}) {
+    const r = await this.runAction(machineId, 'claude', { prompt });
+    if (!r.ok) throw new Error(r.error);
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const j = this.jobs.get(r.job);
+      if (j.status !== 'running') {
+        if (j.status === 'done') return { text: j.output.trim() || '(finished with no output)', job: r.job };
+        throw new Error(`${j.status === 'timeout' ? 'The task ran out of time' : 'The task failed'} on that Mac${j.output ? `: ${j.output.trim().slice(-800)}` : ''}`);
+      }
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+    throw new Error('Still running after the wait limit; check it in the Machines tab under Jobs.');
+  }
   async register({ id, host, user, name, note, registeredBy }) {
     if (!host) throw new Error("Missing the Mac's Tailscale name.");
     if (!/^[a-z_][a-z0-9_.-]{0,31}$/i.test(user ?? '')) throw new Error('Enter the Mac login name (the short user name on that Mac; Terminal → whoami shows it).');
@@ -69,6 +101,8 @@ export class Machines {
       const p = byHost.get(m.host.toLowerCase()) ?? ts.peers.find((x) => short(x.host) === short(m.host));
       return { ...m, online: p?.online ?? null, ip: p?.ip, lastSeen: p?.lastSeen, tailscale: Boolean(p), running: [...this.jobs.values()].filter((j) => j.machine === m.id && j.status === 'running').length };
     });
+    this.online = new Map(machines.map((m) => [m.id, m.online === true]));
+    this.busy = new Map(machines.map((m) => [m.id, m.running > 0]));
     const known = new Set(list.map((m) => short(m.host)));
     const unregistered = ts.peers.filter((p) => !known.has(short(p.host)) && p.host !== ts.self?.host);
     return { tailscale: ts.ok, tailscaleError: ts.error, self: ts.self, machines, unregistered, workerUrl };

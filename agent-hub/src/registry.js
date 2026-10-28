@@ -33,7 +33,7 @@ export async function loadRoster(path = ROSTER_PATH, env = process.env, playbook
 
 // Catch typos in playbook.json at start-up rather than mid-request.
 export function checkPlaybook(playbook, agents) {
-  const ids = new Set(agents.map((a) => a.id));
+  const ids = new Set([...agents.map((a) => a.id), 'mac:any']);
   for (const play of playbook.plays) {
     for (const id of [play.primary, ...(play.backup ?? []), ...(play.council ?? [])]) {
       if (!ids.has(id)) throw new Error(`playbook.json: play "${play.id}" names unknown agent "${id}"`);

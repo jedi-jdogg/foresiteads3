@@ -31,6 +31,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       const url = new URL(req.url, 'http://hub');
       if (req.method === 'GET' && url.pathname === '/') return send(200, await renderPage(hub), 'text/html; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/api/roster') {
+        await hub.machines.overview().catch(() => {});
         return send(200, { agents: hub.agents.map(publicAgent), connectors: hub.roster.connectors, whenUnsure: hub.whenUnsure });
       }
       if (req.method === 'GET' && url.pathname === '/api/machines') return send(200, await hub.machines.overview());
@@ -52,7 +53,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       }
       if (req.method === 'POST' && url.pathname === '/api/route') {
         const { prompt, smart } = await readJson(req);
-        return send(200, smart ? await hub.smartRoute(prompt) : hub.route(prompt));
+        return send(200, smart ? await hub.smartRoute(prompt) : await hub.routeFresh(prompt));
       }
       if (req.method === 'POST' && url.pathname === '/api/ask') {
         const { prompt, mode, agentId, agents, history, whenUnsure } = await readJson(req);

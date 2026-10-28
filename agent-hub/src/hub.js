@@ -19,7 +19,7 @@ export class Hub {
   // whenUnsure: 'ask' returns the recommendation without calling anyone; 'pick' goes with the top option.
   constructor(roster, { log = true, whenUnsure = 'ask' } = {}) {
     this.roster = roster;
-    this.agents = roster.agents;
+    this.baseAgents = roster.agents;
     this.playbook = roster.playbook;
     this.log = log;
     this.whenUnsure = whenUnsure;
@@ -33,9 +33,13 @@ export class Hub {
     return a;
   }
 
-  get lead() { return this.agents[0]; }
+  // The roster agents plus the Macs (one agent each, plus "any free Mac"), so Ask, the playbook and councils see them.
+  get agents() { return [...this.baseAgents, ...this.machines.agents()]; }
+  set agents(v) { this.baseAgents = v; }
+  get lead() { return this.baseAgents[0]; }
 
   route(prompt) { return route(prompt, this.agents, this.playbook); }
+  async routeFresh(prompt) { await this.machines.overview().catch(() => {}); return this.route(prompt); }
 
   // Claude reads the playbook and the request and decides. Same output shape as the rule router.
   async smartRoute(prompt) {
@@ -109,6 +113,7 @@ fits two plays with different agents about equally. Suggest a council only when 
   // tried in turn; the first that answers is saved as the agent's model so later calls use it.
   async test(agentId) {
     const agent = this.agent(agentId);
+    if (agent.provider === 'worker') return this.machines.status(agent.machine).then((r) => ({ id: agentId, ok: r.ok, model: 'Claude Code', ms: r.ms, error: r.error }));
     if (!agent.callable) return { id: agentId, ok: false, error: `Missing ${agent.apiKey ? agent.baseURLEnv : agent.keyEnv}.` };
     const started = Date.now();
     const req = { system: 'Reply with the single word OK.', messages: [{ role: 'user', content: 'Connection test.' }] };
@@ -143,6 +148,15 @@ fits two plays with different agents about equally. Suggest a council only when 
   async call(agent, prompt, history = []) {
     if (agent.provider === 'handoff') {
       return { text: `This one belongs in ${agent.name} (${agent.url}), which the hub does not chat with. ${agent.handoff ?? ''}`.trim(), handoff: true };
+    }
+    if (agent.provider === 'worker') {
+      if (!agent.callable) throw new Error(`${agent.name} is ${agent.missing}. Check the Machines tab.`);
+      const started = Date.now();
+      const context = history.length ? history.map((m) => `${m.role}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n') + '\n\n' : '';
+      const task = `${context}${prompt}\n\nWork inside the current folder. When done, reply with a short plain-text summary of what you did and where any files are.`;
+      const { text, job } = await this.machines.runAndWait(agent.machine, task);
+      const macName = this.machines.cached?.find((m) => m.id === agent.machine)?.name ?? agent.machine;
+      return { text, model: `Claude Code on ${macName}`, ms: Date.now() - started, used: [{ name: 'machines__claude', input: { machine: agent.machine }, ok: true, job }] };
     }
     if (!agent.callable) throw new Error(`${agent.name} isn't set up (${agent.apiKey ? agent.baseURLEnv : agent.keyEnv} missing from .env).`);
     const started = Date.now();
@@ -204,6 +218,7 @@ marketing performance or customers rather than guessing; say which source each f
   // mode: 'auto' (playbook), 'smart' (Claude reads the playbook), 'agent' (named), 'council' (several, merged).
   // In auto and smart, a close call or a council-worthy play comes back as a recommendation when whenUnsure is 'ask'.
   async ask(prompt, { mode = 'auto', agentId, agents, history = [], councilSize = 3, whenUnsure = this.whenUnsure } = {}) {
+    await this.machines.overview().catch(() => {});
     let result;
     if (mode === 'council') {
       result = await this.council(prompt, { size: councilSize, agents });

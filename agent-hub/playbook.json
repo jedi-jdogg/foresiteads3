@@ -11,13 +11,12 @@
       "note": "Touches your connected apps. Those connectors live in Claude Code / claude.ai, not in this API call: run it there for live data."
     },
     {
-      "id": "mac-task",
-      "label": "Work on a Mac",
-      "signals": "\\b(macs?|machine|computer|desktop|laptop|install|on (my|the) (mac|computer)|run (it|this) on)\\b",
-      "primary": "claude",
-      "backup": [],
-      "why": "Claude Code with Remote Control is the agent that can operate the Macs.",
-      "note": "Needs hands on a Mac. Send it to the Mac running Claude Code (Remote Control) rather than an API chat."
+      "id": "hands-on",
+      "label": "Hands-on task (on a Mac)",
+      "signals": "\\b(on (a|the|my|any) mac|on (a|the) (computer|machine)|use (a|the|my) mac|download|install|screenshot|create (a |an )?(file|folder|spreadsheet|csv|pdf|deck|doc)|save (it|the|a) (file|csv|pdf)|export (the|a|to)|open .* in (chrome|safari|the browser)|log ?in to|fill (in|out)|click|upload|zip|unzip|rename (the )?files?|organi[sz]e (the )?(files|folder|downloads))\\b",
+      "primary": "mac:any",
+      "backup": ["claude"],
+      "why": "Work that needs hands on a computer: files, a signed-in browser, downloads, exports. A Mac's own Claude Code does it on your subscription and reports back."
     },
     {
       "id": "fact-check",

@@ -61,10 +61,29 @@ test('council-worthy plays recommend a council', () => {
   assert.ok(r.options.some((o) => o.kind === 'council'));
 });
 
-test('connected-app and Mac notes show even when another play wins', () => {
-  const r = go('Pull last week Shopify orders, analyze ROAS and margin, and run it on the Mac');
+test('the connected-app note shows even when another play wins', () => {
+  const r = go('Pull last week Shopify orders and analyze ROAS and margin');
   assert.equal(r.pick, 'claude');
-  assert.equal(r.flags.length, 2);
+  assert.equal(r.flags.length, 1);
+});
+
+const macAny = (callable) => ({ id: 'mac:any', name: 'Any free Mac (Claude Code)', provider: 'worker', callable, council: false, missing: callable ? null : 'no Mac is online' });
+
+test('hands-on work goes to a free Mac when one is online, else to Claude with a note', () => {
+  const withMac = route('Download last month\'s invoices and create a spreadsheet of totals', [...agents(), macAny(true)], playbook);
+  assert.equal(withMac.play.id, 'hands-on');
+  assert.equal(withMac.pick, 'mac:any');
+  assert.equal(withMac.decision, 'proceed');
+  const noMac = route('Download last month\'s invoices and create a spreadsheet of totals', [...agents(), macAny(false)], playbook);
+  assert.equal(noMac.pick, 'claude');
+  assert.ok(noMac.flags.some((f) => /Any free Mac/.test(f)));
+});
+
+test('a Mac never fills a council on its own', () => {
+  const ids = councilFor('Download the report and create a csv', [...agents(), macAny(true)], playbook, 3);
+  assert.ok(ids.includes('mac:any'));                       // it is the pick for this play
+  const ideas = councilFor('Brainstorm hooks and angles', [...agents(), macAny(true)], playbook, 4);
+  assert.ok(!ideas.includes('mac:any'));                    // not pulled in as filler
 });
 
 test('first choice not set up falls to its backup and says which key is missing', () => {
