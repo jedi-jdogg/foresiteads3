@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Foresite Agent Hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a fixed left rail (roster, Macs, apps), a top bar with the four views, and a main column
+     capped at reading width. The thread reads top to bottom; the composer stays pinned at the bottom. */
+  :root {
+    --bg: #eef1f5; --panel: #ffffff; --panel-2: #f6f8fa; --ink: #16212b; --muted: #5d6b79; --line: #d9dfe6; --line-2: #e8ecf0;
+    --accent: #0f6e86; --accent-ink: #ffffff; --accent-soft: #e2f0f4;
+    --good: #2a7d4f; --warn: #a2650a; --bad: #b3362d; --off: #aeb7c0;
+    --claude: #c96a2b; --perplexity: #1f8a9e; --openai: #2f8f5a; --grok: #3b3f46; --muse: #5b5bd6; --merged: #0f6e86;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --rail: 288px; --radius: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1419; --panel: #161c23; --panel-2: #1c232b; --ink: #e6ebf0; --muted: #94a1ae; --line: #2a333d; --line-2: #222a33;
+      --accent: #4fb3c9; --accent-ink: #0b1a1f; --accent-soft: #15303a;
+      --good: #5fc08a; --warn: #e0a640; --bad: #e07068; --off: #4d5760;
+      --claude: #e0864a; --perplexity: #4fb3c9; --openai: #5fc08a; --grok: #b8bec6; --muse: #8f8ff0; --merged: #4fb3c9;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1419; --panel: #161c23; --panel-2: #1c232b; --ink: #e6ebf0; --muted: #94a1ae; --line: #2a333d; --line-2: #222a33;
+    --accent: #4fb3c9; --accent-ink: #0b1a1f; --accent-soft: #15303a;
+    --good: #5fc08a; --warn: #e0a640; --bad: #e07068; --off: #4d5760;
+    --claude: #e0864a; --perplexity: #4fb3c9; --openai: #5fc08a; --grok: #b8bec6; --muse: #8f8ff0; --merged: #4fb3c9;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14.5px/1.5 var(--sans); }
+  button, select, textarea, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .app { display: grid; grid-template-columns: var(--rail) 1fr; height: 100%; }
+
+  /* Rail */
+  aside { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding-block: 18px 24px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 14px; display: flex; flex-direction: column; gap: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 600 13px var(--mono); }
+  .brand h1 { font-size: 15px; font-weight: 600; margin: 0; line-height: 1.2; }
+  .brand .sub { font: 12px var(--mono); color: var(--muted); }
+  h2 { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 .count { font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .agent { display: grid; grid-template-columns: 4px 1fr; gap: 10px; padding: 8px 8px 8px 0; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+  .agent:hover { background: var(--panel-2); }
+  .agent.picked { background: var(--accent-soft); border-color: var(--accent); }
+  .agent .stripe { border-radius: 2px; background: var(--c); }
+  .agent .top { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+  .agent .vendor { color: var(--muted); font: 400 12px var(--mono); }
+  .agent .role { color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 1px; }
+  .agent .state { margin-left: auto; font: 500 11px var(--mono); padding: 1px 7px; border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+  .agent .state.ready { color: var(--good); }
+  .agent .state.missing { color: var(--warn); }
+  .mac { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 10px; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--line-2); }
+  .mac:last-child { border-bottom: 0; }
+  .mac > span:nth-child(2) { white-space: nowrap; }
+  .mac .use { color: var(--muted); font: 12px var(--mono); text-align: right; min-width: 0; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+  .dot.on { background: var(--good); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 6px; padding: 1px 7px; color: var(--muted); }
+  .rail-note { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+  /* Main */
+  main { display: flex; flex-direction: column; min-width: 0; height: 100%; }
+  .topbar { display: flex; align-items: center; gap: 14px; padding-block: 10px; padding-left: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px));
+    border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 2px; }
+  .tabs a { text-decoration: none; color: var(--muted); padding: 6px 12px; border-radius: 7px; font-weight: 500; font-size: 14px; }
+  .tabs a:hover { background: var(--panel-2); color: var(--ink); }
+  .tabs a.on { background: var(--accent-soft); color: var(--accent); }
+  .modebadge { margin-left: auto; font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+  .modebadge.live { color: var(--good); border-color: var(--good); }
+  .modebadge.preview { color: var(--warn); border-color: var(--warn); }
+
+  .view { display: none; flex: 1; min-height: 0; }
+  .view.on { display: flex; flex-direction: column; }
+  .scroll { flex: 1; overflow-y: auto; padding-block: 22px 12px; padding-left: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .col { max-width: 960px; width: 100%; margin: 0 auto; }
+
+  /* Thread */
+  .starter { color: var(--muted); max-width: 62ch; }
+  .starter h3 { color: var(--ink); font-size: 20px; margin: 0 0 8px; text-wrap: balance; font-weight: 600; }
+  .starter p { margin: 0 0 12px; }
+  .starter ul { padding-left: 18px; margin: 0 0 16px; }
+  .starter li { margin: 4px 0; }
+  .starter .try { display: flex; flex-wrap: wrap; gap: 6px; }
+  .try button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 11px; font-size: 13px; color: var(--ink); }
+  .try button:hover { border-color: var(--accent); color: var(--accent); }
+  .turn { margin-bottom: 30px; }
+  .you { display: flex; gap: 12px; align-items: flex-start; }
+  .you .bubble { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; white-space: pre-wrap; max-width: 72ch; }
+  .you .at { font: 12px var(--mono); color: var(--muted); padding-top: 11px; white-space: nowrap; }
+  .route { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 8px; font-size: 13px; color: var(--muted); }
+  .route .play { font: 500 12px var(--mono); background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 2px 8px; }
+  .route .arrow { color: var(--off); }
+  .route .who { font-weight: 600; color: var(--ink); }
+  .route .why { flex-basis: 100%; }
+  .flag { display: flex; gap: 8px; color: var(--warn); font-size: 13px; margin: 4px 0; }
+  .flag::before { content: "!"; font: 600 12px var(--mono); border: 1px solid var(--warn); border-radius: 4px; width: 16px; height: 16px; display: grid; place-items: center; flex: none; margin-top: 2px; }
+  .recommend { background: var(--panel); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-top: 8px; }
+  .recommend .lead { margin: 0 0 10px; font-weight: 500; }
+  .recommend .lead small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+  .options { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .option { text-align: left; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 10px 12px; display: grid; grid-template-columns: 4px 1fr; gap: 10px; }
+  .option:hover { border-color: var(--accent); }
+  .option .stripe { border-radius: 2px; background: var(--c); }
+  .option b { display: block; font-size: 14px; }
+  .option .kind { font: 12px var(--mono); color: var(--accent); }
+  .option small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 3px; line-height: 1.4; }
+  .answers { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; display: grid; grid-template-columns: 4px 1fr; gap: 12px; min-width: 0; }
+  .card .stripe { border-radius: 2px; background: var(--c); }
+  .card.merged { grid-column: 1 / -1; border-color: var(--accent); }
+  .card h3 { margin: 0 0 6px; font-size: 14px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 small { color: var(--muted); font: 12px var(--mono); }
+  .card .body { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.55; }
+  .card.err .body { color: var(--warn); }
+  .card .foot { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .card .sample { font: 11px var(--mono); color: var(--muted); margin-right: auto; }
+  .rate { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 2px 8px; font-size: 13px; color: var(--muted); }
+  .rate:hover { border-color: var(--accent); color: var(--ink); }
+  .rate.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .working { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .working::before { content: ""; width: 10px; height: 10px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Composer */
+  .composer { border-top: 1px solid var(--line); background: var(--panel); padding-block: 12px max(12px, env(safe-area-inset-bottom, 0px));
+    padding-left: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .composer .col { display: grid; gap: 8px; }
+  textarea { width: 100%; min-height: 76px; max-height: 40vh; resize: vertical; border: 1px solid var(--line); border-radius: var(--radius); padding: 11px 13px; background: var(--panel-2); line-height: 1.45; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .preview { font-size: 13px; color: var(--muted); min-height: 1.5em; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .preview .play { font: 500 12px var(--mono); background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 1px 7px; }
+  .preview .verdict { font: 12px var(--mono); }
+  .preview .verdict.go { color: var(--good); } .preview .verdict.ask { color: var(--warn); }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+  .seg button { border: 0; background: transparent; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--ink); color: var(--bg); }
+  .seg button:hover:not(.on) { color: var(--ink); }
+  select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel-2); font-size: 13px; }
+  .unsure { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .send { margin-left: auto; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 600; }
+  .send:disabled { opacity: .5; cursor: wait; }
+  .hint { font: 12px var(--mono); color: var(--muted); }
+
+  /* Playbook view */
+  .pb-head { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 18px; }
+  .pb-head h3 { margin: 0; font-size: 20px; font-weight: 600; }
+  .pb-head p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+  .tester { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 18px; display: grid; gap: 8px; }
+  .tester label { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .tester input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--panel-2); }
+  .tester .out { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 1.5em; }
+  .tester .term { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 0 6px; }
+  .plays { display: grid; gap: 10px; }
+  .playrow { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; grid-template-columns: minmax(150px, 180px) 1fr; gap: 6px 18px; }
+  .playrow.hit { border-color: var(--accent); background: var(--accent-soft); }
+  .playrow .name { font-weight: 600; }
+  .playrow .name small { display: block; font: 12px var(--mono); color: var(--muted); font-weight: 400; }
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 2px 9px 2px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+  .pill.first { border-color: var(--c); font-weight: 500; }
+  .pill.dim { opacity: .55; }
+  .chain .sep { color: var(--off); font: 12px var(--mono); }
+  .chain .lab { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 2px; }
+  .playrow .why { grid-column: 2; color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .playrow .words { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px; }
+  .playrow .words span { font: 11.5px var(--mono); color: var(--muted); background: var(--panel-2); border-radius: 4px; padding: 0 5px; }
+  .playrow .note { grid-column: 2; color: var(--warn); font-size: 12.5px; }
+
+  /* Scorecard view */
+  .score-grid { display: grid; gap: 10px; }
+  .scorerow { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; grid-template-columns: minmax(150px, 180px) 1fr; gap: 8px 18px; }
+  .scorerow .name { font-weight: 600; }
+  .bars { display: grid; gap: 6px; }
+  .bar { display: grid; grid-template-columns: 120px 1fr 72px; align-items: center; gap: 10px; font-size: 13px; }
+  .bar .track { height: 10px; background: var(--panel-2); border-radius: 5px; overflow: hidden; display: flex; }
+  .bar .up { background: var(--good); height: 100%; }
+  .bar .down { background: var(--bad); height: 100%; opacity: .7; }
+  .bar .n { font: 12px var(--mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: var(--radius); padding: 18px; max-width: 62ch; }
+
+  /* Log view */
+  .logrow { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: baseline; font-size: 13.5px; margin-bottom: 8px; }
+  .logrow .t { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .logrow .p { min-width: 0; overflow-wrap: anywhere; }
+  .logrow .r { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* Phone */
+  .railtoggle { display: none; }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); max-height: 42vh; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    aside.collapsed > :not(.brand) { display: none; }
+    .railtoggle { display: inline-block; margin-left: auto; border: 1px solid var(--line); background: var(--panel-2); border-radius: 7px; padding: 4px 10px; font-size: 13px; }
+    .topbar, .scroll, .composer { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    .playrow, .scorerow { grid-template-columns: 1fr; }
+    .playrow .why, .playrow .words, .playrow .note { grid-column: 1; }
+    .bar { grid-template-columns: 90px 1fr 64px; }
+    .logrow { grid-template-columns: 56px 1fr; }
+    .logrow .r { grid-column: 1 / -1; justify-content: flex-start; }
+    .you .at { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="rail" class="collapsed">
+    <div class="brand">
+      <div class="mark">FA</div>
+      <div><h1>Agent Hub</h1><div class="sub">Foresite Ads</div></div>
+      <button type="button" class="railtoggle" id="railtoggle" aria-expanded="false">Agents</button>
+    </div>
+    <section>
+      <h2>Agents <span class="count" id="agentCount"></span></h2>
+      <div id="agents"></div>
+    </section>
+    <section>
+      <h2>Macs <span class="count" id="macCount"></span></h2>
+      <div id="machines"><div class="rail-note">Checking…</div></div>
+      <p class="rail-note" style="margin:8px 0 0">Online means the Mac answers on SSH. Work on a Mac runs through Claude Code there, not through this page.</p>
+    </section>
+    <section>
+      <h2>Connected apps</h2>
+      <div id="connectors" class="chips"></div>
+      <p class="rail-note" style="margin:8px 0 0">Available to Claude in Claude Code and claude.ai.</p>
+    </section>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <nav class="tabs" id="tabs">
+        <a href="#ask" data-view="ask">Ask</a>
+        <a href="#playbook" data-view="playbook">Playbook</a>
+        <a href="#scorecard" data-view="scorecard">Scorecard</a>
+        <a href="#log" data-view="log">Log</a>
+      </nav>
+      <span class="modebadge" id="modebadge">connecting…</span>
+    </div>
+
+    <!-- Ask -->
+    <section class="view" id="view-ask">
+      <div class="scroll" id="threadScroll"><div class="col" id="thread">
+        <div class="starter" id="starter">
+          <h3>Brief every agent from one place.</h3>
+          <p>Type what you need. The playbook reads it, picks the agent whose strengths fit, and shows you the pick before you send. A clear fit goes straight through. A close call, or a question that deserves a second opinion, comes back as options.</p>
+          <ul>
+            <li><b>Auto</b> follows the playbook.</li>
+            <li><b>Smart</b> has Claude read the playbook and your request, for unusual wording.</li>
+            <li><b>Council</b> asks several agents and has Claude merge the answers.</li>
+            <li><b>Direct</b> talks to one agent, with follow-up memory.</li>
+          </ul>
+          <p>Try one:</p>
+          <div class="try" id="try"></div>
+        </div>
+      </div></div>
+      <form class="composer" id="composer">
+        <div class="col">
+          <textarea id="prompt" placeholder="What do you need?"></textarea>
+          <div class="preview" id="preview"></div>
+          <div class="controls">
+            <div class="seg" id="modes">
+              <button type="button" data-mode="auto" class="on">Auto</button>
+              <button type="button" data-mode="smart">Smart</button>
+              <button type="button" data-mode="council">Council</button>
+              <button type="button" data-mode="agent">Direct</button>
+            </div>
+            <select id="agentSelect" hidden aria-label="Agent"></select>
+            <label class="unsure" id="unsureBox">When unsure
+              <select id="unsure"><option value="ask">ask me</option><option value="pick">pick for me</option></select>
+            </label>
+            <span class="hint">⌘↵ to send</span>
+            <button class="send" id="send">Send</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Playbook -->
+    <section class="view" id="view-playbook">
+      <div class="scroll"><div class="col">
+        <div class="pb-head">
+          <div>
+            <h3>Who takes what</h3>
+            <p>Each play is a kind of work. The words under it are what the hub listens for. The play with the most matching words wins; its first choice takes the request, or the first backup that is set up. Plays with a council offer one when they match.</p>
+          </div>
+        </div>
+        <div class="tester">
+          <label for="tester">Test a request</label>
+          <input id="tester" placeholder="e.g. Is it true Meta is raising CPMs in Q4?">
+          <div class="out" id="testerOut">Type to see which play it hits and who would take it.</div>
+        </div>
+        <div class="plays" id="plays"></div>
+        <p class="rail-note" style="margin-top:16px">Edit <code>agent-hub/playbook.json</code> to change who takes a play or to add words. The hub reloads it on restart.</p>
+      </div></div>
+    </section>
+
+    <!-- Scorecard -->
+    <section class="view" id="view-scorecard">
+      <div class="scroll"><div class="col">
+        <div class="pb-head">
+          <div>
+            <h3>What actually worked</h3>
+            <p>Every 👍 and 👎 on an answer lands here under the play that routed it. When an agent keeps losing on a play, move a backup up in the playbook.</p>
+          </div>
+        </div>
+        <div id="scorecard" class="score-grid"></div>
+      </div></div>
+    </section>
+
+    <!-- Log -->
+    <section class="view" id="view-log">
+      <div class="scroll"><div class="col">
+        <div class="pb-head">
+          <div>
+            <h3>Today's requests</h3>
+            <p>Who answered what. The full record is in <code>agent-hub/logs/</code>, one file per day.</p>
+          </div>
+        </div>
+        <div id="log"></div>
+      </div></div>
+    </section>
+  </main>
+</div>
+
+<script>
+// ───────────────────────── snapshot ─────────────────────────
+// The server fills this in from agents.json and playbook.json. The published preview carries a copy.
+const SNAPSHOT = /*__SNAPSHOT__*/{"agents":[{"id":"claude","name":"Claude","vendor":"Anthropic","role":"Lead agent and conductor. Default for anything that needs judgment, and the agent that merges council answers.","provider":"anthropic","model":"claude-opus-5-5","modelEnv":"CLAUDE_MODEL","keyEnv":"ANTHROPIC_API_KEY","notes":"Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off.","callable":false,"configured":false,"missing":"ANTHROPIC_API_KEY"},{"id":"perplexity","name":"Perplexity","vendor":"Perplexity","role":"Researcher. Live web search with cited sources.","provider":"openai-compatible","baseURL":"https://api.perplexity.ai","model":"sonar-pro","modelEnv":"PERPLEXITY_MODEL","keyEnv":"PERPLEXITY_API_KEY","notes":"Use when the answer depends on what is on the web today, or when you need sources you can click.","callable":false,"configured":false,"missing":"PERPLEXITY_API_KEY"},{"id":"openai","name":"ChatGPT","vendor":"OpenAI","role":"Generalist and image maker. Second opinion on analysis and copy.","provider":"openai-compatible","model":"gpt-5","modelEnv":"OPENAI_MODEL","keyEnv":"OPENAI_API_KEY","notes":"Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only.","callable":false,"configured":false,"missing":"OPENAI_API_KEY"},{"id":"grok","name":"Grok","vendor":"xAI","role":"Social listener. What is trending on X and how people are reacting.","provider":"openai-compatible","baseURL":"https://api.x.ai/v1","model":"grok-4","modelEnv":"XAI_MODEL","keyEnv":"XAI_API_KEY","notes":"Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy.","callable":false,"configured":false,"missing":"XAI_API_KEY"},{"id":"muse","name":"Muse","vendor":"Meta","role":"Meta's agent. Facebook, Instagram and Reels creative and audience ideas.","provider":"openai-compatible","baseURLEnv":"MUSE_BASE_URL","requiresBaseURL":true,"model":"muse-spark-1.3","modelEnv":"MUSE_MODEL","keyEnv":"MUSE_API_KEY","notes":"The hub talks to Muse's models through the Meta Model API. Background tasks in the Muse app (email, travel, purchases) still happen in the app itself.","callable":false,"configured":false,"missing":"MUSE_API_KEY"}],"machines":[{"id":"mac-1","name":"Mac 1","host":"mac-1.local","access":"ssh","agent":"claude","use":"Claude Code / Remote Control"},{"id":"mac-2","name":"Mac 2","host":"mac-2.local","access":"ssh","agent":"claude","use":"Claude Code / Remote Control"},{"id":"mac-3","name":"Mac 3","host":"mac-3.local","access":"ssh","agent":"openai","use":"ChatGPT desktop"},{"id":"mac-4","name":"Mac 4","host":"mac-4.local","access":"ssh","agent":"grok","use":"Browser sessions"},{"id":"mac-5","name":"Mac 5","host":"mac-5.local","access":"ssh","agent":"perplexity","use":"Perplexity Comet / research"}],"connectors":["Shopify","Klaviyo","Gmail","Slack","Google Drive","Google Calendar","Calendly","Bill.com","ThoughtMetric","Vibe","Konvert","Replit","Foresite","GitHub"],"playbook":{"about":"Which agent takes which kind of work, and why. Plays are checked against every request; the play with the most matching terms wins. Order breaks ties, so specific plays come first. `council` lists agents worth asking together when one view is not enough. `note` is shown whenever the play matches, even if another play wins.","plays":[{"id":"connected-apps","label":"Your connected apps","signals":"\\b(shopify|klaviyo|gmail|inbox|slack|google drive|drive|calendar|calendly|bill\\.com|thoughtmetric|vibe|konvert|replit|foresite|github)\\b","primary":"claude","backup":[],"why":"Claude is the only agent wired to your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive and the rest).","note":"Touches your connected apps. Those connectors live in Claude Code / claude.ai, not in this API call: run it there for live data."},{"id":"mac-task","label":"Work on a Mac","signals":"\\b(macs?|machine|computer|desktop|laptop|install|on (my|the) (mac|computer)|run (it|this) on)\\b","primary":"claude","backup":[],"why":"Claude Code with Remote Control is the agent that can operate the Macs.","note":"Needs hands on a Mac. Send it to the Mac running Claude Code (Remote Control) rather than an API chat."},{"id":"fact-check","label":"Fact check","signals":"\\b(fact[- ]?check|verify|is it true|confirm whether|double[- ]check|accurate)\\b","primary":"perplexity","backup":["claude"],"council":["perplexity","claude","grok"],"why":"Perplexity checks against live sources and cites them. A second agent catches what one search misses."},{"id":"live-research","label":"Live research","signals":"\\b(research|sources?|cite|citations?|look ?up|latest|news|today|this (week|month|year)|current(ly)?|right now|competitors?|market size|statistics|stats|benchmarks?|who is|what happened|announced)\\b","primary":"perplexity","backup":["grok","claude"],"why":"Perplexity searches the web for every answer and returns clickable sources. The others answer from what they were trained on unless they search."},{"id":"social-pulse","label":"Social pulse","signals":"\\b(twitter|tweets?|x\\.com|on x|viral|trending|sentiment|reddit|tiktok|influencers?|hashtags?|buzz|people saying)\\b","primary":"grok","backup":["perplexity","claude"],"why":"Grok reads X in real time, so it knows what people are saying now and how they feel about it."},{"id":"meta-platforms","label":"Facebook / Instagram","signals":"\\b(facebook|instagram|meta ads?|reels?|whatsapp|threads|fb|ig|advantage\\+)\\b","primary":"muse","backup":["claude","openai"],"why":"Muse is Meta's own agent, built around Facebook, Instagram and Reels formats."},{"id":"image-creative","label":"Images and visuals","signals":"\\b(images?|logo|picture|illustrat\\w*|photo\\w*|graphic|thumbnail|mock-?up|render|visual|banner)\\b","primary":"openai","backup":["muse","claude"],"why":"ChatGPT makes images; Claude does not. Through the hub you get the concept and a ready-to-use image prompt. Generate the image in ChatGPT or with Foresite's generate-creative tool."},{"id":"brainstorm","label":"Ideas and hooks","signals":"\\b(brainstorm|ideas?|names?|taglines?|angles?|hooks?|concepts?|slogans?|variations?)\\b","primary":"claude","backup":["openai"],"council":["claude","grok","muse","openai"],"why":"For ideas, range beats any single model. Each agent pulls in a different direction, and Claude picks the strongest."},{"id":"strategy","label":"Strategy and decisions","signals":"\\b(plan|strategy|strategic|decide|should (we|i)|pros and cons|trade-?offs?|prioriti[sz]e|roadmap|recommend|which is better|worth it)\\b","primary":"claude","backup":["openai"],"council":["claude","openai","perplexity"],"why":"Claude is the lead for judgment calls. For bigger decisions a council adds a second opinion and current facts, and Claude weighs them."},{"id":"code","label":"Code and automation","signals":"\\b(code|bug|script|api|deploy|function|repo|sql|javascript|python|html|css|webhook|error|automate|zapier|liquid)\\b","primary":"claude","backup":["openai"],"why":"Claude is the strongest coder of the group and runs Claude Code on your Macs."},{"id":"analysis","label":"Numbers and analysis","signals":"\\b(analy[sz]\\w*|data|spreadsheet|numbers|forecast|roas|cpa|cac|ltv|metrics|kpis?|report|budget|pricing|margin|attribution)\\b","primary":"claude","backup":["openai"],"why":"Claude reasons carefully through numbers and says what it is unsure of. ChatGPT is a good second check on calculations."},{"id":"long-documents","label":"Long documents","signals":"\\b(contract|pdf|document|transcript|terms|agreement|whole (file|doc)|read (this|the) (doc|file))\\b","primary":"claude","backup":["openai"],"why":"Claude reads very long documents in one go and quotes them accurately."},{"id":"writing","label":"Writing","signals":"\\b(write|draft|email|blog|copy|rewrite|edit|proposal|summari[sz]e|outline|headline|newsletter|sop|memo|reply)\\b","primary":"claude","backup":["openai"],"why":"Claude writes in a natural voice and follows a brief closely."},{"id":"general","label":"General","signals":null,"primary":"claude","backup":["openai"],"why":"No specialist fits, so the lead agent takes it."}]}}/*__END__*/;
+
+// ───────────────────────── routing (mirrors src/router.js, used only in preview mode) ─────────────────────────
+function matchPlays(prompt, playbook) {
+  return playbook.plays.map((play, order) => {
+    const terms = play.signals ? [...new Set([...prompt.matchAll(new RegExp(play.signals, 'gi'))].map((m) => m[0].toLowerCase()))] : [];
+    return { play, order, score: terms.length, terms };
+  }).filter((m) => m.score > 0).sort((a, b) => b.score - a.score || a.order - b.order);
+}
+function routeLocal(prompt, agents, playbook) {
+  const byId = new Map(agents.map((a) => [a.id, a]));
+  const usable = (a) => a && a.callable;
+  const resolve = (play) => [play.primary, ...(play.backup || [])].map((id) => byId.get(id)).find(usable) || byId.get(play.primary);
+  const matches = matchPlays(prompt, playbook);
+  const general = playbook.plays.find((p) => !p.signals);
+  const top = matches[0] || { play: general, score: 0, terms: [] };
+  const agent = resolve(top.play), primary = byId.get(top.play.primary);
+  const rival = matches.slice(1).find((m) => m.score >= top.score && resolve(m.play).id !== agent.id);
+  const council = (top.play.council || []).filter((id) => usable(byId.get(id)));
+  const options = [{ kind: 'agent', agentId: agent.id, play: top.play.label, why: top.play.why }];
+  if (rival) options.push({ kind: 'agent', agentId: resolve(rival.play).id, play: rival.play.label, why: rival.play.why });
+  if (council.length >= 2) options.push({ kind: 'council', agents: council, play: top.play.label, why: `Ask ${council.map((id) => byId.get(id).name).join(', ')} and have Claude merge the answers.` });
+  const flags = matches.map((m) => m.play.note).filter(Boolean);
+  if (agent !== primary) flags.push(`${primary.name} fits best but isn't set up (add ${primary.keyEnv} to .env); using ${agent.name} instead.`);
+  const confidence = rival ? 'low' : 'high';
+  return { play: { id: top.play.id, label: top.play.label, why: top.play.why }, terms: top.terms, pick: agent.id,
+    reason: `${top.play.label} → ${agent.name}${agent !== primary ? ` (standing in for ${primary.name})` : ''}`, confidence,
+    decision: confidence === 'high' && options.length === 1 ? 'proceed' : 'recommend', options,
+    matched: matches.map((m) => ({ play: m.play.id, label: m.play.label, score: m.score, terms: m.terms, agent: resolve(m.play).id })), flags };
+}
+
+// ───────────────────────── backends ─────────────────────────
+async function http(path, body) {
+  const r = await fetch(path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+const Live = {
+  name: 'live',
+  roster: () => http('/api/roster'), playbook: () => http('/api/playbook'), machines: () => http('/api/machines'),
+  route: (prompt) => http('/api/route', { prompt }), ask: (body) => http('/api/ask', body),
+  feedback: (body) => http('/api/feedback', body), scorecard: () => http('/api/scorecard'), log: () => http('/api/log'),
+};
+
+// Preview mode: the same playbook, run in the page, with sample answers so the interface can be tried without keys.
+const SAMPLES = {
+  perplexity: (p) => `Sample answer. Perplexity would search the web for "${short(p)}" and come back with a short brief and clickable sources.\n\nWhat you would see here: the 3–5 findings that matter, each tied to a source, and a line on how current each source is.\n\nSources:\n[1] https://example.com/industry-report\n[2] https://example.com/announcement`,
+  grok: (p) => `Sample answer. Grok would read X for "${short(p)}" and report what people are actually saying: the dominant take, the loudest dissent, and the posts getting traction in the last 48 hours.`,
+  openai: (p) => `Sample answer. ChatGPT would give a second read on "${short(p)}".\n\nFor image work, you would get the concept and a ready-to-paste image prompt here, then generate the picture in ChatGPT or with Foresite's generate-creative tool.`,
+  muse: (p) => `Sample answer. Muse would treat "${short(p)}" as Meta-platform work: Reels-first formats, hook in the first second, native captions, and an audience note for Advantage+.`,
+  claude: (p) => `Sample answer. Claude would work through "${short(p)}" step by step, state what it is confident about and what it is not, and end with a recommended next move.\n\nIf the request touches Shopify, Klaviyo or another connected app, the live version runs in Claude Code where those connectors are.`,
+};
+const short = (p) => p.length > 70 ? p.slice(0, 67) + '…' : p;
+function makeDemo(snapshot) {
+  const agents = snapshot.agents.map((a) => ({ ...a, callable: true, configured: true, missing: null }));
+  const log = [], feedback = [];
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const answer = async (id, prompt) => {
+    const a = agents.find((x) => x.id === id);
+    await wait(500 + Math.random() * 900);
+    return { id, name: a.name, model: a.model, ms: 1200 + Math.round(Math.random() * 1800), text: SAMPLES[id] ? SAMPLES[id](prompt) : `Sample answer from ${a.name}.`, sample: true };
+  };
+  const record = (prompt, result) => { log.unshift({ at: new Date().toISOString(), prompt, mode: result.mode, routing: result.routing, answers: result.answers.map((x) => x.id), synthesis: Boolean(result.synthesis) }); };
+  return {
+    name: 'preview',
+    roster: async () => ({ agents, machines: snapshot.machines, connectors: snapshot.connectors, whenUnsure: 'ask' }),
+    playbook: async () => snapshot.playbook,
+    machines: async () => snapshot.machines.map((m, i) => ({ ...m, online: i < 3 })),
+    route: async (prompt) => routeLocal(prompt, agents, snapshot.playbook),
+    ask: async ({ prompt, mode = 'auto', agentId, agents: ids, history, whenUnsure = 'ask' }) => {
+      let result;
+      if (mode === 'council') {
+        const routing = routeLocal(prompt, agents, snapshot.playbook);
+        const play = snapshot.playbook.plays.find((p) => p.id === routing.play.id);
+        const council = (ids && ids.length ? ids : [...new Set([...(play.council || []), routing.pick, 'claude', ...agents.map((a) => a.id)])]).slice(0, 3);
+        const answers = await Promise.all(council.map((id) => answer(id, prompt)));
+        const synthesis = { ...(await answer('claude', prompt)), id: 'merged', name: 'Merged answer',
+          text: `Sample merged answer. Claude would read the ${answers.length} answers above and give you one view:\n\n• Where they agree, stated once.\n• Where they disagree, which one to trust and why.\n• Any sources, kept.\n• The recommended next step.` };
+        result = { mode: 'council', routing: { ...routing, council }, answers, synthesis };
+      } else if (mode === 'agent') {
+        const routing = { ...routeLocal(prompt, agents, snapshot.playbook), pick: agentId, decision: 'proceed', flags: [] };
+        routing.reason = `${agents.find((a) => a.id === agentId).name}: chosen by you`;
+        result = { mode, routing, answers: [await answer(agentId, prompt)] };
+      } else {
+        const routing = routeLocal(prompt, agents, snapshot.playbook);
+        if (mode === 'smart') { routing.by = 'claude'; routing.reason += ' (Claude agreed with the playbook)'; await wait(400); }
+        if (routing.decision === 'recommend' && whenUnsure === 'ask') result = { mode: 'recommend', routing, answers: [] };
+        else result = { mode, routing, answers: [await answer(routing.pick, prompt)] };
+      }
+      record(prompt, result);
+      return result;
+    },
+    feedback: async (f) => { feedback.push(f); return { ok: true }; },
+    scorecard: async () => {
+      const t = new Map();
+      for (const f of feedback) { const k = `${f.play}|${f.agentId}`; const r = t.get(k) || { play: f.play, agent: f.agentId, up: 0, down: 0 }; r[f.rating]++; t.set(k, r); }
+      return [...t.values()];
+    },
+    log: async () => log,
+  };
+}
+
+// ───────────────────────── app ─────────────────────────
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const TRY = [
+  'What are competitors in the quilting space running on Instagram this month?',
+  'Is it true that Meta is raising CPMs in Q4?',
+  'Give me 10 hooks for a Black Friday batting sale',
+  'Should we move budget from Meta to CTV next quarter?',
+  'Write a welcome email for new Linda\'s subscribers',
+  'What are people saying about Bernina on X?',
+];
+
+let api, roster = { agents: [] }, playbook = { plays: [] }, mode = 'auto';
+const histories = {};
+const nameOf = (id) => id === 'merged' ? 'Merged answer' : (roster.agents.find((a) => a.id === id)?.name ?? id);
+const colorOf = (id) => `var(--${['claude', 'perplexity', 'openai', 'grok', 'muse', 'merged'].includes(id) ? id : 'accent'})`;
+
+async function boot() {
+  try {
+    roster = await Live.roster();
+    api = Live;
+  } catch {
+    if (!SNAPSHOT) { $('#modebadge').textContent = 'no server'; return; }
+    api = makeDemo(SNAPSHOT);
+    roster = await api.roster();
+  }
+  const badge = $('#modebadge');
+  badge.className = `modebadge ${api.name}`;
+  badge.textContent = api.name === 'live' ? 'Live' : 'Preview · sample answers';
+  badge.title = api.name === 'live' ? 'Connected to the hub on this Mac.' : 'The hub is not running here. Routing is real; answers are samples.';
+  playbook = await api.playbook();
+
+  $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
+  $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
+  $('#agentCount').textContent = `${roster.agents.filter((a) => a.callable).length}/${roster.agents.length} ready`;
+  $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
+  renderAgents();
+  renderPlaybook();
+  showView(location.hash.slice(1) || 'ask');
+  api.machines().then((ms) => {
+    $('#macCount').textContent = `${ms.filter((m) => m.online).length}/${ms.length} online`;
+    $('#machines').innerHTML = ms.map((m) => `<div class="mac"><span class="dot ${m.online ? 'on' : ''}"></span><span>${esc(m.name)}</span><span class="use">${esc(m.use)}</span></div>`).join('');
+  });
+}
+
+function renderAgents(pick) {
+  $('#agents').innerHTML = roster.agents.map((a) => {
+    const picked = (mode === 'agent' ? $('#agentSelect').value === a.id : pick === a.id) ? ' picked' : '';
+    const state = a.callable ? '<span class="state ready">ready</span>' : `<span class="state missing" title="Add ${esc(a.missing)} to .env">add key</span>`;
+    return `<div class="agent${picked}" data-id="${a.id}" style="--c:${colorOf(a.id)}" title="${esc(a.notes)}">
+      <span class="stripe"></span>
+      <div><div class="top">${esc(a.name)} <span class="vendor">${esc(a.vendor)}</span>${state}</div><div class="role">${esc(a.role)}</div></div></div>`;
+  }).join('');
+}
+
+function pill(id, cls = '') { return `<span class="pill ${cls}" style="--c:${colorOf(id)}">${esc(nameOf(id))}</span>`; }
+function wordsOf(play) {
+  if (!play.signals) return [];
+  return play.signals.replace(/^\\b\(|\)\\b$/g, '').split('|').map((w) => w.replace(/\\[bw]|[()?*+\[\]\\]/g, '').replace(/\s+/g, ' ').trim()).filter((w) => w.length > 1).slice(0, 14);
+}
+function renderPlaybook(hit) {
+  $('#plays').innerHTML = playbook.plays.map((p) => {
+    const chain = [p.primary, ...(p.backup || [])].map((id, i) => pill(id, i === 0 ? 'first' : 'dim')).join('<span class="sep">→</span>');
+    const council = p.council ? `<span class="sep">·</span><span class="lab">council</span>${p.council.map((id) => pill(id)).join('')}` : '';
+    const words = wordsOf(p);
+    return `<div class="playrow${p.id === hit ? ' hit' : ''}" id="play-${p.id}">
+      <div class="name">${esc(p.label)}<small>${esc(p.id)}</small></div>
+      <div class="chain">${chain}${council}</div>
+      <div class="why">${esc(p.why)}</div>
+      ${words.length ? `<div class="words">${words.map((w) => `<span>${esc(w)}</span>`).join('')}${p.signals.split('|').length > 14 ? '<span>…</span>' : ''}</div>` : '<div class="words"><span>anything else</span></div>'}
+      ${p.note ? `<div class="note">Adds a note whenever it matches: ${esc(p.note)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function showView(v) {
+  if (!['ask', 'playbook', 'scorecard', 'log'].includes(v)) v = 'ask';
+  document.querySelectorAll('.view').forEach((el) => el.classList.toggle('on', el.id === `view-${v}`));
+  document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
+  if (v === 'scorecard') renderScorecard();
+  if (v === 'log') renderLog();
+}
+window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  $('#agentSelect').hidden = m !== 'agent';
+  $('#unsureBox').hidden = m === 'agent' || m === 'council';
+  preview();
+}
+
+let timer;
+function preview() {
+  clearTimeout(timer);
+  const prompt = $('#prompt').value.trim();
+  const out = $('#preview');
+  if (mode === 'agent') { out.innerHTML = `Direct to <b>${esc(nameOf($('#agentSelect').value))}</b>, with follow-up memory.`; renderAgents(); return; }
+  if (!prompt) { out.textContent = ''; renderAgents(); return; }
+  timer = setTimeout(async () => {
+    const r = await api.route(prompt);
+    const who = `<span class="play">${esc(r.play.label)}</span> → <b>${esc(nameOf(r.pick))}</b>`;
+    let verdict;
+    if (mode === 'council') verdict = `<span class="verdict">council of ${esc((r.options.find((o) => o.kind === 'council')?.agents || []).map(nameOf).join(', ') || 'the best fits')}</span>`;
+    else if (mode === 'smart') verdict = '<span class="verdict">Claude will confirm or override</span>';
+    else if (r.decision === 'proceed') verdict = '<span class="verdict go">will answer</span>';
+    else verdict = `<span class="verdict ask">${r.confidence === 'low' ? 'close call' : 'council could help'}: ${$('#unsure').value === 'ask' ? 'will show options' : `will go with ${esc(nameOf(r.pick))}`}</span>`;
+    out.innerHTML = `${who} ${verdict}`;
+    renderAgents(r.pick);
+  }, 220);
+}
+
+function card(a, play, prompt) {
+  const merged = a.id === 'merged';
+  const meta = [a.model, a.ms && `${(a.ms / 1000).toFixed(1)}s`, a.truncated && 'cut off'].filter(Boolean).join(' · ');
+  const foot = a.error ? '' : `<div class="foot">${a.sample ? '<span class="sample">sample</span>' : '<span class="sample"></span>'}
+    <button type="button" class="rate" data-rating="up" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Good answer">👍</button>
+    <button type="button" class="rate" data-rating="down" data-agent="${esc(a.id)}" data-play="${esc(play)}" title="Poor answer">👎</button></div>`;
+  return `<div class="card${merged ? ' merged' : ''}${a.error ? ' err' : ''}" style="--c:${colorOf(a.id)}"><span class="stripe"></span>
+    <div><h3>${esc(a.name)} <small>${esc(meta)}</small></h3><div class="body">${esc(a.error || a.text)}</div>${foot}</div></div>`;
+}
+
+function renderResult(turn, prompt, r) {
+  const routing = r.routing || {};
+  const flags = (routing.flags || []).map((f) => `<div class="flag">${esc(f)}</div>`).join('');
+  const head = turn.querySelector('.you').outerHTML;
+  if (r.mode === 'recommend') {
+    const lead = routing.confidence === 'low'
+      ? `This fits more than one kind of work.<small>Pick who should take it. Your choice is logged so the playbook can learn.</small>`
+      : `This is the kind of question where a second opinion pays off.<small>One agent is fine for a quick take. A council costs more calls and gives you a merged view with disagreements flagged.</small>`;
+    const opts = routing.options.map((o, i) => {
+      const label = o.kind === 'council' ? o.agents.map(nameOf).join(' + ') : nameOf(o.agentId);
+      const kind = o.kind === 'council' ? 'council' : o.play;
+      return `<button type="button" class="option" data-i="${i}" style="--c:${o.kind === 'council' ? 'var(--merged)' : colorOf(o.agentId)}"><span class="stripe"></span>
+        <span><b>${esc(label)}</b><span class="kind">${esc(kind)}</span><small>${esc(o.why)}</small></span></button>`;
+    }).join('');
+    turn.innerHTML = head + `<div class="route"><span class="play">${esc(routing.play.label)}</span><span>${esc(routing.terms?.length ? 'matched: ' + routing.terms.join(', ') : '')}</span></div>`
+      + `<div class="recommend"><p class="lead">${lead}</p><div class="options">${opts}</div></div>` + flags;
+    turn.querySelectorAll('.option').forEach((b) => b.addEventListener('click', () => {
+      const o = routing.options[b.dataset.i];
+      run(turn, prompt, o.kind === 'council' ? { mode: 'council', agents: o.agents } : { mode: 'agent', agentId: o.agentId }, routing.play);
+    }));
+    return;
+  }
+  const play = routing.play?.id ?? '';
+  const who = r.mode === 'council'
+    ? `<span class="play">${esc(routing.play?.label ?? '')}</span><span>council</span><span class="arrow">→</span><span class="who">${esc(routing.council.map(nameOf).join(', '))}</span>`
+    : `<span class="play">${esc(routing.play?.label ?? '')}</span><span class="arrow">→</span><span class="who">${esc(nameOf(routing.pick))}</span>${routing.by === 'claude' ? '<span>· decided by Claude</span>' : ''}<span class="why">${esc(routing.play?.why ?? '')}</span>`;
+  turn.innerHTML = head + `<div class="route">${who}</div>` + flags
+    + `<div class="answers">${r.answers.map((a) => card(a, play, prompt)).join('')}${r.synthesis ? card(r.synthesis, play, prompt) : ''}</div>`;
+  turn.querySelectorAll('.rate').forEach((b) => b.addEventListener('click', async () => {
+    await api.feedback({ prompt, play: b.dataset.play, agentId: b.dataset.agent, rating: b.dataset.rating });
+    b.parentElement.querySelectorAll('.rate').forEach((x) => x.classList.toggle('on', x === b));
+  }));
+}
+
+async function run(turn, prompt, opts, play) {
+  turn.querySelector('.recommend')?.remove();
+  turn.insertAdjacentHTML('beforeend', `<div class="route working" id="working">${opts.mode === 'council' ? 'asking the council…' : opts.mode === 'smart' ? 'Claude is reading the playbook…' : 'working…'}</div>`);
+  $('#send').disabled = true;
+  try {
+    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, ...opts });
+    if (play && r.routing) r.routing.play = play;
+    renderResult(turn, prompt, r);
+    if (opts.mode === 'agent' && opts.history && !r.answers[0].error) opts.history.push({ role: 'user', content: prompt }, { role: 'assistant', content: r.answers[0].text });
+  } catch (err) {
+    turn.querySelector('#working').outerHTML = `<div class="flag">${esc(err.message)}</div>`;
+  } finally {
+    $('#send').disabled = false;
+    turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
+
+function submit(prompt) {
+  if (!prompt) return;
+  $('#starter')?.remove();
+  const turn = document.createElement('div');
+  turn.className = 'turn';
+  turn.innerHTML = `<div class="you"><div class="bubble">${esc(prompt)}</div><span class="at">${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>`;
+  $('#thread').append(turn);
+  const agentId = $('#agentSelect').value;
+  const opts = mode === 'agent' ? { mode, agentId, history: (histories[agentId] ??= []) } : { mode };
+  run(turn, prompt, opts);
+  $('#prompt').value = '';
+  preview();
+}
+
+async function renderScorecard() {
+  const rows = await api.scorecard();
+  const el = $('#scorecard');
+  if (!rows.length) { el.innerHTML = '<div class="empty">No ratings yet. Rate answers with 👍 / 👎 in Ask and they show up here by play and agent.</div>'; return; }
+  const byPlay = new Map();
+  for (const r of rows) (byPlay.get(r.play) ?? byPlay.set(r.play, []).get(r.play)).push(r);
+  el.innerHTML = [...byPlay.entries()].map(([play, list]) => {
+    const label = playbook.plays.find((p) => p.id === play)?.label ?? play;
+    const max = Math.max(...list.map((r) => r.up + r.down));
+    const bars = list.sort((a, b) => (b.up - b.down) - (a.up - a.down)).map((r) => {
+      const w = (r.up + r.down) / max * 100;
+      return `<div class="bar"><span>${esc(nameOf(r.agent))}</span><div class="track" style="width:${w}%"><div class="up" style="flex:${r.up}"></div><div class="down" style="flex:${r.down}"></div></div><span class="n">${r.up} 👍 ${r.down} 👎</span></div>`;
+    }).join('');
+    return `<div class="scorerow"><div class="name">${esc(label)}</div><div class="bars">${bars}</div></div>`;
+  }).join('');
+}
+
+async function renderLog() {
+  const rows = await api.log();
+  const el = $('#log');
+  if (!rows.length) { el.innerHTML = '<div class="empty">Nothing yet today.</div>'; return; }
+  el.innerHTML = rows.map((r) => {
+    const t = new Date(r.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const ids = r.mode === 'recommend' ? [] : (r.answers || []).map((a) => typeof a === 'string' ? a : a.id);
+    const who = r.mode === 'recommend' ? '<span class="chip">asked you</span>' : ids.map((id) => pill(id)).join('') + (r.synthesis ? pill('merged') : '');
+    return `<div class="logrow"><span class="t">${esc(t)}</span><span class="p">${esc(r.prompt)}<br><span class="hint">${esc(r.routing?.play?.label ?? '')}${r.mode ? ' · ' + esc(r.mode) : ''}</span></span><span class="r">${who}</span></div>`;
+  }).join('');
+}
+
+// Playbook tester
+let ttimer;
+$('#tester').addEventListener('input', () => {
+  clearTimeout(ttimer);
+  const q = $('#tester').value.trim();
+  if (!q) { $('#testerOut').textContent = 'Type to see which play it hits and who would take it.'; renderPlaybook(); return; }
+  ttimer = setTimeout(async () => {
+    const r = await api.route(q);
+    const others = (r.matched || []).slice(1).map((m) => `${m.label} ${m.score}`).join(' · ');
+    $('#testerOut').innerHTML = `<span class="play" style="font:500 12px var(--mono);background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 7px">${esc(r.play.label)}</span>
+      → <b>${esc(nameOf(r.pick))}</b> · ${r.decision === 'proceed' ? 'answers straight away' : r.confidence === 'low' ? 'close call, offers options' : 'offers a council'}
+      ${r.terms?.length ? '· matched ' + r.terms.map((t) => `<span class="term">${esc(t)}</span>`).join('') : ''}${others ? ` · also hit: ${esc(others)}` : ''}`;
+    renderPlaybook(r.play.id);
+    document.getElementById(`play-${r.play.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 200);
+});
+
+// Wiring
+$('#composer').addEventListener('submit', (e) => { e.preventDefault(); submit($('#prompt').value.trim()); });
+$('#prompt').addEventListener('input', preview);
+$('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
+$('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));
+$('#agentSelect').addEventListener('change', preview);
+$('#unsure').addEventListener('change', () => { store.set('hub.unsure', $('#unsure').value); preview(); });
+$('#try').addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { $('#prompt').value = e.target.textContent; preview(); $('#prompt').focus(); } });
+$('#agents').addEventListener('click', (e) => {
+  const el = e.target.closest('.agent');
+  if (!el) return;
+  $('#agentSelect').value = el.dataset.id;
+  setMode('agent');
+  location.hash = 'ask';
+  $('#prompt').focus();
+});
+$('#railtoggle').addEventListener('click', () => {
+  const rail = $('#rail');
+  const open = rail.classList.toggle('collapsed');
+  $('#railtoggle').setAttribute('aria-expanded', String(!open));
+});
+// The rail starts collapsed only on phones; the CSS ignores the class at desktop width.
+boot();
+</script>
+</body>
+</html>

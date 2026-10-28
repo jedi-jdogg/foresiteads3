@@ -153,6 +153,17 @@ and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${pa
     await appendFile(new URL(`${day}.jsonl`, LOG_DIR), line + '\n');
   }
 
+  // Today's exchanges, newest first, trimmed to what the log view shows.
+  async recent(limit = 50) {
+    const day = new Date().toISOString().slice(0, 10);
+    let raw = '';
+    try { raw = await readFile(new URL(`${day}.jsonl`, LOG_DIR), 'utf8'); } catch { return []; }
+    return raw.split('\n').filter(Boolean).slice(-limit).reverse().map((line) => {
+      const e = JSON.parse(line);
+      return { at: e.at, prompt: e.prompt, mode: e.mode, routing: { play: e.routing?.play, pick: e.routing?.pick }, answers: (e.answers ?? []).map((a) => a.id), synthesis: Boolean(e.synthesis) };
+    });
+  }
+
   // A thumbs up or down on one answer, filed under the play it was routed by.
   async feedback({ prompt, play, agentId, rating, note }) {
     if (!['up', 'down'].includes(rating)) throw new Error('rating must be "up" or "down"');

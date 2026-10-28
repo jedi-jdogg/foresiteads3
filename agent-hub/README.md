@@ -90,7 +90,10 @@ in `agents.json`. Restart it after editing.
 | **Council** | Several agents answer in parallel, then Claude merges them, flags disagreements and gives a next step. | Up to five calls |
 | **Direct** | Click an agent and talk to it alone, with follow-up memory. | One call per turn |
 
-Every exchange is logged to `logs/YYYY-MM-DD.jsonl`, and ratings to `logs/feedback.jsonl`.
+Every exchange is logged to `logs/YYYY-MM-DD.jsonl`, and ratings to `logs/feedback.jsonl`. The console
+has four views: **Ask** (the thread), **Playbook** (every play with a tester that shows which play a request
+hits), **Scorecard** (ratings by play and agent) and **Log** (today's requests). Open `public/preview.html` in
+a browser to try the interface before adding any keys; it routes for real and shows sample answers.
 
 ## Connectors and the Macs
 
@@ -183,5 +186,6 @@ without putting authentication in front of it.
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
 | `start-mac.command` | Double-click launcher for macOS |
-| `src/server.js`, `public/index.html` | The web console |
+| `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard and Log views |
+| `public/preview.html`, `scripts/build-preview.mjs` | The console with the roster baked in, runnable without the hub (routing is real, answers are samples). Rebuild after editing the playbook. |
 | `bin/hub.js` | CLI |

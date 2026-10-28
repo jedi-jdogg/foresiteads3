@@ -3,6 +3,16 @@ import { readFile } from 'node:fs/promises';
 import { publicAgent, checkMachine } from './registry.js';
 
 const PAGE = new URL('../public/index.html', import.meta.url);
+
+// The page carries a snapshot of the roster and playbook so it can also run as a stand-alone preview.
+export function snapshotFor(hub) {
+  return { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors, playbook: hub.playbook };
+}
+export async function renderPage(hub) {
+  const html = await readFile(PAGE, 'utf8');
+  const json = JSON.stringify(snapshotFor(hub)).replace(/</g, '\\u003c');
+  return html.replace(/\/\*__SNAPSHOT__\*\/.*?\/\*__END__\*\//s, `/*__SNAPSHOT__*/${json}/*__END__*/`);
+}
 const MAX_BODY = 1_000_000;
 
 export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
@@ -13,7 +23,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
     };
     try {
       const url = new URL(req.url, 'http://hub');
-      if (req.method === 'GET' && url.pathname === '/') return send(200, await readFile(PAGE), 'text/html; charset=utf-8');
+      if (req.method === 'GET' && url.pathname === '/') return send(200, await renderPage(hub), 'text/html; charset=utf-8');
       if (req.method === 'GET' && url.pathname === '/api/roster') {
         return send(200, { agents: hub.agents.map(publicAgent), machines: hub.roster.machines, connectors: hub.roster.connectors, whenUnsure: hub.whenUnsure });
       }
@@ -31,6 +41,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       }
       if (req.method === 'GET' && url.pathname === '/api/playbook') return send(200, hub.playbook);
       if (req.method === 'GET' && url.pathname === '/api/scorecard') return send(200, await hub.scorecard());
+      if (req.method === 'GET' && url.pathname === '/api/log') return send(200, await hub.recent());
       if (req.method === 'POST' && url.pathname === '/api/feedback') {
         await hub.feedback(await readJson(req));
         return send(200, { ok: true });
