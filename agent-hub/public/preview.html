@@ -135,6 +135,9 @@
   .rate:hover { border-color: var(--accent); color: var(--ink); }
   .rate.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
   .working { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .progress { margin-top: 8px; }
+  .steps { margin: 4px 0 0 22px; padding: 0; font: 12px var(--mono); color: var(--muted); }
+  .steps li { margin: 1px 0; }
   .working::before { content: ""; width: 10px; height: 10px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -156,7 +159,11 @@
   .seg button:hover:not(.on) { color: var(--ink); }
   select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel-2); font-size: 13px; }
   .unsure { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
-  .send { margin-left: auto; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 600; }
+  .mic { margin-left: auto; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; width: 38px; height: 36px; font-size: 17px; line-height: 1; }
+  .mic.on { background: var(--bad); color: #fff; border-color: var(--bad); animation: pulse 1s ease-in-out infinite; }
+  .mic:disabled { opacity: .5; }
+  @keyframes pulse { 50% { opacity: .65; } }
+  .send { margin-left: 0; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 600; }
   .send:disabled { opacity: .5; cursor: wait; }
   .hint { font: 12px var(--mono); color: var(--muted); }
 
@@ -274,9 +281,9 @@
       <p class="rail-note" style="margin:8px 0 0">Workers on Tailscale. Register and run them in the <a href="#machines">Machines</a> tab.</p>
     </section>
     <section>
-      <h2>Connected apps</h2>
+      <h2>Data sources <span class="count" id="srcCount"></span></h2>
       <div id="connectors" class="chips"></div>
-      <p class="rail-note" style="margin:8px 0 0">Available to Claude in Claude Code and claude.ai.</p>
+      <p class="rail-note" style="margin:8px 0 0">What the hub itself can read, for every agent. Green is connected; grey needs a key in the <a href="#connect">Connect</a> tab.</p>
     </section>
   </aside>
 
@@ -326,6 +333,8 @@
               <select id="unsure"><option value="ask">ask me</option><option value="pick">pick for me</option></select>
             </label>
             <span class="hint">⌘↵ to send</span>
+            <button type="button" class="mic" id="mic" title="Hold to talk (or click to start, click again to stop)" aria-label="Talk">🎙</button>
+            <span class="hint" id="micmsg"></span>
             <button class="send" id="send">Send</button>
           </div>
         </div>
@@ -414,7 +423,7 @@
 <script>
 // ───────────────────────── snapshot ─────────────────────────
 // The server fills this in from agents.json and playbook.json. The published preview carries a copy.
-const SNAPSHOT = /*__SNAPSHOT__*/{"agents":[{"id":"claude","name":"Claude","vendor":"Anthropic","role":"Lead agent and conductor. Default for anything that needs judgment, and the agent that merges council answers.","provider":"anthropic","model":"claude-fable-5-1","modelEnv":"CLAUDE_MODEL","keyEnv":"ANTHROPIC_API_KEY","notes":"Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off.","keyUrl":"https://console.anthropic.com/settings/keys","keyHint":"Anthropic Console → API keys. Starts with sk-ant-.","tools":true,"altModels":["claude-opus-5-5","claude-sonnet-5-5"],"modelChoices":["claude-fable-5-1","claude-opus-5-5","claude-sonnet-5-5","claude-haiku-5-5"],"effortEnv":"CLAUDE_EFFORT","effort":"medium","effortChoices":["low","medium","high","xhigh","max"],"callable":false,"configured":false,"missing":"ANTHROPIC_API_KEY","verified":null},{"id":"perplexity","name":"Perplexity","vendor":"Perplexity","role":"Researcher. Live web search with cited sources.","provider":"perplexity","baseURL":"https://api.perplexity.ai/v1","model":"preset:fast","modelEnv":"PERPLEXITY_MODEL","keyEnv":"PERPLEXITY_API_KEY","notes":"Uses the Perplexity Agent API (the Sonar chat endpoint was retired in September 2026). \"preset:fast\" bundles web search; a model slug like perplexity/sonar adds the web_search tool.","keyUrl":"https://www.perplexity.ai/settings/api","keyHint":"Perplexity → Settings → API → generate key (pplx-…). The API is prepaid: add credits there too.","tools":false,"altModels":["perplexity/sonar","preset:low"],"modelChoices":["preset:fast","preset:low","preset:medium","preset:high","perplexity/sonar"],"callable":false,"configured":false,"missing":"PERPLEXITY_API_KEY","verified":null},{"id":"openai","name":"ChatGPT","vendor":"OpenAI","role":"Generalist and image maker. Second opinion on analysis and copy.","provider":"openai-compatible","model":"gpt-6-astra","modelEnv":"OPENAI_MODEL","keyEnv":"OPENAI_API_KEY","notes":"Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only.","keyUrl":"https://platform.openai.com/api-keys","keyHint":"OpenAI Platform → API keys. Starts with sk-. Separate from ChatGPT Plus.","tools":true,"altModels":["gpt-5","gpt-5-mini"],"modelChoices":["gpt-6-astra","gpt-6-sol","gpt-6-luna","gpt-5","gpt-5-mini"],"effortEnv":"OPENAI_EFFORT","effort":"medium","effortChoices":["low","medium","high"],"callable":false,"configured":false,"missing":"OPENAI_API_KEY","verified":null},{"id":"grok","name":"Grok","vendor":"xAI","role":"Social listener. What is trending on X and how people are reacting.","provider":"openai-compatible","baseURL":"https://api.x.ai/v1","model":"grok-4.6","modelEnv":"XAI_MODEL","keyEnv":"XAI_API_KEY","notes":"Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy.","keyUrl":"https://console.x.ai","keyHint":"xAI Console → API keys. Starts with xai-.","tools":true,"altModels":["grok-4.5","grok-4"],"modelChoices":["grok-4.6","grok-4.5","grok-4.3","grok-4"],"callable":false,"configured":false,"missing":"XAI_API_KEY","verified":null},{"id":"muse","name":"Muse","vendor":"Meta","role":"Meta's agent. Facebook, Instagram and Reels creative and audience ideas.","provider":"openai-compatible","baseURLEnv":"MUSE_BASE_URL","requiresBaseURL":false,"model":"muse-spark-1.3","modelEnv":"MUSE_MODEL","keyEnv":"MUSE_API_KEY","notes":"Meta Model API (api.meta.ai), which is OpenAI-compatible. Muse Spark is the model; background tasks in the Muse app (email, travel, purchases) still happen in the app itself.","keyUrl":"https://dev.meta.ai","keyHint":"dev.meta.ai → API keys. The endpoint is filled in (api.meta.ai); only change it if Meta tells you to.","tools":false,"altModels":["muse-spark-1.2","muse-wonder"],"baseURL":"https://api.meta.ai/v1","modelChoices":["muse-spark-1.3","muse-spark-1.2","muse-wonder"],"callable":false,"configured":false,"missing":"MUSE_API_KEY","verified":null},{"id":"mac:any","name":"Any free Mac (Claude Code)","vendor":"your Macs","provider":"worker","machine":null,"tools":false,"council":false,"role":"Hands-on work on whichever Mac is online and idle: create or edit files, work in a browser, run scripts, export data. Runs on your Claude subscription.","callable":false,"verified":null,"keyEnv":null,"missing":null,"configured":false}],"connectors":["Shopify","Klaviyo","Gmail","Slack","Google Drive","Google Calendar","Calendly","Bill.com","ThoughtMetric","Vibe","Konvert","Replit","Foresite","GitHub"],"playbook":{"about":"Which agent takes which kind of work, and why. Plays are checked against every request; the play with the most matching terms wins. Order breaks ties, so specific plays come first. `council` lists agents worth asking together when one view is not enough. `note` is shown whenever the play matches, even if another play wins.","plays":[{"id":"connected-apps","label":"Your connected apps","signals":"\\b(shopify|klaviyo|gmail|inbox|slack|google drive|drive|calendar|calendly|bill\\.com|thoughtmetric|vibe|konvert|replit|foresite|github)\\b","primary":"claude","backup":[],"why":"Claude is the only agent wired to your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive and the rest).","note":"Touches your connected apps. Those connectors live in Claude Code / claude.ai, not in this API call: run it there for live data."},{"id":"hands-on","label":"Hands-on task (on a Mac)","signals":"\\b(on (a|the|my|any) mac|on (a|the) (computer|machine)|use (a|the|my) mac|download|install|screenshot|create (a |an )?(file|folder|spreadsheet|csv|pdf|deck|doc)|save (it|the|a) (file|csv|pdf)|export (the|a|to)|open .* in (chrome|safari|the browser)|log ?in to|fill (in|out)|click|upload|zip|unzip|rename (the )?files?|organi[sz]e (the )?(files|folder|downloads))\\b","primary":"mac:any","backup":["claude"],"why":"Work that needs hands on a computer: files, a signed-in browser, downloads, exports. A Mac's own Claude Code does it on your subscription and reports back."},{"id":"fact-check","label":"Fact check","signals":"\\b(fact[- ]?check|verify|is it true|confirm whether|double[- ]check|accurate)\\b","primary":"perplexity","backup":["claude"],"council":["perplexity","claude","grok"],"why":"Perplexity checks against live sources and cites them. A second agent catches what one search misses."},{"id":"live-research","label":"Live research","signals":"\\b(research|sources?|cite|citations?|look ?up|latest|news|today|this (week|month|year)|current(ly)?|right now|competitors?|market size|statistics|stats|benchmarks?|who is|what happened|announced)\\b","primary":"perplexity","backup":["grok","claude"],"why":"Perplexity searches the web for every answer and returns clickable sources. The others answer from what they were trained on unless they search."},{"id":"social-pulse","label":"Social pulse","signals":"\\b(twitter|tweets?|x\\.com|on x|viral|trending|sentiment|reddit|tiktok|influencers?|hashtags?|buzz|people saying)\\b","primary":"grok","backup":["perplexity","claude"],"why":"Grok reads X in real time, so it knows what people are saying now and how they feel about it."},{"id":"meta-platforms","label":"Facebook / Instagram","signals":"\\b(facebook|instagram|meta ads?|reels?|whatsapp|threads|fb|ig|advantage\\+)\\b","primary":"muse","backup":["claude","openai"],"why":"Muse is Meta's own agent, built around Facebook, Instagram and Reels formats."},{"id":"image-creative","label":"Images and visuals","signals":"\\b(images?|logo|picture|illustrat\\w*|photo\\w*|graphic|thumbnail|mock-?up|render|visual|banner)\\b","primary":"openai","backup":["muse","claude"],"why":"ChatGPT makes the image itself (OpenAI's image model) and shows it here; Claude cannot make pictures. Say what to change and ask again to redo it."},{"id":"brainstorm","label":"Ideas and hooks","signals":"\\b(brainstorm|ideas?|names?|taglines?|angles?|hooks?|concepts?|slogans?|variations?)\\b","primary":"claude","backup":["openai"],"council":["claude","grok","muse","openai"],"why":"For ideas, range beats any single model. Each agent pulls in a different direction, and Claude picks the strongest."},{"id":"strategy","label":"Strategy and decisions","signals":"\\b(plan|strategy|strategic|decide|should (we|i)|pros and cons|trade-?offs?|prioriti[sz]e|roadmap|recommend|which is better|worth it)\\b","primary":"claude","backup":["openai"],"council":["claude","openai","perplexity"],"why":"Claude is the lead for judgment calls. For bigger decisions a council adds a second opinion and current facts, and Claude weighs them."},{"id":"code","label":"Code and automation","signals":"\\b(code|bug|script|api|deploy|function|repo|sql|javascript|python|html|css|webhook|error|automate|zapier|liquid)\\b","primary":"claude","backup":["openai"],"why":"Claude is the strongest coder of the group and runs Claude Code on your Macs."},{"id":"analysis","label":"Numbers and analysis","signals":"\\b(analy[sz]\\w*|data|spreadsheet|numbers|forecast|roas|cpa|cac|ltv|metrics|kpis?|report|budget|pricing|margin|attribution)\\b","primary":"claude","backup":["openai"],"why":"Claude reasons carefully through numbers and says what it is unsure of. ChatGPT is a good second check on calculations."},{"id":"long-documents","label":"Long documents","signals":"\\b(contract|pdf|document|transcript|terms|agreement|whole (file|doc)|read (this|the) (doc|file))\\b","primary":"claude","backup":["openai"],"why":"Claude reads very long documents in one go and quotes them accurately."},{"id":"writing","label":"Writing","signals":"\\b(write|draft|email|blog|copy|rewrite|edit|proposal|summari[sz]e|outline|headline|newsletter|sop|memo|reply)\\b","primary":"claude","backup":["openai"],"why":"Claude writes in a natural voice and follows a brief closely."},{"id":"general","label":"General","signals":null,"primary":"claude","backup":["openai"],"why":"No specialist fits, so the lead agent takes it."}]}}/*__END__*/;
+const SNAPSHOT = /*__SNAPSHOT__*/{"agents":[{"id":"claude","name":"Claude","vendor":"Anthropic","role":"Lead agent and conductor. Default for anything that needs judgment, and the agent that merges council answers.","provider":"anthropic","model":"claude-fable-5-1","modelEnv":"CLAUDE_MODEL","keyEnv":"ANTHROPIC_API_KEY","notes":"Lead agent through the Anthropic API. Reads the hub's data sources with tools, routes in Smart mode and merges councils.","keyUrl":"https://console.anthropic.com/settings/keys","keyHint":"Anthropic Console → API keys. Starts with sk-ant-.","tools":true,"altModels":["claude-opus-5-5","claude-sonnet-5-5"],"modelChoices":["claude-fable-5-1","claude-opus-5-5","claude-sonnet-5-5","claude-haiku-5-5"],"effortEnv":"CLAUDE_EFFORT","effort":"medium","effortChoices":["low","medium","high","xhigh","max"],"callable":false,"configured":false,"missing":"ANTHROPIC_API_KEY","verified":null},{"id":"perplexity","name":"Perplexity","vendor":"Perplexity","role":"Researcher. Live web search with cited sources.","provider":"perplexity","baseURL":"https://api.perplexity.ai/v1","model":"preset:fast","modelEnv":"PERPLEXITY_MODEL","keyEnv":"PERPLEXITY_API_KEY","notes":"Uses the Perplexity Agent API (the Sonar chat endpoint was retired in September 2026). \"preset:fast\" bundles web search; a model slug like perplexity/sonar adds the web_search tool.","keyUrl":"https://www.perplexity.ai/settings/api","keyHint":"Perplexity → Settings → API → generate key (pplx-…). The API is prepaid: add credits there too.","tools":false,"altModels":["perplexity/sonar","preset:low"],"modelChoices":["preset:fast","preset:low","preset:medium","preset:high","perplexity/sonar"],"callable":false,"configured":false,"missing":"PERPLEXITY_API_KEY","verified":null},{"id":"openai","name":"ChatGPT","vendor":"OpenAI","role":"Generalist and image maker. Second opinion on analysis and copy.","provider":"openai-compatible","model":"gpt-6-astra","modelEnv":"OPENAI_MODEL","keyEnv":"OPENAI_API_KEY","notes":"Image generation runs through ChatGPT or the Foresite generate-creative tool; this hub sends text prompts only.","keyUrl":"https://platform.openai.com/api-keys","keyHint":"OpenAI Platform → API keys. Starts with sk-. Separate from ChatGPT Plus.","tools":true,"altModels":["gpt-5","gpt-5-mini"],"modelChoices":["gpt-6-astra","gpt-6-sol","gpt-6-luna","gpt-5","gpt-5-mini"],"effortEnv":"OPENAI_EFFORT","effort":"medium","effortChoices":["low","medium","high"],"callable":false,"configured":false,"missing":"OPENAI_API_KEY","verified":null},{"id":"grok","name":"Grok","vendor":"xAI","role":"Social listener. What is trending on X and how people are reacting.","provider":"openai-compatible","baseURL":"https://api.x.ai/v1","model":"grok-4.6","modelEnv":"XAI_MODEL","keyEnv":"XAI_API_KEY","notes":"Strongest where the question is about X/Twitter conversation, sentiment, or punchy social copy.","keyUrl":"https://console.x.ai","keyHint":"xAI Console → API keys. Starts with xai-.","tools":true,"altModels":["grok-4.5","grok-4"],"modelChoices":["grok-4.6","grok-4.5","grok-4.3","grok-4"],"callable":false,"configured":false,"missing":"XAI_API_KEY","verified":null},{"id":"muse","name":"Muse","vendor":"Meta","role":"Meta's agent. Facebook, Instagram and Reels creative and audience ideas.","provider":"openai-compatible","baseURLEnv":"MUSE_BASE_URL","requiresBaseURL":false,"model":"muse-spark-1.3","modelEnv":"MUSE_MODEL","keyEnv":"MUSE_API_KEY","notes":"Meta Model API (api.meta.ai), which is OpenAI-compatible. Muse Spark is the model; background tasks in the Muse app (email, travel, purchases) still happen in the app itself.","keyUrl":"https://dev.meta.ai","keyHint":"dev.meta.ai → API keys. The endpoint is filled in (api.meta.ai); only change it if Meta tells you to.","tools":false,"altModels":["muse-spark-1.2","muse-wonder"],"baseURL":"https://api.meta.ai/v1","modelChoices":["muse-spark-1.3","muse-spark-1.2","muse-wonder"],"callable":false,"configured":false,"missing":"MUSE_API_KEY","verified":null},{"id":"mac:any","name":"Any free Mac (Claude Code)","vendor":"your Macs","provider":"worker","machine":null,"tools":false,"council":false,"role":"Hands-on work on whichever Mac is online and idle: create or edit files, work in a browser, run scripts, export data. Runs on your Claude subscription.","callable":false,"verified":null,"keyEnv":null,"missing":null,"configured":false}],"connectors":["Shopify","Klaviyo","Gmail","Slack","Google Drive","Google Calendar","Calendly","Bill.com","ThoughtMetric","Vibe","Konvert","Replit","Foresite","GitHub"],"playbook":{"about":"Which agent takes which kind of work, and why. Plays are checked against every request; the play with the most matching terms wins. Order breaks ties, so specific plays come first. `council` lists agents worth asking together when one view is not enough. `note` is shown whenever the play matches, even if another play wins.","plays":[{"id":"connected-apps","label":"Business data","signals":"\\b(shopify|klaviyo|gmail|inbox|slack|google drive|drive|calendar|calendly|bill\\.com|thoughtmetric|vibe|konvert|replit|foresite|github)\\b","primary":"claude","backup":[],"why":"Questions about your store, email, ads or analytics. Any agent that can call tools reads the hub's connected data sources directly; the hub pre-fetches for the others.","note":"Uses the hub's data sources. If one is not connected yet, add it in the Connect tab under Data sources."},{"id":"hands-on","label":"Hands-on task (on a Mac)","signals":"\\b(on (a|the|my|any) mac|on (a|the) (computer|machine)|use (a|the|my) mac|download|install|screenshot|create (a |an )?(file|folder|spreadsheet|csv|pdf|deck|doc)|save (it|the|a) (file|csv|pdf)|export (the|a|to)|open .* in (chrome|safari|the browser)|log ?in to|fill (in|out)|click|upload|zip|unzip|rename (the )?files?|organi[sz]e (the )?(files|folder|downloads))\\b","primary":"mac:any","backup":["claude"],"why":"Work that needs hands on a computer: files, a signed-in browser, downloads, exports. A Mac's own Claude Code does it on your subscription and reports back."},{"id":"fact-check","label":"Fact check","signals":"\\b(fact[- ]?check|verify|is it true|confirm whether|double[- ]check|accurate)\\b","primary":"perplexity","backup":["claude"],"council":["perplexity","claude","grok"],"why":"Perplexity checks against live sources and cites them. A second agent catches what one search misses."},{"id":"live-research","label":"Live research","signals":"\\b(research|sources?|cite|citations?|look ?up|latest|news|today|this (week|month|year)|current(ly)?|right now|competitors?|market size|statistics|stats|benchmarks?|who is|what happened|announced)\\b","primary":"perplexity","backup":["grok","claude"],"why":"Perplexity searches the web for every answer and returns clickable sources. The others answer from what they were trained on unless they search."},{"id":"social-pulse","label":"Social pulse","signals":"\\b(twitter|tweets?|x\\.com|on x|viral|trending|sentiment|reddit|tiktok|influencers?|hashtags?|buzz|people saying)\\b","primary":"grok","backup":["perplexity","claude"],"why":"Grok reads X in real time, so it knows what people are saying now and how they feel about it."},{"id":"meta-platforms","label":"Facebook / Instagram","signals":"\\b(facebook|instagram|meta ads?|reels?|whatsapp|threads|fb|ig|advantage\\+)\\b","primary":"muse","backup":["claude","openai"],"why":"Muse is Meta's own agent, built around Facebook, Instagram and Reels formats."},{"id":"image-creative","label":"Images and visuals","signals":"\\b(images?|logo|picture|illustrat\\w*|photo\\w*|graphic|thumbnail|mock-?up|render|visual|banner)\\b","primary":"openai","backup":["muse","claude"],"why":"ChatGPT makes the image itself (OpenAI's image model) and shows it here; Claude cannot make pictures. Say what to change and ask again to redo it."},{"id":"brainstorm","label":"Ideas and hooks","signals":"\\b(brainstorm|ideas?|names?|taglines?|angles?|hooks?|concepts?|slogans?|variations?)\\b","primary":"claude","backup":["openai"],"council":["claude","grok","muse","openai"],"why":"For ideas, range beats any single model. Each agent pulls in a different direction, and Claude picks the strongest."},{"id":"strategy","label":"Strategy and decisions","signals":"\\b(plan|strategy|strategic|decide|should (we|i)|pros and cons|trade-?offs?|prioriti[sz]e|roadmap|recommend|which is better|worth it)\\b","primary":"claude","backup":["openai"],"council":["claude","openai","perplexity"],"why":"Claude is the lead for judgment calls. For bigger decisions a council adds a second opinion and current facts, and Claude weighs them."},{"id":"code","label":"Code and automation","signals":"\\b(code|bug|script|api|deploy|function|repo|sql|javascript|python|html|css|webhook|error|automate|zapier|liquid)\\b","primary":"claude","backup":["openai"],"why":"Claude is the strongest coder of the group and runs Claude Code on your Macs."},{"id":"analysis","label":"Numbers and analysis","signals":"\\b(analy[sz]\\w*|data|spreadsheet|numbers|forecast|roas|cpa|cac|ltv|metrics|kpis?|report|budget|pricing|margin|attribution)\\b","primary":"claude","backup":["openai"],"why":"Claude reasons carefully through numbers and says what it is unsure of. ChatGPT is a good second check on calculations."},{"id":"long-documents","label":"Long documents","signals":"\\b(contract|pdf|document|transcript|terms|agreement|whole (file|doc)|read (this|the) (doc|file))\\b","primary":"claude","backup":["openai"],"why":"Claude reads very long documents in one go and quotes them accurately."},{"id":"writing","label":"Writing","signals":"\\b(write|draft|email|blog|copy|rewrite|edit|proposal|summari[sz]e|outline|headline|newsletter|sop|memo|reply)\\b","primary":"claude","backup":["openai"],"why":"Claude writes in a natural voice and follows a brief closely."},{"id":"general","label":"General","signals":null,"primary":"claude","backup":["openai"],"why":"No specialist fits, so the lead agent takes it."}]}}/*__END__*/;
 
 // ───────────────────────── routing (mirrors src/router.js, used only in preview mode) ─────────────────────────
 function matchPlays(prompt, playbook) {
@@ -583,11 +592,11 @@ async function boot() {
 
   $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
-  $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
   api.sources?.().then((list) => {
-    const live = list.filter((s) => s.connected);
-    if (live.length) $('#connectors').innerHTML = live.map((s) => `<span class="chip" style="color:var(--good)">${esc(s.name)}</span>`).join('') + roster.connectors.filter((c) => !live.some((s) => s.name.includes(c))).map((c) => `<span class="chip">${esc(c)}</span>`).join('');
-  }).catch(() => {});
+    const shown = list.filter((s) => s.id !== 'machines');
+    $('#srcCount').textContent = `${shown.filter((s) => s.connected).length}/${shown.length} connected`;
+    $('#connectors').innerHTML = shown.map((s) => `<span class="chip" style="${s.connected ? 'color:var(--good);border-color:var(--good)' : ''}" title="${esc(s.connected ? 'Connected' : s.needsAuth ? 'Sign in needed' : 'Not connected: add it in Connect')}">${esc(s.name.replace(/ \(.*\)$/, ''))}</span>`).join('');
+  }).catch(() => { $('#connectors').innerHTML = ''; });
   const core = roster.agents.filter((a) => a.provider !== 'worker');
   $('#agentCount').textContent = api.name === 'live' ? `${core.filter((a) => a.callable).length}/${core.length} connected` : 'preview';
   $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
@@ -954,11 +963,21 @@ function renderResult(turn, prompt, r) {
 
 async function run(turn, prompt, opts, play) {
   turn.querySelector('.recommend')?.remove();
-  const onMac = (opts.agentId ?? '').startsWith('mac:');
-  turn.insertAdjacentHTML('beforeend', `<div class="route working" id="working">${opts.mode === 'council' ? 'asking the council…' : opts.mode === 'smart' ? 'Claude is reading the playbook…' : onMac ? 'Claude Code is working on the Mac. This can take a few minutes…' : 'working…'}</div>`);
+  const reqId = Math.random().toString(36).slice(2, 10);
+  turn.insertAdjacentHTML('beforeend', `<div class="progress" id="working"><div class="route working"><span id="pnow">Starting…</span></div><ol class="steps" id="psteps"></ol></div>`);
   $('#send').disabled = true;
+  // Poll the hub for the steps it is taking, so the wait reads as a story rather than a spinner.
+  const poll = api.name === 'live' ? setInterval(async () => {
+    try {
+      const steps = await http(`/api/progress?id=${reqId}`);
+      if (!steps.length) return;
+      const now = $('#pnow'), list = $('#psteps');
+      if (now) now.textContent = steps.at(-1).line + '…';
+      if (list) list.innerHTML = steps.slice(0, -1).map((s) => `<li>${esc(s.line)}</li>`).join('');
+    } catch {}
+  }, 700) : null;
   try {
-    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, ...opts });
+    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, reqId, ...opts });
     if (play && r.routing) r.routing.play = play;
     renderResult(turn, prompt, r);
     const first = r.answers?.[0];
@@ -967,8 +986,9 @@ async function run(turn, prompt, opts, play) {
       thread.push({ role: 'user', content: prompt }, { role: 'assistant', content: `[${first.name}] ${first.text.slice(0, 1500)}` });
     }
   } catch (err) {
-    turn.querySelector('#working').outerHTML = `<div class="flag">${esc(err.message)}</div>`;
+    (turn.querySelector('#working') ?? turn).outerHTML = `<div class="flag">${esc(err.message)}</div>`;
   } finally {
+    if (poll) clearInterval(poll);
     $('#send').disabled = false;
     turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
@@ -1037,6 +1057,46 @@ $('#tester').addEventListener('input', () => {
 
 // Wiring
 $('#composer').addEventListener('submit', (e) => { e.preventDefault(); submit($('#prompt').value.trim()); });
+// ── voice input: record in the page, transcribe through the hub (OpenAI key) ──
+let rec = null, recChunks = [], recStream = null;
+async function micStart() {
+  if (rec) return;
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    $('#micmsg').textContent = api.name !== 'live' ? 'Voice works in the Mac app.' : 'Microphone blocked. Allow it in System Settings → Privacy → Microphone → Agent Hub.';
+    return;
+  }
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', ''].find((m) => !m || MediaRecorder.isTypeSupported(m));
+  rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : {});
+  recChunks = [];
+  rec.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+  rec.onstop = async () => {
+    recStream.getTracks().forEach((t) => t.stop());
+    const blob = new Blob(recChunks, { type: rec.mimeType || 'audio/webm' });
+    rec = null;
+    $('#mic').classList.remove('on'); $('#mic').disabled = true; $('#micmsg').textContent = 'Transcribing…';
+    try {
+      const r = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      const box = $('#prompt');
+      box.value = (box.value ? box.value.trimEnd() + ' ' : '') + data.text;
+      $('#micmsg').textContent = ''; preview(); box.focus();
+    } catch (err) { $('#micmsg').textContent = err.message; }
+    finally { $('#mic').disabled = false; }
+  };
+  rec.start();
+  $('#mic').classList.add('on'); $('#micmsg').textContent = 'Listening… click again or release to stop.';
+}
+function micStop() { if (rec && rec.state === 'recording') rec.stop(); }
+let micHeld = false;
+$('#mic').addEventListener('mousedown', () => { micHeld = true; micStart(); });
+$('#mic').addEventListener('mouseup', () => { if (micHeld) { micHeld = false; setTimeout(() => { if (rec) micStop(); }, 300); } });
+$('#mic').addEventListener('click', (e) => { e.preventDefault(); });
+$('#mic').addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); rec ? micStop() : micStart(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'm' && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); rec ? micStop() : micStart(); } });
+
 $('#prompt').addEventListener('input', preview);
 $('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
 $('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));

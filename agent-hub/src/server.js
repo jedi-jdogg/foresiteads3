@@ -56,10 +56,11 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         return send(200, smart ? await hub.smartRoute(prompt) : await hub.routeFresh(prompt));
       }
       if (req.method === 'POST' && url.pathname === '/api/ask') {
-        const { prompt, mode, agentId, agents, history, whenUnsure } = await readJson(req);
+        const { prompt, mode, agentId, agents, history, whenUnsure, reqId } = await readJson(req);
         if (!prompt?.trim()) return send(400, { error: 'Empty prompt.' });
-        return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure }));
+        return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure, reqId }));
       }
+      if (req.method === 'GET' && url.pathname === '/api/progress') return send(200, hub.progressOf(url.searchParams.get('id')));
       if (req.method === 'GET' && /^\/images\/[a-z0-9]+\.png$/.test(url.pathname)) {
         const png = await readFile(new URL(`../logs${url.pathname}`, import.meta.url));
         res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'private, max-age=86400' }); return res.end(png);
@@ -110,6 +111,16 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         hub.sources.refresh();
         res.writeHead(302, { location: '/#connect' });
         return res.end();
+      }
+      if (req.method === 'POST' && url.pathname === '/api/transcribe') {
+        const agent = hub.agent('openai');
+        if (!agent.callable) return send(400, { error: 'Voice input uses your OpenAI key. Connect ChatGPT in the Connect tab first.' });
+        const chunks = []; let size = 0;
+        for await (const c of req) { chunks.push(c); size += c.length; if (size > 25 * 1024 * 1024) return send(413, { error: 'Recording too long.' }); }
+        const { transcribe } = await import('./providers/openai-compatible.js');
+        const type = req.headers['content-type'] ?? 'audio/webm';
+        const ext = /mp4|m4a/.test(type) ? 'm4a' : /wav/.test(type) ? 'wav' : /ogg/.test(type) ? 'ogg' : 'webm';
+        return send(200, await transcribe(agent, { bytes: Buffer.concat(chunks), filename: `speech.${ext}` }));
       }
       if (req.method === 'POST' && url.pathname === '/api/feedback') {
         await hub.feedback(await readJson(req));

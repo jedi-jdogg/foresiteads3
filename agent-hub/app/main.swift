@@ -150,6 +150,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigation
         }
         decisionHandler(.allow)
     }
+    // The console's microphone button records in the page; the hub (localhost) is the only origin that may use it.
+    @available(macOS 12.0, *)
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        let local = origin.host == "127.0.0.1" || origin.host == "localhost"
+        decisionHandler(local && type == .microphone ? .grant : .deny)
+    }
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if let url = action.request.url { NSWorkspace.shared.open(url) }
         return nil

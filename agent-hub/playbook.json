@@ -3,12 +3,12 @@
   "plays": [
     {
       "id": "connected-apps",
-      "label": "Your connected apps",
+      "label": "Business data",
       "signals": "\\b(shopify|klaviyo|gmail|inbox|slack|google drive|drive|calendar|calendly|bill\\.com|thoughtmetric|vibe|konvert|replit|foresite|github)\\b",
       "primary": "claude",
       "backup": [],
-      "why": "Claude is the only agent wired to your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive and the rest).",
-      "note": "Touches your connected apps. Those connectors live in Claude Code / claude.ai, not in this API call: run it there for live data."
+      "why": "Questions about your store, email, ads or analytics. Any agent that can call tools reads the hub's connected data sources directly; the hub pre-fetches for the others.",
+      "note": "Uses the hub's data sources. If one is not connected yet, add it in the Connect tab under Data sources."
     },
     {
       "id": "hands-on",

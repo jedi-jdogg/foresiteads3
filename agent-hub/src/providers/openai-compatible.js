@@ -106,3 +106,22 @@ export async function makeImage(agent, { prompt, size = '1024x1024', model }) {
   }
   throw new Error(`No image model worked (tried ${tried.join(', ')}): ${lastErr?.message ?? 'unknown error'}`);
 }
+
+// Speech to text through OpenAI. The model comes from the account's list (newest transcription model first).
+export async function transcribe(agent, { bytes, filename = 'speech.webm', language }) {
+  const c = client(agent);
+  const listed = await c.models.list().then((p) => p.data.filter((m) => /transcribe|whisper/.test(m.id)).sort((x, y) => (y.created ?? 0) - (x.created ?? 0)).map((m) => m.id)).catch(() => []);
+  const candidates = [...new Set([...(process.env.OPENAI_TRANSCRIBE_MODEL ? [process.env.OPENAI_TRANSCRIBE_MODEL] : []), ...listed, 'gpt-4o-transcribe', 'whisper-1'])];
+  let lastErr;
+  for (const model of candidates) {
+    try {
+      const file = await OpenAI.toFile(Buffer.from(bytes), filename);
+      const r = await c.audio.transcriptions.create({ model, file, ...(language ? { language } : {}) });
+      return { text: (r.text ?? '').trim(), model };
+    } catch (err) {
+      lastErr = err;
+      if (!(err.status === 404 || /does not exist|not found|invalid model/i.test(err.message ?? ''))) throw err;
+    }
+  }
+  throw new Error(`No transcription model worked: ${lastErr?.message ?? 'unknown error'}`);
+}

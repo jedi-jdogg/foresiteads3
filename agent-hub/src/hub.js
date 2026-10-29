@@ -26,7 +26,17 @@ export class Hub {
     this.whenUnsure = whenUnsure;
     this.machines = new Machines();
     this.sources = new Sources(roster.sources ?? [], process.env, { machines: this.machines });
+    this.progressLog = new Map();
   }
+
+  // Progress lines for a request in flight, read by the console while it waits.
+  progress(reqId, line) {
+    if (!reqId) return;
+    const list = this.progressLog.get(reqId) ?? [];
+    list.push({ at: Date.now(), line });
+    this.progressLog.set(reqId, list.slice(-40));
+  }
+  progressOf(reqId) { return this.progressLog.get(reqId) ?? []; }
 
   agent(id) {
     const a = this.agents.find((x) => x.id === id);
@@ -160,8 +170,8 @@ fits two plays with different agents about equally. Suggest a council only when 
     };
   }
 
-  async call(agent, prompt, history = [], { play } = {}) {
-    if (play === 'image-creative' && agent.id === 'openai' && agent.callable) return this.image(agent, prompt);
+  async call(agent, prompt, history = [], { play, reqId } = {}) {
+    if (play === 'image-creative' && agent.id === 'openai' && agent.callable) { this.progress(reqId, 'Making the image with OpenAI'); return this.image(agent, prompt); }
     if (agent.provider === 'handoff') {
       return { text: `This one belongs in ${agent.name} (${agent.url}), which the hub does not chat with. ${agent.handoff ?? ''}`.trim(), handoff: true };
     }
@@ -170,6 +180,7 @@ fits two plays with different agents about equally. Suggest a council only when 
       const started = Date.now();
       const context = history.length ? history.map((m) => `${m.role}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n') + '\n\n' : '';
       const task = `${context}${prompt}\n\nWork inside the current folder. When done, reply with a short plain-text summary of what you did and where any files are.`;
+      this.progress(reqId, `Claude Code is working on ${this.machines.cached?.find((m) => m.id === agent.machine)?.name ?? agent.machine}`);
       const { text, job } = await this.machines.runAndWait(agent.machine, task);
       const macName = this.machines.cached?.find((m) => m.id === agent.machine)?.name ?? agent.machine;
       return { text, model: `Claude Code on ${macName}`, ms: Date.now() - started, used: [{ name: 'machines__claude', input: { machine: agent.machine }, ok: true, job }] };
@@ -177,7 +188,13 @@ fits two plays with different agents about equally. Suggest a council only when 
     if (!agent.callable) throw new Error(`${agent.name} isn't set up (${agent.apiKey ? agent.baseURLEnv : agent.keyEnv} missing from .env).`);
     const started = Date.now();
     const tools = await this.sources.tools();
-    const exec = (name, input) => this.sources.call(name, input);
+    const exec = async (name, input) => {
+      const [src, tool] = name.split('__');
+      this.progress(reqId, `${agent.name} is reading ${src === 'machines' ? 'the Macs' : src}: ${tool}`);
+      const r = await this.sources.call(name, input);
+      this.progress(reqId, r.ok ? `Got ${tool} from ${src} (${(r.ms / 1000).toFixed(1)}s)` : `${src} ${tool} failed: ${r.error}`);
+      return r;
+    };
     let system = BRIEF;
     let prefetched = [];
     if (tools.length && agent.tools) {
@@ -185,6 +202,8 @@ fits two plays with different agents about equally. Suggest a council only when 
 marketing performance or customers rather than guessing; say which source each figure came from and the date window.`;
     } else if (tools.length) {
       // This agent cannot call tools: fetch the summaries the request seems to need and hand them over as context.
+      const mentioned = this.sources.mentioned(prompt).map((x) => x.name);
+      if (mentioned.length) this.progress(reqId, `Pulling ${mentioned.join(', ')} for ${agent.name}`);
       prefetched = await this.sources.prefetch(prompt);
       if (prefetched.length) {
         const pack = prefetched.map((p) => `### ${p.name} (${p.ok ? 'ok' : 'failed'})\n${JSON.stringify(p.ok ? p.result : { error: p.error }).slice(0, 12000)}`).join('\n\n');
@@ -192,7 +211,9 @@ marketing performance or customers rather than guessing; say which source each f
       }
     }
     const req = { system, messages: [...history, { role: 'user', content: prompt }], tools: agent.tools ? tools : [], exec };
+    this.progress(reqId, `Asking ${agent.name} (${agent.model})`);
     const out = await provider(agent.provider)(agent, { ...req, effort: agent.effort ?? 'medium' });
+    this.progress(reqId, `${agent.name} answered`);
     const used = [...(out.used ?? []), ...prefetched.map((p) => ({ name: p.name, prefetched: true, ok: p.ok, ms: p.ms }))];
     return { ...out, used, ms: Date.now() - started };
   }
@@ -233,36 +254,46 @@ marketing performance or customers rather than guessing; say which source each f
 
   // mode: 'auto' (playbook), 'smart' (Claude reads the playbook), 'agent' (named), 'council' (several, merged).
   // In auto and smart, a close call or a council-worthy play comes back as a recommendation when whenUnsure is 'ask'.
-  async ask(prompt, { mode = 'auto', agentId, agents, history = [], councilSize = 3, whenUnsure = this.whenUnsure } = {}) {
+  async ask(prompt, { mode = 'auto', agentId, agents, history = [], councilSize = 3, whenUnsure = this.whenUnsure, reqId } = {}) {
+    this.progress(reqId, 'Checking which Macs are online');
     await this.machines.overview().catch(() => {});
     let result;
-    if (mode === 'council') {
-      result = await this.council(prompt, { size: councilSize, agents });
-    } else if (mode === 'agent') {
-      const routing = { ...this.route(prompt), pick: agentId, reason: `${this.agent(agentId).name}: chosen by you`, decision: 'proceed', flags: [] };
-      result = { mode, routing, answers: [await this.settle(this.agent(agentId), prompt, history, { play: routing.play?.id })] };
-    } else {
-      const routing = mode === 'smart' ? await this.smartRoute(prompt) : this.route(prompt);
-      if (routing.decision === 'recommend' && whenUnsure === 'ask') {
-        result = { mode: 'recommend', routing, answers: [] };
+    try {
+      if (mode === 'council') {
+        result = await this.council(prompt, { size: councilSize, agents, reqId });
+      } else if (mode === 'agent') {
+        const routing = { ...this.route(prompt), pick: agentId, reason: `${this.agent(agentId).name}: chosen by you`, decision: 'proceed', flags: [] };
+        result = { mode, routing, answers: [await this.settle(this.agent(agentId), prompt, history, { play: routing.play?.id, reqId })] };
       } else {
-        result = { mode, routing, answers: [await this.settle(this.agent(routing.pick), prompt, history, { play: routing.play?.id })] };
+        this.progress(reqId, mode === 'smart' ? 'Claude is reading the playbook' : 'Matching the playbook');
+        const routing = mode === 'smart' ? await this.smartRoute(prompt) : this.route(prompt);
+        this.progress(reqId, `Play: ${routing.play.label} → ${this.agent(routing.pick).name}`);
+        if (routing.decision === 'recommend' && whenUnsure === 'ask') {
+          result = { mode: 'recommend', routing, answers: [] };
+        } else {
+          result = { mode, routing, answers: [await this.settle(this.agent(routing.pick), prompt, history, { play: routing.play?.id, reqId })] };
+        }
       }
+    } finally {
+      this.progress(reqId, 'Done');
+      setTimeout(() => this.progressLog.delete(reqId), 60000);
     }
     await this.record(prompt, result);
     return result;
   }
 
-  async council(prompt, { size = 3, agents } = {}) {
+  async council(prompt, { size = 3, agents, reqId } = {}) {
     const routing = this.route(prompt);
     const ids = agents?.length ? agents.filter((id) => this.agent(id).callable) : councilFor(prompt, this.agents, this.playbook, size);
     if (!ids.length) throw new Error('No agents have API keys yet. Add at least one to .env.');
-    const answers = await Promise.all(ids.map((id) => this.settle(this.agent(id), prompt)));
+    this.progress(reqId, `Council: asking ${ids.map((id) => this.agent(id).name).join(', ')} at the same time`);
+    const answers = await Promise.all(ids.map((id) => this.settle(this.agent(id), prompt, [], { reqId })));
     const ok = answers.filter((a) => !a.error);
 
     let synthesis;
     if (this.lead.callable && ok.length > 1) {
       const panel = ok.map((a) => `### ${a.name}\n${a.text}`).join('\n\n');
+      this.progress(reqId, `${this.lead.name} is merging ${ok.length} answers`);
       synthesis = await this.settle(this.lead, `Several agents answered the request below. Merge them into one answer for Jonathan. \
 Say where they agree, flag where they disagree and which view you would trust and why, keep any cited sources, \
 and end with the recommended next step.\n\nRequest:\n${prompt}\n\nAnswers:\n${panel}`);

@@ -135,6 +135,9 @@
   .rate:hover { border-color: var(--accent); color: var(--ink); }
   .rate.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
   .working { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .progress { margin-top: 8px; }
+  .steps { margin: 4px 0 0 22px; padding: 0; font: 12px var(--mono); color: var(--muted); }
+  .steps li { margin: 1px 0; }
   .working::before { content: ""; width: 10px; height: 10px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -156,7 +159,11 @@
   .seg button:hover:not(.on) { color: var(--ink); }
   select { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--panel-2); font-size: 13px; }
   .unsure { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
-  .send { margin-left: auto; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 600; }
+  .mic { margin-left: auto; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; width: 38px; height: 36px; font-size: 17px; line-height: 1; }
+  .mic.on { background: var(--bad); color: #fff; border-color: var(--bad); animation: pulse 1s ease-in-out infinite; }
+  .mic:disabled { opacity: .5; }
+  @keyframes pulse { 50% { opacity: .65; } }
+  .send { margin-left: 0; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 600; }
   .send:disabled { opacity: .5; cursor: wait; }
   .hint { font: 12px var(--mono); color: var(--muted); }
 
@@ -274,9 +281,9 @@
       <p class="rail-note" style="margin:8px 0 0">Workers on Tailscale. Register and run them in the <a href="#machines">Machines</a> tab.</p>
     </section>
     <section>
-      <h2>Connected apps</h2>
+      <h2>Data sources <span class="count" id="srcCount"></span></h2>
       <div id="connectors" class="chips"></div>
-      <p class="rail-note" style="margin:8px 0 0">Available to Claude in Claude Code and claude.ai.</p>
+      <p class="rail-note" style="margin:8px 0 0">What the hub itself can read, for every agent. Green is connected; grey needs a key in the <a href="#connect">Connect</a> tab.</p>
     </section>
   </aside>
 
@@ -326,6 +333,8 @@
               <select id="unsure"><option value="ask">ask me</option><option value="pick">pick for me</option></select>
             </label>
             <span class="hint">⌘↵ to send</span>
+            <button type="button" class="mic" id="mic" title="Hold to talk (or click to start, click again to stop)" aria-label="Talk">🎙</button>
+            <span class="hint" id="micmsg"></span>
             <button class="send" id="send">Send</button>
           </div>
         </div>
@@ -583,11 +592,11 @@ async function boot() {
 
   $('#unsure').value = store.get('hub.unsure') || roster.whenUnsure || 'ask';
   $('#agentSelect').innerHTML = roster.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
-  $('#connectors').innerHTML = roster.connectors.map((c) => `<span class="chip">${esc(c)}</span>`).join('');
   api.sources?.().then((list) => {
-    const live = list.filter((s) => s.connected);
-    if (live.length) $('#connectors').innerHTML = live.map((s) => `<span class="chip" style="color:var(--good)">${esc(s.name)}</span>`).join('') + roster.connectors.filter((c) => !live.some((s) => s.name.includes(c))).map((c) => `<span class="chip">${esc(c)}</span>`).join('');
-  }).catch(() => {});
+    const shown = list.filter((s) => s.id !== 'machines');
+    $('#srcCount').textContent = `${shown.filter((s) => s.connected).length}/${shown.length} connected`;
+    $('#connectors').innerHTML = shown.map((s) => `<span class="chip" style="${s.connected ? 'color:var(--good);border-color:var(--good)' : ''}" title="${esc(s.connected ? 'Connected' : s.needsAuth ? 'Sign in needed' : 'Not connected: add it in Connect')}">${esc(s.name.replace(/ \(.*\)$/, ''))}</span>`).join('');
+  }).catch(() => { $('#connectors').innerHTML = ''; });
   const core = roster.agents.filter((a) => a.provider !== 'worker');
   $('#agentCount').textContent = api.name === 'live' ? `${core.filter((a) => a.callable).length}/${core.length} connected` : 'preview';
   $('#try').innerHTML = TRY.map((t) => `<button type="button">${esc(t)}</button>`).join('');
@@ -954,11 +963,21 @@ function renderResult(turn, prompt, r) {
 
 async function run(turn, prompt, opts, play) {
   turn.querySelector('.recommend')?.remove();
-  const onMac = (opts.agentId ?? '').startsWith('mac:');
-  turn.insertAdjacentHTML('beforeend', `<div class="route working" id="working">${opts.mode === 'council' ? 'asking the council…' : opts.mode === 'smart' ? 'Claude is reading the playbook…' : onMac ? 'Claude Code is working on the Mac. This can take a few minutes…' : 'working…'}</div>`);
+  const reqId = Math.random().toString(36).slice(2, 10);
+  turn.insertAdjacentHTML('beforeend', `<div class="progress" id="working"><div class="route working"><span id="pnow">Starting…</span></div><ol class="steps" id="psteps"></ol></div>`);
   $('#send').disabled = true;
+  // Poll the hub for the steps it is taking, so the wait reads as a story rather than a spinner.
+  const poll = api.name === 'live' ? setInterval(async () => {
+    try {
+      const steps = await http(`/api/progress?id=${reqId}`);
+      if (!steps.length) return;
+      const now = $('#pnow'), list = $('#psteps');
+      if (now) now.textContent = steps.at(-1).line + '…';
+      if (list) list.innerHTML = steps.slice(0, -1).map((s) => `<li>${esc(s.line)}</li>`).join('');
+    } catch {}
+  }, 700) : null;
   try {
-    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, ...opts });
+    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, reqId, ...opts });
     if (play && r.routing) r.routing.play = play;
     renderResult(turn, prompt, r);
     const first = r.answers?.[0];
@@ -967,8 +986,9 @@ async function run(turn, prompt, opts, play) {
       thread.push({ role: 'user', content: prompt }, { role: 'assistant', content: `[${first.name}] ${first.text.slice(0, 1500)}` });
     }
   } catch (err) {
-    turn.querySelector('#working').outerHTML = `<div class="flag">${esc(err.message)}</div>`;
+    (turn.querySelector('#working') ?? turn).outerHTML = `<div class="flag">${esc(err.message)}</div>`;
   } finally {
+    if (poll) clearInterval(poll);
     $('#send').disabled = false;
     turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
@@ -1037,6 +1057,46 @@ $('#tester').addEventListener('input', () => {
 
 // Wiring
 $('#composer').addEventListener('submit', (e) => { e.preventDefault(); submit($('#prompt').value.trim()); });
+// ── voice input: record in the page, transcribe through the hub (OpenAI key) ──
+let rec = null, recChunks = [], recStream = null;
+async function micStart() {
+  if (rec) return;
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    $('#micmsg').textContent = api.name !== 'live' ? 'Voice works in the Mac app.' : 'Microphone blocked. Allow it in System Settings → Privacy → Microphone → Agent Hub.';
+    return;
+  }
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', ''].find((m) => !m || MediaRecorder.isTypeSupported(m));
+  rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : {});
+  recChunks = [];
+  rec.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+  rec.onstop = async () => {
+    recStream.getTracks().forEach((t) => t.stop());
+    const blob = new Blob(recChunks, { type: rec.mimeType || 'audio/webm' });
+    rec = null;
+    $('#mic').classList.remove('on'); $('#mic').disabled = true; $('#micmsg').textContent = 'Transcribing…';
+    try {
+      const r = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      const box = $('#prompt');
+      box.value = (box.value ? box.value.trimEnd() + ' ' : '') + data.text;
+      $('#micmsg').textContent = ''; preview(); box.focus();
+    } catch (err) { $('#micmsg').textContent = err.message; }
+    finally { $('#mic').disabled = false; }
+  };
+  rec.start();
+  $('#mic').classList.add('on'); $('#micmsg').textContent = 'Listening… click again or release to stop.';
+}
+function micStop() { if (rec && rec.state === 'recording') rec.stop(); }
+let micHeld = false;
+$('#mic').addEventListener('mousedown', () => { micHeld = true; micStart(); });
+$('#mic').addEventListener('mouseup', () => { if (micHeld) { micHeld = false; setTimeout(() => { if (rec) micStop(); }, 300); } });
+$('#mic').addEventListener('click', (e) => { e.preventDefault(); });
+$('#mic').addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); rec ? micStop() : micStart(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'm' && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); rec ? micStop() : micStart(); } });
+
 $('#prompt').addEventListener('input', preview);
 $('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
 $('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));

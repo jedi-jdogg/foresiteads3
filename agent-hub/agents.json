@@ -9,7 +9,7 @@
       "model": "claude-fable-5-1",
       "modelEnv": "CLAUDE_MODEL",
       "keyEnv": "ANTHROPIC_API_KEY",
-      "notes": "Claude Code / claude.ai hold your MCP connectors (Shopify, Klaviyo, Gmail, Slack, Drive, Calendar, Calendly, Bill.com, ThoughtMetric, Vibe, Konvert, Replit, Foresite, GitHub) and can drive the Macs. The API call from this hub has none of those, so connector and machine work is flagged as a hand-off.",
+      "notes": "Lead agent through the Anthropic API. Reads the hub's data sources with tools, routes in Smart mode and merges councils.",
       "keyUrl": "https://console.anthropic.com/settings/keys",
       "keyHint": "Anthropic Console → API keys. Starts with sk-ant-.",
       "tools": true,

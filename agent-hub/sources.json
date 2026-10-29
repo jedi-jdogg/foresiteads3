@@ -178,7 +178,7 @@
         {
           "key": "FORESITE_MCP_URL",
           "label": "MCP server URL",
-          "hint": "The Foresite MCP endpoint you connected in claude.ai"
+          "hint": "Foresite's MCP server URL"
         },
         {
           "key": "FORESITE_MCP_TOKEN",
@@ -199,7 +199,7 @@
         {
           "key": "VIBE_MCP_URL",
           "label": "MCP server URL",
-          "hint": "Vibe's MCP endpoint (the one connected in claude.ai)"
+          "hint": "Vibe's MCP server URL, if Vibe publishes one"
         },
         {
           "key": "VIBE_MCP_TOKEN",

@@ -37,6 +37,7 @@ cat > "$BUILD/$NAME.app/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+  <key>NSMicrophoneUsageDescription</key><string>Agent Hub uses the microphone so you can speak a request instead of typing it.</string>
 </dict></plist>
 PLIST
 
