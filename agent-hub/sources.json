@@ -1,5 +1,5 @@
 {
-  "about": "Data sources the hub can read on behalf of any agent. Each has an auth method, the .env variables it needs, and the tools it exposes (defined in src/sources/<module>.js). Agents that support tool calling (Claude, ChatGPT, Grok) call these tools themselves; for the others the hub fetches a summary first when the request mentions the source.",
+  "about": "Data sources and abilities the hub offers every agent. Each has an auth method, the .env variables it needs, and the tools it exposes (defined in src/sources/<module>.js). Agents that support tool calling (Claude, ChatGPT, Grok) call these tools themselves; for the others the hub fetches a summary first when the request mentions the source. auth \"local\" sources need no key.",
   "sources": [
     {
       "id": "machines",
@@ -28,7 +28,7 @@
           "key": "SHOPIFY_ADMIN_TOKEN",
           "label": "Admin API token",
           "secret": true,
-          "hint": "Shopify admin → Settings → Apps → Develop apps → create a custom app with read_products, read_orders, read_all_orders, read_inventory, read_customers, read_reports → install → reveal token (shpat_…)"
+          "hint": "Shopify admin \u2192 Settings \u2192 Apps \u2192 Develop apps \u2192 create a custom app with read_products, read_orders, read_all_orders, read_inventory, read_customers, read_reports \u2192 install \u2192 reveal token (shpat_\u2026)"
         }
       ],
       "mentions": "\\b(shopify|store|orders?|sales|revenue|aov|products?|inventory|skus?|customers?|catalog)\\b",
@@ -46,7 +46,7 @@
           "key": "KLAVIYO_API_KEY",
           "label": "Private API key",
           "secret": true,
-          "hint": "Klaviyo → Settings → API keys → Create private key with read access (pk_…)"
+          "hint": "Klaviyo \u2192 Settings \u2192 API keys \u2192 Create private key with read access (pk_\u2026)"
         }
       ],
       "mentions": "\\b(klaviyo|email|sms|flows?|campaigns?|subscribers?|newsletter|list growth)\\b",
@@ -64,7 +64,7 @@
           "key": "TRIPLEWHALE_API_KEY",
           "label": "API key",
           "secret": true,
-          "hint": "Triple Whale → Settings → API keys"
+          "hint": "Triple Whale \u2192 Settings \u2192 API keys"
         },
         {
           "key": "TRIPLEWHALE_SHOP",
@@ -87,7 +87,7 @@
           "key": "META_ADS_TOKEN",
           "label": "System user token",
           "secret": true,
-          "hint": "Meta Business Suite → Business settings → Users → System users → Generate token with ads_read (long-lived)"
+          "hint": "Meta Business Suite \u2192 Business settings \u2192 Users \u2192 System users \u2192 Generate token with ads_read (long-lived)"
         },
         {
           "key": "META_AD_ACCOUNT_ID",
@@ -109,7 +109,7 @@
         {
           "key": "GOOGLE_CLIENT_ID",
           "label": "OAuth client ID",
-          "hint": "Google Cloud console → APIs & Services → Credentials → OAuth client (Desktop or Web, redirect http://localhost:4747/api/oauth/google/callback)"
+          "hint": "Google Cloud console \u2192 APIs & Services \u2192 Credentials \u2192 OAuth client (Desktop or Web, redirect http://localhost:4747/api/oauth/google/callback)"
         },
         {
           "key": "GOOGLE_CLIENT_SECRET",
@@ -131,7 +131,7 @@
           "key": "GOOGLE_ADS_DEVELOPER_TOKEN",
           "label": "Google Ads developer token",
           "secret": true,
-          "hint": "Google Ads → Tools → API Center",
+          "hint": "Google Ads \u2192 Tools \u2192 API Center",
           "optional": true
         },
         {
@@ -161,7 +161,7 @@
           "key": "VISTASOCIAL_API_KEY",
           "label": "API key",
           "secret": true,
-          "hint": "Vista Social → Settings → API (needs a plan with API access)"
+          "hint": "Vista Social \u2192 Settings \u2192 API (needs a plan with API access)"
         }
       ],
       "mentions": "\\b(vista ?social|scheduled posts?|social calendar|publishing queue)\\b",
@@ -209,6 +209,71 @@
       ],
       "mentions": "\\b(vibe|ctv|connected tv|streaming tv|tv ads?)\\b",
       "prefetch": []
+    },
+    {
+      "id": "memory",
+      "name": "Memory",
+      "module": "memory",
+      "auth": "local",
+      "envs": [],
+      "mentions": "\\b(remember|recall|forget|you (said|told me)|last time|my preferences?|notes? from)\\b",
+      "prefetch": [
+        "recall"
+      ],
+      "notes": "Facts, preferences and daily notes in agent-hub/memory/. Every agent reads them; any tool-calling agent can add to them."
+    },
+    {
+      "id": "skills",
+      "name": "Skills",
+      "module": "skills",
+      "auth": "local",
+      "envs": [],
+      "notes": "Playbooks in agent-hub/skills/<name>/SKILL.md. Type /name at the start of a request to run one."
+    },
+    {
+      "id": "schedule",
+      "name": "Schedules",
+      "module": "schedule",
+      "auth": "local",
+      "envs": [],
+      "mentions": "\\b(remind|reminder|schedule|every (day|morning|week|monday|friday|hour)|each (day|week)|daily|weekly|recurring)\\b",
+      "notes": "Reminders and recurring prompts. Results land in the Scheduled chat and on Telegram."
+    },
+    {
+      "id": "browser",
+      "name": "Browser",
+      "module": "browser",
+      "auth": "local",
+      "envs": [],
+      "mentions": "\\b(browse|open (the )?(page|site|website|url)|go to (https?:|www\\.)|screenshot|fill (in|out) the form|click (on|the)|log ?in to the site|website says)\\b",
+      "notes": "A Chromium browser on the hub Mac that agents can drive: open, read, click, fill, screenshot. Installed on demand (Playwright)."
+    },
+    {
+      "id": "composio",
+      "name": "Composio (500+ apps)",
+      "module": "composio",
+      "auth": "token",
+      "envs": [
+        {
+          "key": "COMPOSIO_API_KEY",
+          "label": "Composio API key",
+          "secret": true,
+          "hint": "app.composio.dev \u2192 Settings \u2192 API keys"
+        },
+        {
+          "key": "COMPOSIO_USER_ID",
+          "label": "User id",
+          "optional": true,
+          "hint": "Which Composio user's connected accounts to use (default jonathan)"
+        },
+        {
+          "key": "COMPOSIO_SESSION_ID",
+          "label": "Session",
+          "managed": true
+        }
+      ],
+      "mentions": "\\b(gmail|email|inbox|slack|notion|hubspot|airtable|google (sheets?|docs?|calendar|drive)|calendar|github|linear|asana|trello|jira|zoom|dropbox|stripe|quickbooks|xero|salesforce|pipedrive|mailchimp|canva|figma|youtube|linkedin|twitter|x\\.com|composio)\\b",
+      "notes": "Gmail, Slack, Notion, HubSpot, Google Sheets, GitHub and 500 more through one key. Agents search the catalogue, connect an app (you get a link to approve) and run actions."
     }
   ]
 }

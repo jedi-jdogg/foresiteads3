@@ -245,6 +245,60 @@
   .notice { background: var(--panel); border: 1px solid var(--warn); border-radius: var(--radius); padding: 12px 14px; color: var(--ink); margin-bottom: 14px; font-size: 13.5px; }
   .notice b { color: var(--warn); }
 
+  /* Chats in the rail */
+  .chats { display: grid; gap: 2px; }
+  .chatrow { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; padding: 6px 8px; border-radius: 7px; cursor: pointer; font-size: 13px; border: 1px solid transparent; min-width: 0; }
+  .chatrow:hover { background: var(--panel-2); }
+  .chatrow.on { background: var(--accent-soft); border-color: var(--accent); }
+  .chatrow .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chatrow .t small { display: block; font: 11px var(--mono); color: var(--muted); }
+  .chatrow .acts { display: none; gap: 2px; }
+  .chatrow:hover .acts, .chatrow.on .acts, .chatrow:focus-within .acts { display: inline-flex; }
+  @media (hover: none) { .chatrow .acts { display: inline-flex; } }
+  .chatrow .acts button { border: 0; background: transparent; color: var(--muted); padding: 0 4px; font-size: 12px; border-radius: 4px; }
+  .chatrow .acts button:hover { color: var(--ink); background: var(--panel); }
+  .newchat { width: 100%; border: 1px dashed var(--line); background: transparent; border-radius: 7px; padding: 6px; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .newchat:hover { border-color: var(--accent); color: var(--accent); }
+  .chatsearch { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; background: var(--panel-2); font-size: 12.5px; margin-bottom: 6px; }
+
+  /* Live answer and activity */
+  .live .body::after { content: "▍"; color: var(--accent); animation: pulse 1s ease-in-out infinite; }
+  .activity { margin-top: 8px; font-size: 12.5px; }
+  .activity summary { cursor: pointer; color: var(--muted); font: 12px var(--mono); }
+  .call { border: 1px solid var(--line-2); border-radius: 7px; padding: 6px 9px; margin-top: 6px; background: var(--panel-2); }
+  .call .n { display: flex; gap: 8px; align-items: baseline; font: 500 12px var(--mono); }
+  .call .n .ms { color: var(--muted); font-weight: 400; margin-left: auto; }
+  .call .n.bad { color: var(--bad); }
+  .call .n.running::after { content: "running"; color: var(--accent); font-weight: 400; margin-left: auto; }
+  .call pre { margin: 4px 0 0; font: 11.5px var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto; color: var(--muted); }
+  .call pre b { color: var(--ink); font-weight: 500; }
+
+  /* Skills, memory, schedules */
+  .grid2 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 6px; cursor: pointer; }
+  .tile:hover { border-color: var(--accent); }
+  .tile.on { border-color: var(--accent); background: var(--accent-soft); }
+  .tile b { font-size: 14px; }
+  .tile .d { color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .tile .k { font: 11.5px var(--mono); color: var(--accent); }
+  .editor { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-top: 14px; display: grid; gap: 8px; }
+  .editor textarea { min-height: 260px; font: 13px var(--mono); }
+  .editor .row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .editor .save { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; }
+  .editor .test { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 6px 12px; }
+  .editor .msg { font-size: 13px; color: var(--muted); } .editor .msg.ok { color: var(--good); } .editor .msg.bad { color: var(--bad); }
+  .editor input { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel-2); font: 13.5px var(--mono); width: 100%; }
+  .editor label { display: grid; gap: 4px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .memcols { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  .memcols textarea { min-height: 220px; font: 13px var(--mono); }
+  .schedrow { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; margin-bottom: 8px; }
+  .schedrow .when { font: 12px var(--mono); color: var(--muted); }
+  .schedrow .last { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; white-space: pre-wrap; max-height: 120px; overflow: auto; }
+  .schedrow .acts { display: flex; gap: 6px; align-items: start; }
+  .schedrow .acts button { border: 1px solid var(--line); background: transparent; border-radius: 7px; padding: 4px 10px; font-size: 12.5px; }
+  .schedrow.off { opacity: .6; }
+  .install { font: 12px var(--mono); color: var(--muted); white-space: pre-wrap; max-height: 160px; overflow: auto; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; margin-top: 8px; }
+
   /* Phone */
   .railtoggle { display: none; }
   @media (max-width: 860px) {
@@ -255,6 +309,10 @@
     .topbar, .scroll, .composer { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
     .playrow, .scorerow { grid-template-columns: 1fr; }
     .conn .fields.two { grid-template-columns: 1fr; }
+    .memcols { grid-template-columns: 1fr; }
+    .tabs { flex-wrap: wrap; }
+    .topbar { overflow: hidden; }
+    .schedrow { grid-template-columns: 1fr; } .schedrow .acts { flex-wrap: wrap; }
     .playrow .why, .playrow .words, .playrow .note { grid-column: 1; }
     .bar { grid-template-columns: 90px 1fr 64px; }
     .logrow { grid-template-columns: 56px 1fr; }
@@ -269,8 +327,14 @@
     <div class="brand">
       <div class="mark">FA</div>
       <div><h1>Agent Hub</h1><div class="sub">Foresite Ads</div></div>
-      <button type="button" class="railtoggle" id="railtoggle" aria-expanded="false">Agents</button>
+      <button type="button" class="railtoggle" id="railtoggle" aria-expanded="false">Chats &amp; agents</button>
     </div>
+    <section>
+      <h2>Chats <span class="count" id="chatCount"></span></h2>
+      <button type="button" class="newchat" id="newChat">+ New chat</button>
+      <input class="chatsearch" id="chatSearch" placeholder="Search chats" aria-label="Search chats">
+      <div class="chats" id="chats"></div>
+    </section>
     <section>
       <h2>Agents <span class="count" id="agentCount"></span></h2>
       <div id="agents"></div>
@@ -293,6 +357,9 @@
         <a href="#ask" data-view="ask">Ask</a>
         <a href="#playbook" data-view="playbook">Playbook</a>
         <a href="#scorecard" data-view="scorecard">Scorecard</a>
+        <a href="#skills" data-view="skills">Skills</a>
+        <a href="#memory" data-view="memory">Memory</a>
+        <a href="#schedules" data-view="schedules">Schedules</a>
         <a href="#log" data-view="log">Log</a>
         <a href="#machines" data-view="machines">Machines</a>
         <a href="#connect" data-view="connect">Connect</a>
@@ -385,10 +452,63 @@
         <div id="connectNotice"></div>
         <h2 style="margin-top:4px">Agents</h2>
         <div id="connect"></div>
+        <h2 style="margin-top:26px">Channels and abilities</h2>
+        <div id="telegramCard"></div>
+        <div id="browserCard"></div>
         <h2 style="margin-top:26px">Data sources</h2>
         <p class="rail-note" style="margin:-4px 0 12px">Connected sources are readable by every agent. Claude, ChatGPT and Grok query them directly while answering; for Perplexity and Muse the hub pulls a summary first when the request mentions the source. Read-only: nothing here can change anything in these accounts.</p>
         <div id="sources"></div>
         <p class="rail-note" style="margin-top:12px">API usage is billed by each provider separately from any ChatGPT Plus, Perplexity Pro, Grok or Claude subscription. Each console needs a card or credits before its key works.</p>
+      </div></div>
+    </section>
+
+    <!-- Skills -->
+    <section class="view" id="view-skills">
+      <div class="scroll"><div class="col">
+        <div class="pb-head"><div>
+          <h3>Skills</h3>
+          <p>A skill is a playbook the agents follow for one kind of job: a Markdown file at <code>agent-hub/skills/&lt;name&gt;/SKILL.md</code>, the same format Claude Code uses. Agents see the list and load one when a request matches; start a request with <code>/name</code> to force it.</p>
+        </div></div>
+        <div id="skillsList" class="grid2"></div>
+        <div class="editor" id="skillEditor" hidden>
+          <label>Folder name<input id="skillId" placeholder="weekly-report"></label>
+          <textarea id="skillRaw" aria-label="SKILL.md"></textarea>
+          <div class="row2"><button type="button" class="save" id="skillSave">Save</button><button type="button" class="test" id="skillRun">Run it in Ask</button><button type="button" class="test" id="skillDelete">Delete</button><span class="msg" id="skillMsg"></span></div>
+        </div>
+        <p class="rail-note" style="margin-top:14px"><button type="button" class="test" id="skillNew" style="border:1px solid var(--line);background:transparent;border-radius:8px;padding:6px 12px">+ New skill</button></p>
+      </div></div>
+    </section>
+
+    <!-- Memory -->
+    <section class="view" id="view-memory">
+      <div class="scroll"><div class="col">
+        <div class="pb-head"><div>
+          <h3>Memory</h3>
+          <p>What every agent is told before it answers: facts about the business, how you like things done, and the last two days of notes. Agents add to it when you say "remember…"; you can edit it here. Files live in <code>agent-hub/memory/</code>.</p>
+        </div></div>
+        <div id="memoryNotice"></div>
+        <div class="memcols">
+          <div class="editor" style="margin:0"><label for="memFacts">Facts <small style="text-transform:none;letter-spacing:0">one per line, starting with "- "</small></label><textarea id="memFacts"></textarea><div class="row2"><button type="button" class="save" data-kind="fact">Save facts</button><span class="msg" id="memMsg-fact"></span></div></div>
+          <div class="editor" style="margin:0"><label for="memPrefs">Preferences</label><textarea id="memPrefs"></textarea><div class="row2"><button type="button" class="save" data-kind="preference">Save preferences</button><span class="msg" id="memMsg-preference"></span></div></div>
+        </div>
+        <div class="editor"><label for="memNotes">Today's notes <small id="memDays" style="text-transform:none;letter-spacing:0"></small></label><textarea id="memNotes" style="min-height:140px"></textarea><div class="row2"><button type="button" class="save" data-kind="note">Save notes</button><span class="msg" id="memMsg-note"></span></div></div>
+      </div></div>
+    </section>
+
+    <!-- Schedules -->
+    <section class="view" id="view-schedules">
+      <div class="scroll"><div class="col">
+        <div class="pb-head"><div>
+          <h3>Schedules</h3>
+          <p>Prompts the hub runs on its own: a reminder once, or a report every morning. Results land in the Scheduled chat and on Telegram when it is connected. Agents can create these too: say "remind me…" or "every Monday send me…".</p>
+        </div></div>
+        <div id="schedNotice"></div>
+        <div class="editor" style="margin:0 0 16px">
+          <div class="memcols"><label>Title<input id="schedTitle" placeholder="Morning numbers"></label><label>When <small style="text-transform:none;letter-spacing:0">"every weekday at 8am", "every monday 7am", "in 30 minutes", or a cron line</small><input id="schedWhen" placeholder="every weekday at 8am"></label></div>
+          <label>What to ask<textarea id="schedPrompt" style="min-height:70px" placeholder="Summarise yesterday's Shopify sales for Linda's against the same day last week."></textarea></label>
+          <div class="row2"><button type="button" class="save" id="schedCreate">Add schedule</button><span class="msg" id="schedMsg"></span></div>
+        </div>
+        <div id="schedList"></div>
       </div></div>
     </section>
 
@@ -472,6 +592,15 @@ const Live = {
   connect: (body) => http('/api/connect', body), test: (body) => http('/api/test', body), version: () => http('/api/version'),
   models: (agentId) => http(`/api/models?agent=${encodeURIComponent(agentId)}`),
   sources: () => http('/api/sources'), connectSource: (body) => http('/api/sources/connect', body), testSource: (body) => http('/api/sources/test', body),
+  sessions: (q) => http(q ? `/api/sessions?q=${encodeURIComponent(q)}` : '/api/sessions'), newSession: () => http('/api/sessions/new', {}), session: (id) => http(`/api/sessions/get?id=${encodeURIComponent(id)}`),
+  renameSession: (b) => http('/api/sessions/rename', b), deleteSession: (b) => http('/api/sessions/delete', b),
+  memory: () => http('/api/memory'), writeMemory: (b) => http('/api/memory/write', b),
+  skills: () => http('/api/skills'), skill: (id) => http(`/api/skills/get?id=${encodeURIComponent(id)}`), saveSkill: (b) => http('/api/skills/save', b), deleteSkill: (b) => http('/api/skills/delete', b),
+  schedules: () => http('/api/schedules'), createSchedule: (b) => http('/api/schedules/create', b), deleteSchedule: (b) => http('/api/schedules/delete', b), toggleSchedule: (b) => http('/api/schedules/toggle', b), runSchedule: (b) => http('/api/schedules/run', b),
+  telegram: () => http('/api/telegram'), connectTelegram: (b) => http('/api/telegram/connect', b),
+  browser: () => http('/api/browser'), installBrowser: () => http('/api/browser/install', {}),
+  // Each frame carries its index; a reconnect replays the buffer, so anything already seen is skipped.
+  events: (id, onEvent) => { let seen = 0; const es = new EventSource(`/api/events?id=${encodeURIComponent(id)}`); es.onmessage = (m) => { try { const i = Number(m.lastEventId); if (!Number.isNaN(i) && m.lastEventId !== '') { if (i < seen) return; seen = i + 1; } const ev = JSON.parse(m.data); onEvent(ev); if (ev.type === 'done') es.close(); } catch {} }; es.onerror = () => {}; return () => es.close(); },
 };
 
 // Preview mode: the same playbook, run in the page, with sample answers so the interface can be tried without keys.
@@ -549,6 +678,16 @@ function makeDemo(snapshot) {
       return [...t.values()];
     },
     log: async () => log,
+    sessions: async () => [], newSession: async () => ({ id: 'preview', title: 'New chat', messages: [] }), session: async () => ({ id: 'preview', title: 'New chat', messages: [] }),
+    renameSession: async () => { throw new Error('Preview only.'); }, deleteSession: async () => { throw new Error('Preview only.'); },
+    memory: async () => ({ facts: "- Linda's main store is lindas.com (Shopify)\n", preferences: '- Lead with the number, keep it short\n', noteDays: [], todayNotes: '' }), writeMemory: async () => { throw new Error('Preview only: memory is saved on the hub Mac.'); },
+    skills: async () => [{ id: 'weekly-report', name: 'Weekly client report', description: 'The Monday performance email for a client.' }, { id: 'ad-hooks', name: 'Ad hooks', description: 'Ten scroll-stopping first lines for a paid social ad.' }, { id: 'competitor-scan', name: 'Competitor scan', description: 'What a competitor is running and saying right now.' }],
+    skill: async (id) => ({ id, name: id, raw: `---\nname: ${id}\ndescription: Sample skill.\n---\n# Steps\n1. …` }), saveSkill: async () => { throw new Error('Preview only.'); }, deleteSkill: async () => { throw new Error('Preview only.'); },
+    schedules: async () => [{ id: 'demo', title: 'Morning numbers', prompt: "Summarise yesterday's sales for Linda's", cron: '0 8 * * 1-5', enabled: true, next: new Date(Date.now() + 36e5).toISOString(), runs: 12, lastResult: 'Sample: revenue $8,420 (+6% vs same day last week), 61 orders…' }],
+    createSchedule: async () => { throw new Error('Preview only.'); }, deleteSchedule: async () => { throw new Error('Preview only.'); }, toggleSchedule: async () => { throw new Error('Preview only.'); }, runSchedule: async () => { throw new Error('Preview only.'); },
+    telegram: async () => ({ connected: false, configured: false, allowed: [] }), connectTelegram: async () => { throw new Error('Preview only.'); },
+    browser: async () => ({ available: false }), installBrowser: async () => { throw new Error('Preview only.'); },
+    events: () => () => {},
   };
 }
 
@@ -566,8 +705,7 @@ const TRY = [
 ];
 
 let api, roster = { agents: [] }, playbook = { plays: [] }, mode = 'auto';
-const histories = {};
-const thread = [];   // recent exchanges in this window, shared across modes
+let sessionId = null;   // the saved chat this window is adding to
 const nameOf = (id) => id === 'merged' ? 'Merged answer' : (roster.agents.find((a) => a.id === id)?.name ?? id);
 const colorOf = (id) => id.startsWith('mac:') ? 'var(--good)' : `var(--${['claude', 'perplexity', 'openai', 'grok', 'muse', 'merged'].includes(id) ? id : 'accent'})`;
 
@@ -607,6 +745,7 @@ async function boot() {
   }
   showView(location.hash.slice(1) || 'ask');
   refreshRailMachines();
+  renderChats();
 }
 
 function renderAgents(pick) {
@@ -644,13 +783,16 @@ function renderPlaybook(hit) {
 }
 
 function showView(v) {
-  if (!['ask', 'playbook', 'scorecard', 'log', 'connect', 'machines'].includes(v)) v = 'ask';
+  if (!['ask', 'playbook', 'scorecard', 'log', 'connect', 'machines', 'skills', 'memory', 'schedules'].includes(v)) v = 'ask';
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('on', el.id === `view-${v}`));
   document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.view === v));
   if (v === 'scorecard') renderScorecard();
   if (v === 'log') renderLog();
-  if (v === 'connect') { renderConnect(); renderSources(); fillModels(); }
+  if (v === 'connect') { renderConnect(); renderSources(); fillModels(); renderChannels(); }
   if (v === 'machines') renderMachines();
+  if (v === 'skills') renderSkills();
+  if (v === 'memory') renderMemory();
+  if (v === 'schedules') renderSchedules();
 }
 
 // ───────────────────────── machines ─────────────────────────
@@ -825,10 +967,12 @@ async function renderSources() {
     const fields = s.envs.filter((e) => !e.managed).map((e) => `<label>${esc(e.label)}${e.optional ? ' <small>(optional)</small>' : ''}
       <input type="${e.secret ? 'password' : 'text'}" autocomplete="off" id="src-${s.id}-${e.key}" placeholder="${s.set?.[e.key] ? '•••••••• saved, paste to replace' : esc(e.hint ?? '')}" title="${esc(e.hint ?? '')}"></label>`).join('');
     const oauth = s.auth === 'oauth' ? `<a class="test" style="text-decoration:none;display:inline-block" href="/api/oauth/google/start">${s.needsAuth ? 'Sign in with Google' : 'Sign in again'}</a>` : '';
+    const local = s.auth === 'local';
     return `<div class="conn src" data-id="${s.id}" style="--c:var(--accent)"><span class="stripe"></span><div>
-      <div class="head"><b>${esc(s.name)}</b><span class="vendor">${esc(s.auth === 'oauth' ? 'OAuth' : s.auth === 'mcp' ? 'MCP server' : 'API key')}</span>${status}</div>
-      <div class="fields ${s.envs.filter((e) => !e.managed).length > 1 ? 'two' : ''}">${fields}</div>
-      <div class="row2"><button type="button" class="save" data-act="save">Save &amp; test</button>${s.connected && !s.preview ? '<button type="button" class="test" data-act="test">Test again</button>' : ''}${oauth}<span class="msg" id="srcmsg-${s.id}"></span></div>
+      <div class="head"><b>${esc(s.name)}</b><span class="vendor">${esc(local ? 'built in' : s.auth === 'oauth' ? 'OAuth' : s.auth === 'mcp' ? 'MCP server' : 'API key')}</span>${status}</div>
+      ${s.notes ? `<div class="where">${esc(s.notes)}</div>` : ''}
+      ${fields ? `<div class="fields ${s.envs.filter((e) => !e.managed).length > 1 ? 'two' : ''}">${fields}</div>` : ''}
+      <div class="row2">${local ? '' : '<button type="button" class="save" data-act="save">Save &amp; test</button>'}${s.connected && !s.preview ? `<button type="button" class="test" data-act="test">${local ? 'Check' : 'Test again'}</button>` : ''}${oauth}<span class="msg" id="srcmsg-${s.id}"></span></div>
       ${s.prefetch?.length ? `<div class="tools">${s.prefetch.map((t) => `<span>${esc(t)}</span>`).join('')}<span>+ tools agents can call</span></div>` : ''}
     </div></div>`;
   }).join('');
@@ -929,6 +1073,7 @@ function card(a, play, prompt) {
 
 function renderResult(turn, prompt, r) {
   const routing = r.routing || {};
+  const activity = turn.querySelector('.activity')?.outerHTML ?? '';
   const flags = (routing.flags || []).map((f) => `<div class="flag">${esc(f)}</div>`).join('');
   const head = turn.querySelector('.you').outerHTML;
   if (r.mode === 'recommend') {
@@ -944,66 +1089,97 @@ function renderResult(turn, prompt, r) {
     turn.innerHTML = head + `<div class="route"><span class="play">${esc(routing.play.label)}</span><span>${esc(routing.terms?.length ? 'matched: ' + routing.terms.join(', ') : '')}</span></div>`
       + `<div class="recommend"><p class="lead">${lead}</p><div class="options">${opts}</div></div>` + flags;
     turn.querySelectorAll('.option').forEach((b) => b.addEventListener('click', () => {
+      if (inflight > 0) return;
       const o = routing.options[b.dataset.i];
       run(turn, prompt, o.kind === 'council' ? { mode: 'council', agents: o.agents } : { mode: 'agent', agentId: o.agentId }, routing.play);
     }));
     return;
   }
   const play = routing.play?.id ?? '';
+  const hasRoute = Boolean(routing.play || routing.pick);
   const who = r.mode === 'council'
     ? `<span class="play">${esc(routing.play?.label ?? '')}</span><span>council</span><span class="arrow">→</span><span class="who">${esc(routing.council.map(nameOf).join(', '))}</span>`
     : `<span class="play">${esc(routing.play?.label ?? '')}</span><span class="arrow">→</span><span class="who">${esc(nameOf(routing.pick))}</span>${routing.by === 'claude' ? '<span>· decided by Claude</span>' : ''}<span class="why">${esc(routing.play?.why ?? '')}</span>`;
-  turn.innerHTML = head + `<div class="route">${who}</div>` + flags
-    + `<div class="answers">${r.answers.map((a) => card(a, play, prompt)).join('')}${r.synthesis ? card(r.synthesis, play, prompt) : ''}</div>`;
+  turn.innerHTML = head + (hasRoute ? `<div class="route">${who}</div>` : '') + flags
+    + `<div class="answers">${(r.answers ?? []).map((a) => card(a, play, prompt)).join('')}${r.synthesis ? card(r.synthesis, play, prompt) : ''}</div>` + activity;
   turn.querySelectorAll('.rate').forEach((b) => b.addEventListener('click', async () => {
     await api.feedback({ prompt, play: b.dataset.play, agentId: b.dataset.agent, rating: b.dataset.rating });
     b.parentElement.querySelectorAll('.rate').forEach((x) => x.classList.toggle('on', x === b));
   }));
 }
 
+let inflight = 0;
+function finishActivity(turn) {
+  const act = turn.querySelector('.activity');
+  if (!act) return;
+  const n = act.querySelectorAll('.call').length;
+  if (!n) { act.remove(); return; }
+  act.removeAttribute('open');
+  act.querySelector('summary').textContent = `Activity · ${n} tool call${n === 1 ? '' : 's'}`;
+  act.querySelectorAll('.n.running').forEach((el) => { el.classList.remove('running'); el.insertAdjacentHTML('beforeend', '<span class="ms">no result</span>'); });
+}
 async function run(turn, prompt, opts, play) {
   turn.querySelector('.recommend')?.remove();
   const reqId = Math.random().toString(36).slice(2, 10);
-  turn.insertAdjacentHTML('beforeend', `<div class="progress" id="working"><div class="route working"><span id="pnow">Starting…</span></div><ol class="steps" id="psteps"></ol></div>`);
-  $('#send').disabled = true;
-  // Poll the hub for the steps it is taking, so the wait reads as a story rather than a spinner.
-  const poll = api.name === 'live' ? setInterval(async () => {
-    try {
-      const steps = await http(`/api/progress?id=${reqId}`);
-      if (!steps.length) return;
-      const now = $('#pnow'), list = $('#psteps');
-      if (now) now.textContent = steps.at(-1).line + '…';
-      if (list) list.innerHTML = steps.slice(0, -1).map((s) => `<li>${esc(s.line)}</li>`).join('');
-    } catch {}
-  }, 700) : null;
-  try {
-    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, reqId, ...opts });
-    if (play && r.routing) r.routing.play = play;
-    renderResult(turn, prompt, r);
-    const first = r.answers?.[0];
-    if (first && !first.error && first.text) {
-      if (opts.mode === 'agent' && opts.history) opts.history.push({ role: 'user', content: prompt }, { role: 'assistant', content: first.text });
-      thread.push({ role: 'user', content: prompt }, { role: 'assistant', content: `[${first.name}] ${first.text.slice(0, 1500)}` });
+  // Everything live is scoped to this turn (classes, not ids), so two requests never write into each other.
+  turn.insertAdjacentHTML('beforeend', `<div class="progress"><div class="route working"><span class="pnow">Starting…</span></div><ol class="steps psteps"></ol></div><div class="answers liveAnswers"></div><details class="activity" hidden open><summary>Activity</summary><div class="calls"></div></details>`);
+  const q = (sel) => turn.querySelector(sel);
+  inflight++; $('#send').disabled = true;
+  const startedIn = sessionId;
+  const steps = [], liveText = {}, scroll = $('#threadScroll');
+  const nearBottom = () => scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 160;
+  const onEvent = (ev) => {
+    if (ev.type === 'progress') {
+      steps.push(ev.line);
+      const now = q('.pnow'), list = q('.psteps');
+      if (now) now.textContent = ev.line + '…';
+      if (list) list.innerHTML = steps.slice(0, -1).map((l) => `<li>${esc(l)}</li>`).join('');
+    } else if (ev.type === 'token') {
+      const stick = nearBottom();
+      liveText[ev.agent] = (liveText[ev.agent] ?? '') + ev.text;
+      let el = q(`.card.live[data-agent="${CSS.escape(ev.agent)}"]`);
+      if (!el) { q('.liveAnswers')?.insertAdjacentHTML('beforeend', `<div class="card live" data-agent="${esc(ev.agent)}" style="--c:${colorOf(ev.agent)}"><span class="stripe"></span><div><h3>${esc(nameOf(ev.agent))} <small>writing…</small></h3><div class="body"></div></div></div>`); el = q(`.card.live[data-agent="${CSS.escape(ev.agent)}"]`); }
+      if (el) el.querySelector('.body').textContent = liveText[ev.agent];
+      if (stick) scroll.scrollTop = scroll.scrollHeight;
+    } else if (ev.type === 'tool_start') {
+      const act = q('.activity'); if (act) act.hidden = false;
+      q('.calls')?.insertAdjacentHTML('beforeend', `<div class="call" data-call="${esc(ev.callId)}"><div class="n running"><span>${esc(nameOf(ev.agent))}</span> → <span>${esc(String(ev.name ?? '').replace('__', ' · '))}</span></div><pre><b>in</b> ${esc(JSON.stringify(ev.input ?? {}, null, 1).slice(0, 1200))}</pre></div>`);
+    } else if (ev.type === 'tool_end') {
+      const c = q(`.call[data-call="${CSS.escape(ev.callId)}"]`);
+      if (c) { const n = c.querySelector('.n'); n.classList.remove('running'); n.classList.toggle('bad', !ev.ok); n.insertAdjacentHTML('beforeend', `<span class="ms">${ev.ms != null ? (ev.ms / 1000).toFixed(1) + 's' : ''}${ev.ok ? '' : ' · failed'}</span>`); c.insertAdjacentHTML('beforeend', `<pre><b>out</b> ${esc(ev.output ?? '')}</pre>`); }
     }
+  };
+  const stop = api.events(reqId, onEvent);
+  try {
+    const r = await api.ask({ prompt, whenUnsure: $('#unsure').value, reqId, sessionId: startedIn, ...opts });
+    if (play && r.routing) r.routing.play = play;
+    finishActivity(turn);
+    if (turn.isConnected) renderResult(turn, prompt, r);
+    // Only adopt the chat id if the user has not moved to another chat meanwhile.
+    if (r.sessionId && sessionId === startedIn) sessionId = r.sessionId;
+    renderChats();
   } catch (err) {
-    (turn.querySelector('#working') ?? turn).outerHTML = `<div class="flag">${esc(err.message)}</div>`;
+    q('.progress')?.remove(); q('.liveAnswers')?.remove();
+    finishActivity(turn);
+    turn.insertAdjacentHTML('beforeend', `<div class="flag">${esc(err.message)}</div>`);
   } finally {
-    if (poll) clearInterval(poll);
-    $('#send').disabled = false;
-    turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    stop();
+    inflight--;
+    if (inflight === 0) $('#send').disabled = false;
+    if (turn.isConnected) turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 }
 
 function submit(prompt) {
   if (!prompt) return;
+  if (inflight > 0) { $('#micmsg').textContent = 'One at a time: wait for the current answer.'; setTimeout(() => { if ($('#micmsg').textContent.startsWith('One at a time')) $('#micmsg').textContent = ''; }, 2500); return; }
   $('#starter')?.remove();
   const turn = document.createElement('div');
   turn.className = 'turn';
   turn.innerHTML = `<div class="you"><div class="bubble">${esc(prompt)}</div><span class="at">${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>`;
   $('#thread').append(turn);
-  const agentId = $('#agentSelect').value;
-  // Direct keeps a memory per agent; Auto and Smart share the thread's recent exchanges so follow-ups make sense.
-  const opts = mode === 'agent' ? { mode, agentId, history: (histories[agentId] ??= []) } : { mode, history: thread.slice(-8) };
+  // Every mode shares the saved chat's history, so follow-ups make sense whoever answered last.
+  const opts = mode === 'agent' ? { mode, agentId: $('#agentSelect').value } : { mode };
   run(turn, prompt, opts);
   $('#prompt').value = '';
   preview();
@@ -1053,6 +1229,181 @@ $('#tester').addEventListener('input', () => {
     renderPlaybook(r.play.id);
     document.getElementById(`play-${r.play.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, 200);
+});
+
+// ───────────────────────── chats (saved sessions) ─────────────────────────
+let chatList = [];
+async function renderChats(q = $('#chatSearch').value.trim() || undefined) {
+  try { chatList = await api.sessions(q); } catch { chatList = []; }
+  const shown = chatList.filter((c) => c.kind === 'chat' || c.kind === 'telegram' || c.kind === 'schedule');
+  $('#chatCount').textContent = shown.length ? String(shown.length) : '';
+  $('#chats').innerHTML = shown.slice(0, 60).map((c) => `<div class="chatrow${c.id === sessionId ? ' on' : ''}" data-id="${esc(c.id)}" data-title="${esc(c.title)}" title="${esc(c.last)}" tabindex="0" role="button">
+      <span class="t">${esc(c.title)}<small>${c.kind !== 'chat' ? esc(c.kind) + ' · ' : ''}${c.updatedAt ? esc(ago(c.updatedAt)) : ''}</small></span>
+      <span class="acts"><button type="button" data-act="rename" title="Rename" aria-label="Rename chat">✎</button><button type="button" data-act="delete" title="Delete" aria-label="Delete chat">✕</button></span></div>`).join('')
+    || `<div class="rail-note">${q ? 'No chats match.' : 'Nothing saved yet. Your first question starts a chat.'}</div>`;
+}
+function ago(iso) {
+  const d = Date.now() - new Date(iso).getTime();
+  if (d < 60e3) return 'just now'; if (d < 3600e3) return `${Math.round(d / 60e3)}m ago`; if (d < 86400e3) return `${Math.round(d / 3600e3)}h ago`;
+  return new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+function startNewChat() {
+  sessionId = null;
+  $('#thread').innerHTML = '';
+  $('#thread').append(starterEl);
+  renderChats();
+  location.hash = '#ask';
+  $('#prompt').focus();
+}
+const starterEl = $('#starter');
+async function openChat(id) {
+  const s = await api.session(id);
+  sessionId = s.id;
+  const thread = $('#thread');
+  thread.innerHTML = '';
+  for (let i = 0; i < s.messages.length; i++) {
+    const m = s.messages[i];
+    if (m.role !== 'user') continue;
+    const turn = document.createElement('div');
+    turn.className = 'turn';
+    turn.innerHTML = `<div class="you"><div class="bubble">${esc(m.content)}</div><span class="at">${m.at ? esc(new Date(m.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })) : ''}</span></div>`;
+    thread.append(turn);
+    const reply = s.messages[i + 1]?.role === 'assistant' ? s.messages[i + 1] : null;
+    if (reply?.result) renderResult(turn, m.content, reply.result);
+    else if (reply) turn.insertAdjacentHTML('beforeend', `<div class="answers">${card({ id: reply.agent ?? 'claude', name: nameOf(reply.agent ?? 'claude'), text: reply.content }, '', m.content)}</div>`);
+  }
+  renderChats();
+  location.hash = '#ask';
+  requestAnimationFrame(() => { $('#threadScroll').scrollTop = $('#threadScroll').scrollHeight; });
+}
+$('#newChat').addEventListener('click', startNewChat);
+let chatSearchTimer;
+$('#chatSearch').addEventListener('input', () => { clearTimeout(chatSearchTimer); chatSearchTimer = setTimeout(() => renderChats($('#chatSearch').value.trim() || undefined), 250); });
+$('#chats').addEventListener('click', async (e) => {
+  const row = e.target.closest('.chatrow'); if (!row) return;
+  const id = row.dataset.id, act = e.target.closest('button')?.dataset.act;
+  try {
+    if (act === 'delete') { if (!confirm('Delete this chat?')) return; await api.deleteSession({ id }); if (sessionId === id) startNewChat(); else renderChats(); return; }
+    if (act === 'rename') { const title = prompt('Chat name', row.dataset.title); if (title) { await api.renameSession({ id, title }); renderChats(); } return; }
+    await openChat(id);
+  } catch (err) { alert(err.message); }
+});
+$('#chats').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('chatrow')) { e.preventDefault(); e.target.click(); } });
+
+// ───────────────────────── skills ─────────────────────────
+let currentSkill = null;
+async function renderSkills() {
+  const list = await api.skills();
+  $('#skillsList').innerHTML = list.map((k) => `<div class="tile${k.id === currentSkill ? ' on' : ''}" data-id="${esc(k.id)}" tabindex="0" role="button"><b>${esc(k.name)}</b><span class="d">${esc(k.description)}</span><span class="k">/${esc(k.id)}</span></div>`).join('')
+    || '<div class="empty">No skills yet. Add one below, or drop a folder with a SKILL.md into agent-hub/skills/.</div>';
+}
+$('#skillsList').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tile')) { e.preventDefault(); e.target.click(); } });
+$('#skillsList').addEventListener('click', async (e) => {
+  const t = e.target.closest('.tile'); if (!t) return;
+  let k;
+  try { k = await api.skill(t.dataset.id); } catch (err) { alert(err.message); return; }
+  currentSkill = k.id;
+  $('#skillEditor').hidden = false; $('#skillId').value = k.id; $('#skillId').disabled = true; $('#skillRaw').value = k.raw; $('#skillMsg').textContent = '';
+  renderSkills();
+  $('#skillEditor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('#skillNew').addEventListener('click', () => {
+  currentSkill = null; $('#skillEditor').hidden = false; $('#skillId').disabled = false; $('#skillId').value = '';
+  $('#skillRaw').value = '---\nname: My skill\ndescription: One line on when to use it.\n---\n# Steps\n1. \n2. \n3. \n';
+  $('#skillMsg').textContent = ''; renderSkills(); $('#skillId').focus();
+});
+$('#skillSave').addEventListener('click', async () => {
+  const msg = $('#skillMsg');
+  try { const k = await api.saveSkill({ id: $('#skillId').value.trim(), raw: $('#skillRaw').value }); currentSkill = k.id; $('#skillId').disabled = true; msg.className = 'msg ok'; msg.textContent = `Saved. Agents can load it; type /${k.id} in Ask to force it.`; renderSkills(); }
+  catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+});
+$('#skillDelete').addEventListener('click', async () => {
+  if (!currentSkill || !confirm(`Delete the ${currentSkill} skill?`)) return;
+  try { await api.deleteSkill({ id: currentSkill }); currentSkill = null; $('#skillEditor').hidden = true; renderSkills(); } catch (err) { $('#skillMsg').className = 'msg bad'; $('#skillMsg').textContent = err.message; }
+});
+$('#skillRun').addEventListener('click', () => { const id = $('#skillId').value.trim(); if (!id) return; $('#prompt').value = `/${id} `; location.hash = '#ask'; $('#prompt').focus(); preview(); });
+
+// ───────────────────────── memory ─────────────────────────
+async function renderMemory() {
+  $('#memoryNotice').innerHTML = api.name === 'live' ? '' : '<div class="notice"><b>Preview.</b> Sample memory; the real one is saved on the hub Mac.</div>';
+  const m = await api.memory();
+  const set = (id, v) => { const el = $(id); if (el.value === (el.dataset.loaded ?? '') || !el.value) { el.value = v; } el.dataset.loaded = v; };
+  set('#memFacts', m.facts); set('#memPrefs', m.preferences); set('#memNotes', m.todayNotes);
+  $('#memDays').textContent = m.noteDays.length ? `· ${m.noteDays.length} day${m.noteDays.length === 1 ? '' : 's'} of notes on disk` : '';
+}
+$('#view-memory').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-kind]'); if (!b) return;
+  const kind = b.dataset.kind, msg = $(`#memMsg-${kind}`);
+  const text = kind === 'fact' ? $('#memFacts').value : kind === 'preference' ? $('#memPrefs').value : $('#memNotes').value;
+  try { await api.writeMemory({ kind, text }); msg.className = 'msg ok'; msg.textContent = 'Saved.'; } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+});
+
+// ───────────────────────── schedules ─────────────────────────
+async function renderSchedules() {
+  $('#schedNotice').innerHTML = api.name === 'live' ? '' : '<div class="notice"><b>Preview.</b> A sample schedule; real ones run on the hub Mac while it is open.</div>';
+  const rows = await api.schedules();
+  $('#schedList').innerHTML = rows.map((r) => `<div class="schedrow${r.enabled ? '' : ' off'}" data-id="${esc(r.id)}">
+      <div><b>${esc(r.title)}</b><div class="when">${esc(r.cron ? r.cron : 'once at ' + new Date(r.at).toLocaleString())}${r.next ? ' · next ' + esc(new Date(r.next).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })) : r.enabled ? '' : ' · off'}${r.runs ? ` · ran ${r.runs}×` : ''}</div><div class="hint" style="margin-top:4px">${esc(r.prompt)}</div></div>
+      <div class="acts"><button type="button" data-act="run">Run now</button><button type="button" data-act="toggle">${r.enabled ? 'Pause' : 'Resume'}</button><button type="button" data-act="delete">Delete</button></div>
+      ${r.lastError ? `<div class="last" style="color:var(--bad)">Last run failed: ${esc(r.lastError)}</div>` : r.lastResult ? `<div class="last">${esc(r.lastResult)}</div>` : ''}
+    </div>`).join('') || '<div class="empty">No schedules yet. Add one above, or tell an agent "remind me…" or "every Monday send me…".</div>';
+}
+$('#schedCreate').addEventListener('click', async () => {
+  const msg = $('#schedMsg');
+  try { const r = await api.createSchedule({ title: $('#schedTitle').value.trim(), prompt: $('#schedPrompt').value.trim(), when: $('#schedWhen').value.trim() }); msg.className = 'msg ok'; msg.textContent = `Added. Next run ${r.next ? new Date(r.next).toLocaleString() : 'soon'}.`; $('#schedPrompt').value = ''; $('#schedTitle').value = ''; renderSchedules(); }
+  catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+});
+$('#schedList').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const row = b.closest('.schedrow'), id = row.dataset.id;
+  b.disabled = true;
+  try {
+    if (b.dataset.act === 'delete') await api.deleteSchedule({ id });
+    else if (b.dataset.act === 'toggle') await api.toggleSchedule({ id, enabled: row.classList.contains('off') });
+    else { b.textContent = 'Running…'; await api.runSchedule({ id }); }
+    renderSchedules(); renderChats();
+  } catch (err) { alert(err.message); b.disabled = false; }
+});
+
+// ───────────────────────── channels: telegram and the browser ─────────────────────────
+let installing = null;   // { reqId, lines, done, error } while Playwright is being installed
+async function renderChannels() {
+  const [tg, br] = await Promise.all([api.telegram().catch(() => ({ connected: false, allowed: [] })), api.browser().catch(() => ({ available: false }))]);
+  const tstatus = tg.connected ? '<span class="status ok">connected</span>' : tg.configured ? `<span class="status bad">${esc(tg.error ? 'token rejected' : 'not running')}</span>` : '<span class="status missing">not connected</span>';
+  $('#telegramCard').innerHTML = `<div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
+      <div class="head"><b>Telegram</b><span class="vendor">talk to the hub from your phone</span>${tstatus}</div>
+      <div class="where">In Telegram, message <b>@BotFather</b>, send <code>/newbot</code>, follow the prompts and paste the token here. Then message your new bot once: it replies with your chat id, which you add below so only you get answers. ${tg.bot ? `Bot: <b>@${esc(tg.bot)}</b>.` : ''}</div>
+      <div class="fields two"><label>Bot token<input type="password" id="tgToken" autocomplete="off" placeholder="${tg.configured ? '•••••••• saved, paste to replace' : '123456:ABC…'}"></label><label>Allowed chat ids <small>comma separated</small><input id="tgAllowed" value="${esc((tg.allowed ?? []).join(', '))}" placeholder="e.g. 5551234567"></label></div>
+      <div class="row2"><button type="button" class="save" id="tgSave">Save &amp; test</button><span class="msg" id="tgMsg">${esc(tg.summary ?? tg.error ?? '')}</span></div>
+    </div></div>`;
+  $('#browserCard').innerHTML = `<div class="conn" style="--c:var(--accent)"><span class="stripe"></span><div>
+      <div class="head"><b>Browser</b><span class="vendor">Chromium the agents can drive</span>${br.available ? '<span class="status ok">installed</span>' : '<span class="status missing">not installed</span>'}</div>
+      <div class="where">Open pages, read them, click, fill forms and take screenshots, from the hub itself. Sign-ins persist between runs. ${br.available ? 'Tools: browser · open, read, links, click, fill, screenshot, back.' : 'One-time download of about 150 MB.'}</div>
+      ${br.available ? '' : `<div class="row2"><button type="button" class="save" id="brInstall"${installing && !installing.done ? ' disabled' : ''}>Install the browser</button><span class="msg${installing?.error ? ' bad' : ''}" id="brMsg">${esc(installing ? (installing.error ?? (installing.done ? 'Installed.' : 'Installing… this takes a few minutes.')) : '')}</span></div><div class="install" id="brLog"${installing ? '' : ' hidden'}>${esc((installing?.lines ?? []).join('\n'))}</div>`}
+    </div></div>`;
+}
+$('#view-connect').addEventListener('click', async (e) => {
+  if (e.target.id === 'tgSave') {
+    const msg = $('#tgMsg'); e.target.disabled = true; msg.className = 'msg'; msg.textContent = 'Testing…';
+    try { const r = await api.connectTelegram({ token: $('#tgToken').value.trim(), allowed: $('#tgAllowed').value }); msg.className = `msg ${r.connected ? 'ok' : 'bad'}`; msg.textContent = r.summary ?? r.error ?? 'Saved.'; if (r.connected) setTimeout(renderChannels, 800); }
+    catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+    e.target.disabled = false;
+  }
+  if (e.target.id === 'brInstall') {
+    if (installing && !installing.done) return;
+    e.target.disabled = true;
+    try {
+      const { reqId } = await api.installBrowser();
+      installing = { reqId, lines: [], done: false, error: null };
+      renderChannels();
+      const off = api.events(reqId, (ev) => {
+        if (ev.type === 'progress') { installing.lines.push(ev.line); if (installing.lines.length > 200) installing.lines.shift(); const log = $('#brLog'); if (log) { log.textContent = installing.lines.join('\n'); log.scrollTop = log.scrollHeight; } }
+        if (ev.type === 'error') { installing.error = ev.message; installing.done = true; }
+        if (ev.type === 'answer') { installing.done = true; }
+        if (ev.type === 'done') { off(); setTimeout(renderChannels, 300); }
+      });
+    } catch (err) { installing = null; $('#brMsg').className = 'msg bad'; $('#brMsg').textContent = err.message; e.target.disabled = false; }
+  }
 });
 
 // Wiring
@@ -1125,7 +1476,7 @@ $('#mic').addEventListener('click', (e) => { e.preventDefault(); micToggle(); })
 document.addEventListener('keydown', (e) => { if (!e.repeat && (e.key === 'm' || e.key === 'M') && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); micToggle(); } });
 
 $('#prompt').addEventListener('input', preview);
-$('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });
+$('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !$('#send').disabled) $('#composer').requestSubmit(); });
 $('#modes').addEventListener('click', (e) => e.target.dataset.mode && setMode(e.target.dataset.mode));
 $('#agentSelect').addEventListener('change', preview);
 $('#unsure').addEventListener('change', () => { store.set('hub.unsure', $('#unsure').value); preview(); });

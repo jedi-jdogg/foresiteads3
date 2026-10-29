@@ -10,9 +10,9 @@ async function rpc(url, token, method, params, session) {
   if (!res.ok) throw new Error(`MCP ${method}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   const sid = res.headers.get('mcp-session-id') ?? session;
   const text = await res.text();
-  // Streamable HTTP may answer as SSE; take the last JSON data line.
-  const payload = text.trimStart().startsWith('event:') || text.includes('\ndata:') || text.startsWith('data:')
-    ? text.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).filter(Boolean).pop()
+  // Streamable HTTP may answer as SSE (by content type); take the last JSON data line.
+  const payload = /text\/event-stream/i.test(res.headers.get('content-type') ?? '')
+    ? (text.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).filter(Boolean).pop() ?? '{}')
     : text;
   const json = JSON.parse(payload);
   if (json.error) throw new Error(`MCP ${method}: ${json.error.message}`);
@@ -41,7 +41,7 @@ export async function tools(creds, source) {
   const c = await connect(creds, source);
   const { result } = await rpc(c.url, c.token, 'tools/list', {}, c.session);
   return (result.tools ?? []).map((t) => ({
-    name: t.name.replace(/[^a-zA-Z0-9_-]/g, '_'),
+    name: t.name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 56),
     description: t.description ?? t.name,
     input_schema: t.inputSchema ?? { type: 'object', properties: {} },
     async run(args) {

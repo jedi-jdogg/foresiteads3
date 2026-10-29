@@ -8,7 +8,7 @@ const client = (agent) => {
 };
 
 const MAX_ROUNDS = 8;
-const isOpenAI = (agent) => !agent.baseURL || /api\.openai\.com/.test(agent.baseURL);
+const isOpenAI = (agent) => agent.api === 'responses' || !agent.baseURL || /api\.openai\.com/.test(agent.baseURL);
 
 // OpenAI itself goes through the Responses API (its current models require it when reasoning and tools are
 // both on). xAI (Grok), Meta and other OpenAI-compatible hosts use Chat Completions. Tools are passed only
@@ -17,23 +17,37 @@ export async function askOpenAICompatible(agent, req) {
   return isOpenAI(agent) ? askResponses(agent, req) : askChat(agent, req);
 }
 
-async function askResponses(agent, { system, messages, tools = [], exec }) {
+async function askResponses(agent, { system, messages, tools = [], exec, onToken }) {
   const useTools = agent.tools && tools.length && exec;
   const input = messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }));
   const used = [];
   let usage = { input: 0, output: 0 };
   for (let round = 0; round <= MAX_ROUNDS; round++) {
-    const response = await client(agent).responses.create({
+    const params = {
       model: agent.model,
       ...(system ? { instructions: system } : {}),
       input,
       ...(agent.effort ? { reasoning: { effort: agent.effort } } : {}),
       ...(useTools ? { tools: tools.map((t) => ({ type: 'function', name: t.name, description: t.description, parameters: t.input_schema })) } : {}),
-    });
+    };
+    let response;
+    if (onToken) {
+      response = null;
+      for await (const ev of await client(agent).responses.create({ ...params, stream: true })) {
+        if (ev.type === 'response.output_text.delta') onToken(ev.delta);
+        else if (ev.type === 'response.completed' || ev.type === 'response.incomplete') response = ev.response;
+        else if (ev.type === 'response.failed') throw new Error(ev.response?.error?.message ?? 'The provider reported a failure.');
+        else if (ev.type === 'error') throw new Error(ev.message ?? 'Stream error.');
+      }
+      if (!response) throw new Error('The stream ended without a final response.');
+    } else {
+      response = await client(agent).responses.create(params);
+    }
     usage = { input: usage.input + (response.usage?.input_tokens ?? 0), output: usage.output + (response.usage?.output_tokens ?? 0) };
     const calls = (response.output ?? []).filter((o) => o.type === 'function_call');
     if (!useTools || !calls.length || round === MAX_ROUNDS) {
-      const text = (response.output_text ?? '').trim();
+      // output_text is an SDK convenience that streamed responses do not carry; read the message items.
+      const text = (response.output_text ?? (response.output ?? []).filter((o) => o.type === 'message').flatMap((o) => o.content ?? []).filter((c) => c.type === 'output_text').map((c) => c.text).join('')).trim();
       return { text, model: response.model, truncated: response.status === 'incomplete', usage, used };
     }
     // Carry the model's output items forward, then answer each call with a function_call_output.
@@ -48,17 +62,19 @@ async function askResponses(agent, { system, messages, tools = [], exec }) {
   }
 }
 
-async function askChat(agent, { system, messages, tools = [], exec }) {
+async function askChat(agent, { system, messages, tools = [], exec, onToken }) {
   const convo = [...(system ? [{ role: 'system', content: system }] : []), ...messages];
   const useTools = agent.tools && tools.length && exec;
   const used = [];
   let usage = { input: 0, output: 0 };
   for (let round = 0; round <= MAX_ROUNDS; round++) {
-    const response = await client(agent).chat.completions.create({
+    const params = {
       model: agent.model,
       messages: convo,
       ...(useTools ? { tools: tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })) } : {}),
-    });
+    };
+    // Chat Completions streams text well; tool-call deltas are stitched back into one message below.
+    const response = onToken ? await streamChat(client(agent), params, onToken) : await client(agent).chat.completions.create(params);
     usage = { input: usage.input + (response.usage?.prompt_tokens ?? 0), output: usage.output + (response.usage?.completion_tokens ?? 0) };
     const choice = response.choices[0];
     const calls = choice?.message?.tool_calls ?? [];
@@ -77,6 +93,32 @@ async function askChat(agent, { system, messages, tools = [], exec }) {
       convo.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(r.ok ? r.result : { error: r.error }).slice(0, 60000) });
     }
   }
+}
+
+// Collect a streamed Chat Completion into the same shape a non-streamed one has.
+async function streamChat(c, params, onToken) {
+  const withUsage = /api\.openai\.com|api\.x\.ai/.test(c.baseURL ?? '');
+  const stream = await c.chat.completions.create({ ...params, stream: true, ...(withUsage ? { stream_options: { include_usage: true } } : {}) });
+  const msg = { role: 'assistant', content: '', tool_calls: [] };
+  let finish = null, model = params.model, usage, extra = {};
+  for await (const chunk of stream) {
+    if (chunk.usage) usage = chunk.usage;
+    if (chunk.model) model = chunk.model;
+    if (chunk.citations) extra.citations = chunk.citations;
+    const ch = chunk.choices?.[0];
+    if (!ch) continue;
+    if (ch.finish_reason) finish = ch.finish_reason;
+    const d = ch.delta ?? {};
+    if (d.content) { msg.content += d.content; onToken(d.content); }
+    for (const tc of d.tool_calls ?? []) {
+      const slot = (msg.tool_calls[tc.index] ??= { id: '', type: 'function', function: { name: '', arguments: '' } });
+      if (tc.id) slot.id = tc.id;
+      if (tc.function?.name) slot.function.name += tc.function.name;
+      if (tc.function?.arguments) slot.function.arguments += tc.function.arguments;
+    }
+  }
+  if (!msg.tool_calls.length) delete msg.tool_calls;
+  return { model, usage, ...extra, choices: [{ message: msg, finish_reason: finish }] };
 }
 
 // The image models this account can use, newest first, asked of OpenAI rather than remembered.

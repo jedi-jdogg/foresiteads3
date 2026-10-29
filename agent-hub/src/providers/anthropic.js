@@ -12,13 +12,13 @@ const MAX_ROUNDS = 8;
 // runs each through `exec(name, input)`, feeding results back until Claude answers in text.
 // `fallbacks: "default"` lets the API re-run a safety-declined request on Anthropic's recommended
 // fallback model instead of returning an empty refusal.
-export async function askClaude(agent, { system, messages, effort = 'medium', outputFormat, tools = [], exec }) {
+export async function askClaude(agent, { system, messages, effort = 'medium', outputFormat, tools = [], exec, onToken }) {
   const c = client(agent.apiKey);
   const convo = [...messages];
   const used = [];
   let usage = { input: 0, output: 0 };
   for (let round = 0; round <= MAX_ROUNDS; round++) {
-    const response = await c.beta.messages.create({
+    const params = {
       model: agent.model,
       max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'],
@@ -27,17 +27,28 @@ export async function askClaude(agent, { system, messages, effort = 'medium', ou
       ...(system ? { system } : {}),
       ...(tools.length ? { tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })) } : {}),
       messages: convo,
-    });
+    };
+    // Stream text as it arrives when a listener wants it; the final message is identical either way.
+    let response;
+    if (onToken && !outputFormat) {
+      const stream = c.beta.messages.stream(params);
+      stream.on('text', (delta) => onToken(delta));
+      response = await stream.finalMessage();
+    } else {
+      response = await c.beta.messages.create(params);
+    }
     usage = { input: usage.input + response.usage.input_tokens, output: usage.output + response.usage.output_tokens };
 
     if (response.stop_reason === 'refusal') {
       const why = response.stop_details?.explanation ?? response.stop_details?.category ?? 'no reason given';
       throw new Error(`Claude declined this request (${why}).`);
     }
+    // pause_turn: a long server-side turn stopped early; sending the turn back continues it.
+    if (response.stop_reason === 'pause_turn' && round < MAX_ROUNDS) { convo.push({ role: 'assistant', content: response.content }); continue; }
     const calls = response.content.filter((b) => b.type === 'tool_use');
     if (response.stop_reason !== 'tool_use' || !calls.length || !exec || round === MAX_ROUNDS) {
       const text = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
-      return { text, model: response.model, truncated: response.stop_reason === 'max_tokens', usage, used };
+      return { text, model: response.model, truncated: ['max_tokens', 'model_context_window_exceeded'].includes(response.stop_reason), usage, used };
     }
     // Pass the whole assistant turn back unchanged (thinking blocks included), then every result in one user turn.
     convo.push({ role: 'assistant', content: response.content });

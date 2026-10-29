@@ -57,11 +57,59 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         return send(200, smart ? await hub.smartRoute(prompt) : await hub.routeFresh(prompt));
       }
       if (req.method === 'POST' && url.pathname === '/api/ask') {
-        const { prompt, mode, agentId, agents, history, whenUnsure, reqId } = await readJson(req);
+        const { prompt, mode, agentId, agents, history, whenUnsure, reqId, sessionId } = await readJson(req);
         if (!prompt?.trim()) return send(400, { error: 'Empty prompt.' });
-        return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure, reqId }));
+        return send(200, await hub.ask(prompt, { mode, agentId, agents, history, whenUnsure, reqId, sessionId }));
       }
       if (req.method === 'GET' && url.pathname === '/api/progress') return send(200, hub.progressOf(url.searchParams.get('id')));
+      // Live events for one request: progress, streamed tokens, tool calls with inputs and outputs, the answer.
+      if (req.method === 'GET' && url.pathname === '/api/events') {
+        const id = url.searchParams.get('id');
+        if (!id) return send(400, { error: 'id required' });
+        res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' });
+        res.write(': connected\n\n');
+        const beat = setInterval(() => res.write(': beat\n\n'), 15000);
+        let n = 0;
+        const off = hub.events.subscribe(id, (ev) => { res.write(`id: ${n++}\ndata: ${JSON.stringify(ev)}\n\n`); if (ev.type === 'done') setTimeout(() => res.end(), 50); });
+        req.on('close', () => { off(); clearInterval(beat); });
+        return;
+      }
+      // Saved chats
+      if (req.method === 'GET' && url.pathname === '/api/sessions') return send(200, url.searchParams.get('q') ? await hub.sessions.search(url.searchParams.get('q')) : await hub.sessions.list());
+      if (req.method === 'POST' && url.pathname === '/api/sessions/new') return send(200, await hub.sessions.ensure(null, await readJson(req)));
+      if (req.method === 'GET' && url.pathname === '/api/sessions/get') return send(200, await hub.sessions.get(url.searchParams.get('id')));
+      if (req.method === 'POST' && url.pathname === '/api/sessions/rename') { const { id, title } = await readJson(req); return send(200, await hub.sessions.rename(id, title)); }
+      if (req.method === 'POST' && url.pathname === '/api/sessions/delete') { await hub.sessions.remove((await readJson(req)).id); return send(200, { ok: true }); }
+      // Memory
+      if (req.method === 'GET' && url.pathname === '/api/memory') return send(200, await hub.memory.overview());
+      if (req.method === 'POST' && url.pathname === '/api/memory/write') { const { kind, text } = await readJson(req); await hub.memory.write(kind, text); return send(200, await hub.memory.overview()); }
+      // Skills
+      if (req.method === 'GET' && url.pathname === '/api/skills') return send(200, await hub.skills.list());
+      if (req.method === 'GET' && url.pathname === '/api/skills/get') return send(200, await hub.skills.get(url.searchParams.get('id')));
+      if (req.method === 'POST' && url.pathname === '/api/skills/save') { const { id, raw } = await readJson(req); return send(200, await hub.skills.save(id, raw)); }
+      if (req.method === 'POST' && url.pathname === '/api/skills/delete') { await hub.skills.remove((await readJson(req)).id); return send(200, { ok: true }); }
+      // Schedules
+      if (req.method === 'GET' && url.pathname === '/api/schedules') return send(200, await hub.scheduler.list());
+      if (req.method === 'POST' && url.pathname === '/api/schedules/create') return send(200, await hub.scheduler.create(await readJson(req)));
+      if (req.method === 'POST' && url.pathname === '/api/schedules/delete') return send(200, await hub.scheduler.remove((await readJson(req)).id));
+      if (req.method === 'POST' && url.pathname === '/api/schedules/toggle') { const { id, enabled } = await readJson(req); return send(200, await hub.scheduler.toggle(id, Boolean(enabled))); }
+      if (req.method === 'POST' && url.pathname === '/api/schedules/run') {
+        const { id } = await readJson(req);
+        const r = (await hub.scheduler.list()).find((x) => x.id === id);
+        if (!r) return send(404, { error: 'No such schedule.' });
+        const out = await hub.scheduler.run(r); await hub.notify(`⏰ ${r.title}\n\n${out.text}`); return send(200, out);
+      }
+      // Telegram
+      if (req.method === 'GET' && url.pathname === '/api/telegram') return send(200, await hub.telegramStatus());
+      if (req.method === 'POST' && url.pathname === '/api/telegram/connect') return send(200, await hub.connectTelegram(await readJson(req)));
+      // Browser install (Playwright + Chromium), progress over /api/events
+      if (req.method === 'POST' && url.pathname === '/api/browser/install') {
+        if (installing) return send(200, { reqId: installing });
+        installing = `install-${Date.now().toString(36)}`;
+        installBrowser(hub, installing).finally(() => { installing = null; });
+        return send(200, { reqId: installing });
+      }
+      if (req.method === 'GET' && url.pathname === '/api/browser') return send(200, { available: hub.browser });
       if (req.method === 'GET' && /^\/images\/[a-z0-9]+\.png$/.test(url.pathname)) {
         const png = await readFile(new URL(`../logs${url.pathname}`, import.meta.url));
         res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'private, max-age=86400' }); return res.end(png);
@@ -132,7 +180,7 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
       }
       send(404, { error: 'Not found' });
     } catch (err) {
-      send(500, { error: err.message });
+      send(err.status ?? 500, { error: err.message });
     }
   });
   const ready = new Promise((resolve) => server.listen(port, host, () => resolve(server)));
@@ -169,11 +217,43 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
   return ready;
 }
 
+// npm install playwright, then its Chromium. Lines go to the events stream so the Connect tab can show them.
+let installing = null;
+function installBrowser(hub, reqId) {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const say = (line) => hub.events.emit(reqId, 'progress', { line });
+  const step = (cmd, args) => new Promise((resolve, reject) => {
+    say(`$ ${cmd} ${args.join(' ')}`);
+    import('node:child_process').then(({ spawn }) => {
+      const child = spawn(cmd, args, { cwd: root, env: { ...process.env, CI: '1' }, shell: process.platform === 'win32' });
+      const onData = (d) => String(d).split('\n').map((l) => l.trim()).filter(Boolean).forEach(say);
+      child.stdout.on('data', onData); child.stderr.on('data', onData);
+      child.on('error', reject);
+      child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`${cmd} exited with ${code}`)));
+    });
+  });
+  return (async () => {
+    try {
+      await step('npm', ['install', '--no-save', '--no-audit', '--no-fund', 'playwright']);
+      await step('npx', ['playwright', 'install', 'chromium']);
+      hub.browser = true; hub.sources.refresh();
+      say('Browser installed.');
+      hub.events.emit(reqId, 'answer', { result: { ok: true } });
+    } catch (err) {
+      hub.events.emit(reqId, 'error', { message: err.message });
+    } finally { hub.events.emit(reqId, 'done', {}); }
+  })();
+}
+
 function redirectUri(req, port) {
   return `http://${req.headers.host ?? `localhost:${port}`}/api/oauth/google/callback`;
 }
 
 async function readJson(req) {
+  // Only the console (same origin, JSON body) may change state: a page elsewhere cannot send this shape.
+  if (!/^application\/json/i.test(req.headers['content-type'] ?? '')) throw Object.assign(new Error('Requests to the hub must be JSON from the console.'), { status: 400 });
+  const origin = req.headers.origin ?? (req.headers.referer ? new URL(req.headers.referer).origin : null);
+  if (origin && new URL(origin).host !== req.headers.host) throw Object.assign(new Error('Cross-site request refused.'), { status: 403 });
   let raw = '';
   for await (const chunk of req) {
     raw += chunk;

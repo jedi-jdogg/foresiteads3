@@ -48,6 +48,7 @@ if (cmd === 'serve') {
   const { startServer } = await import('../src/server.js');
   const host = values.host || process.env.HUB_HOST || '127.0.0.1';
   const port = Number(values.port || process.env.HUB_PORT || 4747);
+  await hub.start();
   await startServer(hub, { host, port });
   console.log(`Agent hub on http://${host}:${port}`);
 } else if (cmd === 'agents') {

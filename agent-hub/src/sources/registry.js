@@ -12,7 +12,14 @@ const MODULES = {
   vistasocial: () => import('./vistasocial.js'),
   mcp: () => import('./mcp.js'),
   machines: () => import('./machines.js'),
+  memory: () => import('./memory.js'),
+  skills: () => import('./skills.js'),
+  schedule: () => import('./schedule.js'),
+  browser: () => import('./browser.js'),
+  composio: () => import('./composio.js'),
 };
+// Local abilities that are always on once the hub has the piece they need.
+const LOCAL_READY = { machines: (ctx) => Boolean(ctx.machines), memory: (ctx) => Boolean(ctx.memory), skills: (ctx) => Boolean(ctx.skills), schedule: (ctx) => Boolean(ctx.scheduler), browser: (ctx) => Boolean(ctx.browser) };
 
 export async function loadSources(path = SOURCES_PATH) {
   return JSON.parse(await readFile(path, 'utf8')).sources;
@@ -29,21 +36,22 @@ export function resolveSource(source, env = process.env) {
 }
 
 // Never send credentials to the browser; say which fields are set.
-export function publicSource({ creds, machines, ...rest }) {
+export function publicSource({ creds, machines, ctx, ...rest }) {
   return { ...rest, set: Object.fromEntries(Object.entries(creds).map(([k, v]) => [k, Boolean(v)])) };
 }
 
 export class Sources {
-  constructor(defs, env = process.env, { machines } = {}) {
+  constructor(defs, env = process.env, ctx = {}) {
     this.defs = defs;
     this.env = env;
-    this.machines = machines;
+    this.ctx = ctx;
+    this.machines = ctx.machines;
     this.refresh();
   }
 
   refresh() {
-    this.list = this.defs.map((d) => resolveSource(d.auth === 'local' ? { ...d, localReady: Boolean(this.machines) } : d, this.env));
-    for (const s of this.list) if (s.auth === 'local') s.machines = this.machines;
+    this.list = this.defs.map((d) => resolveSource(d.auth === 'local' ? { ...d, localReady: Boolean(LOCAL_READY[d.module]?.(this.ctx)) } : d, this.env));
+    for (const s of this.list) if (s.auth === 'local') { s.machines = this.machines; s.ctx = this.ctx; }
     this.cache = new Map();
   }
 
@@ -60,16 +68,26 @@ export class Sources {
   }
 
   // All tools of all connected sources, namespaced so agents see shopify__sales_summary etc.
+  // Remote sources (MCP, Composio) list their tools over the network, so each source's list is kept for
+  // two minutes (or until refresh()); local ones are always re-read because their state is cheap.
   async tools() {
     const out = [];
+    const seen = new Set();
     for (const s of this.list.filter((x) => x.connected)) {
-      if (s.auth === 'local' && this.machines && !(await this.machines.list()).length) continue;
+      if (s.module === 'machines' && this.machines && !(await this.machines.list()).length) continue;
       try {
-        const mod = await this.module(s);
-        for (const t of await mod.tools(s.creds, s)) {
-          out.push({ ...t, name: `${s.id}__${t.name}`, source: s.id, short: t.name });
+        let list;
+        const hit = this.cache.get(s.id);
+        if (hit && Date.now() - hit.at < 120000 && s.auth !== 'local') list = hit.list;
+        else { const mod = await this.module(s); list = await mod.tools(s.creds, s); this.cache.set(s.id, { at: Date.now(), list }); }
+        for (const t of list) {
+          let name = `${s.id}__${t.name}`.slice(0, 64);
+          while (seen.has(name)) name = name.slice(0, 62) + '_' + (seen.size % 10);
+          seen.add(name);
+          out.push({ ...t, name, source: s.id, short: t.name });
         }
       } catch (err) {
+        this.cache.delete(s.id);
         out.push({ name: `${s.id}__unavailable`, source: s.id, short: 'unavailable', description: `Source failed to load: ${err.message}`, input_schema: { type: 'object', properties: {} }, run: async () => ({ error: err.message }) });
       }
     }

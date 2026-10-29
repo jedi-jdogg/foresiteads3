@@ -5,3 +5,8 @@ logs/*
 machines.json
 dist/
 BUILD
+schedules.json
+memory/*
+!memory/.gitkeep
+logs/sessions/
+logs/browser-profile/

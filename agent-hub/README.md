@@ -95,6 +95,30 @@ has four views: **Ask** (the thread), **Playbook** (every play with a tester tha
 hits), **Scorecard** (ratings by play and agent) and **Log** (today's requests). Open `public/preview.html` in
 a browser to try the interface before adding any keys; it routes for real and shows sample answers.
 
+## What you get in the console
+
+- **Saved chats.** Every question starts or continues a chat in the left rail. Reopen one and the agents get
+  its history; rename, search or delete from the rail. Telegram chats and scheduled runs appear there too.
+- **Live answers.** Text streams in as the agent writes it. Each tool call shows up in an Activity panel
+  under the answer with its input and the result it got back.
+- **Memory.** Facts about the business, your preferences and a daily note, in `memory/` as Markdown. Every
+  agent reads them before answering; say "remember…" and a tool-calling agent writes them. Edit in the
+  Memory tab.
+- **Skills.** Playbooks in `skills/<name>/SKILL.md` (same format as Claude Code). Agents see the list and
+  load one when a request matches; type `/weekly-report …` to force one. Three ship: weekly client report,
+  ad hooks, competitor scan. Add your own in the Skills tab.
+- **Schedules.** "Remind me in 30 minutes", "every weekday at 8am send me yesterday's numbers": the hub
+  runs the prompt on time, files the result in the Scheduled chat and sends it to Telegram. Manage them in
+  the Schedules tab; plain English, a cron line or an ISO time all work.
+- **Telegram.** Make a bot with @BotFather, paste the token in Connect, allow your chat id, and the hub
+  answers you on your phone with the same playbook, memory and sources. Voice notes are transcribed.
+- **Browser.** A Chromium on the hub Mac that agents drive: open, read, click, fill, screenshot. Install it
+  once from Connect (Playwright, about 150 MB). Sign-ins persist between runs. Set `BROWSER_HEADLESS=0` to
+  watch it work.
+- **Composio: 500+ apps.** One Composio key gives every agent Gmail, Slack, Notion, HubSpot, Google Sheets,
+  GitHub and the rest. Agents search the catalogue, ask you to approve an app once (a link), then act.
+- **Voice input** in the Mac app and in Chrome or Edge on Windows.
+
 ## Data sources: what every agent can read
 
 Beyond the agents' own knowledge, the hub can read your business data and hand it to whichever agent is
@@ -110,6 +134,8 @@ answering. Sources are listed in [`sources.json`](sources.json) and connected in
 | Google | One OAuth sign-in (client ID/secret from your Cloud project) | GA4 overview and top pages; Google Ads campaigns (with developer token); Merchant Center product status; Business Profile reviews |
 | Vista Social | API key | profiles, scheduled posts, recent posts |
 | Foresite / Instant.one, Vibe | Any MCP server URL + token | whatever tools that server publishes |
+| Composio | API key from app.composio.dev | 500+ apps through the Tool Router: search tools, connect an account, run actions |
+| Memory, Skills, Schedules, Browser | Built in, no key | remember/recall/forget; list/load skills; create/list/delete schedules; open/read/click/fill/screenshot |
 
 How agents use them:
 - **Claude, ChatGPT and Grok** support tool calling, so they query sources themselves while answering, as
@@ -291,7 +317,14 @@ without putting authentication in front of it.
 | `sources.json`, `src/sources/` | Data sources and the tools they expose to agents |
 | `actions.json`, `src/machines.js`, `worker/setup-worker.sh` | The Macs as workers: allowlist, Tailscale/SSH control, worker setup |
 | `src/router.js` | Matches requests to plays; decides go or recommend |
-| `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
+| `src/hub.js` | Ask, smart routing, council and merge, logging, ratings, saved chats, start-up of the scheduler and Telegram |
+| `src/events.js` | Live events per request (progress, tokens, tool calls, answer), served as SSE |
+| `src/sessions.js`, `logs/sessions/` | Saved chats |
+| `src/memory.js`, `memory/` | Facts, preferences, daily notes |
+| `src/skills.js`, `skills/` | SKILL.md playbooks |
+| `src/cron.js`, `src/scheduler.js`, `schedules.json` | Reminders and recurring prompts |
+| `src/channels/telegram.js` | The Telegram bot |
+| `src/sources/composio.js`, `src/sources/browser.js` | Composio Tool Router over MCP; Playwright browser |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
 | `install-mac.sh` | One-paste installer for macOS |
 | `install-windows.ps1` | One-paste installer for Windows |
@@ -300,6 +333,6 @@ without putting authentication in front of it.
 | `app/` | The Mac app: Swift source, icon, build script |
 | `start-mac.command` | Double-click launcher for macOS: updates, installs, starts |
 | `update-mac.command` | Update without starting |
-| `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard and Log views |
+| `src/server.js`, `public/index.html` | The web console: Ask, Playbook, Scorecard, Skills, Memory, Schedules, Log, Machines and Connect |
 | `public/preview.html`, `scripts/build-preview.mjs` | The console with the roster baked in, runnable without the hub (routing is real, answers are samples). Rebuild after editing the playbook. |
 | `bin/hub.js` | CLI |
