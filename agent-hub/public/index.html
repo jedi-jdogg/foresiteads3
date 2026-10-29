@@ -333,7 +333,7 @@
               <select id="unsure"><option value="ask">ask me</option><option value="pick">pick for me</option></select>
             </label>
             <span class="hint">⌘↵ to send</span>
-            <button type="button" class="mic" id="mic" title="Hold to talk (or click to start, click again to stop)" aria-label="Talk">🎙</button>
+            <button type="button" class="mic" id="mic" title="Click to talk, click again to stop (⌘⇧M)" aria-label="Talk">🎙</button>
             <span class="hint" id="micmsg"></span>
             <button class="send" id="send">Send</button>
           </div>
@@ -1062,40 +1062,67 @@ let rec = null, recChunks = [], recStream = null;
 async function micStart() {
   if (rec) return;
   try {
+    if (!navigator.mediaDevices) throw new Error('insecure');
     recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (err) {
-    $('#micmsg').textContent = api.name !== 'live' ? 'Voice works in the Mac app.' : 'Microphone blocked. Allow it in System Settings → Privacy → Microphone → Agent Hub.';
+    $('#micmsg').textContent = !navigator.mediaDevices ? 'Voice needs https or localhost (or the Mac app).'
+      : api.name !== 'live' ? 'Voice works in the Mac app.'
+      : 'Microphone blocked. Allow it in System Settings → Privacy → Microphone → Agent Hub.';
     return;
   }
-  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', ''].find((m) => !m || MediaRecorder.isTypeSupported(m));
-  rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : {});
-  recChunks = [];
-  rec.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
-  rec.onstop = async () => {
+  try {
+    if (!('MediaRecorder' in window)) throw new Error('This browser cannot record. Voice works in the Mac app.');
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', ''].find((m) => !m || MediaRecorder.isTypeSupported(m));
+    rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : {});
+    recChunks = [];
+    rec.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+    rec.onstop = async () => {
+      recStream.getTracks().forEach((t) => t.stop());
+      const blob = new Blob(recChunks, { type: rec.mimeType || 'audio/webm' });
+      rec = null;
+      $('#mic').classList.remove('on'); $('#mic').disabled = true; $('#micmsg').textContent = 'Transcribing…';
+      try {
+        const r = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': blob.type || 'audio/webm' }, body: blob });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || `${r.status} ${r.statusText}`);
+        const box = $('#prompt');
+        box.value = (box.value ? box.value.trimEnd() + ' ' : '') + data.text;
+        $('#micmsg').textContent = ''; preview(); box.focus();
+      } catch (err) { $('#micmsg').textContent = err.message; }
+      finally { $('#mic').disabled = false; }
+    };
+    rec.start();
+    $('#mic').classList.add('on'); $('#micmsg').textContent = 'Listening… click again (or ⌘⇧M) to stop.';
+  } catch (err) {
     recStream.getTracks().forEach((t) => t.stop());
-    const blob = new Blob(recChunks, { type: rec.mimeType || 'audio/webm' });
     rec = null;
-    $('#mic').classList.remove('on'); $('#mic').disabled = true; $('#micmsg').textContent = 'Transcribing…';
-    try {
-      const r = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': blob.type }, body: blob });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || r.statusText);
-      const box = $('#prompt');
-      box.value = (box.value ? box.value.trimEnd() + ' ' : '') + data.text;
-      $('#micmsg').textContent = ''; preview(); box.focus();
-    } catch (err) { $('#micmsg').textContent = err.message; }
-    finally { $('#mic').disabled = false; }
-  };
-  rec.start();
-  $('#mic').classList.add('on'); $('#micmsg').textContent = 'Listening… click again or release to stop.';
+    $('#micmsg').textContent = 'Could not start recording: ' + err.message;
+  }
 }
 function micStop() { if (rec && rec.state === 'recording') rec.stop(); }
-let micHeld = false;
-$('#mic').addEventListener('mousedown', () => { micHeld = true; micStart(); });
-$('#mic').addEventListener('mouseup', () => { if (micHeld) { micHeld = false; setTimeout(() => { if (rec) micStop(); }, 300); } });
-$('#mic').addEventListener('click', (e) => { e.preventDefault(); });
-$('#mic').addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); rec ? micStop() : micStart(); } });
-document.addEventListener('keydown', (e) => { if (e.key === 'm' && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); rec ? micStop() : micStart(); } });
+
+// In the Mac app the recording is done natively; the page only toggles it and receives the text.
+const nativeMic = Boolean(window.webkit?.messageHandlers?.mic);
+let nativeRecording = false;
+window.hubSpeech = (text) => {
+  const box = $('#prompt');
+  if (text) box.value = (box.value ? box.value.trimEnd() + ' ' : '') + text;
+  preview(); box.focus();
+};
+window.hubMicState = (state, note) => {
+  nativeRecording = state === 'recording';
+  $('#mic').classList.toggle('on', nativeRecording);
+  $('#mic').disabled = state === 'busy';
+  $('#micmsg').textContent = note || '';
+  $('#micmsg').style.color = state === 'error' ? 'var(--bad)' : '';
+};
+function micToggle() {
+  if ($('#mic').disabled) return;
+  if (nativeMic) { window.webkit.messageHandlers.mic.postMessage(nativeRecording ? 'stop' : 'start'); return; }
+  rec ? micStop() : micStart();
+}
+$('#mic').addEventListener('click', (e) => { e.preventDefault(); micToggle(); });
+document.addEventListener('keydown', (e) => { if (!e.repeat && (e.key === 'm' || e.key === 'M') && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); micToggle(); } });
 
 $('#prompt').addEventListener('input', preview);
 $('#prompt').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) $('#composer').requestSubmit(); });

@@ -18,7 +18,7 @@ fi
 BUILD=$(mktemp -d)
 mkdir -p "$BUILD/$NAME.app/Contents/MacOS" "$BUILD/$NAME.app/Contents/Resources"
 log "Compiling…"
-swiftc -O -o "$BUILD/$NAME.app/Contents/MacOS/AgentHub" main.swift -framework Cocoa -framework WebKit 2>&1 | grep -v "^$" || true
+swiftc -O -o "$BUILD/$NAME.app/Contents/MacOS/AgentHub" main.swift -framework Cocoa -framework WebKit -framework AVFoundation 2>&1 | grep -v "^$" || true
 [ -x "$BUILD/$NAME.app/Contents/MacOS/AgentHub" ] || { echo "Compile failed."; exit 1; }
 
 printf '%s\n' "$REPO_DIR" > "$BUILD/$NAME.app/Contents/Resources/hub.path"
@@ -57,4 +57,5 @@ rm -rf "$APP"
 mv "$BUILD/$NAME.app" "$APP"
 rm -rf "$BUILD"
 touch "$APP"
+tccutil reset Microphone com.foresiteads.agenthub >/dev/null 2>&1 || true
 log "Installed $APP"

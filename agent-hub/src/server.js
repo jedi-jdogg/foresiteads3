@@ -113,14 +113,17 @@ export function startServer(hub, { host = '127.0.0.1', port = 4747 } = {}) {
         return res.end();
       }
       if (req.method === 'POST' && url.pathname === '/api/transcribe') {
-        const agent = hub.agent('openai');
-        if (!agent.callable) return send(400, { error: 'Voice input uses your OpenAI key. Connect ChatGPT in the Connect tab first.' });
-        const chunks = []; let size = 0;
-        for await (const c of req) { chunks.push(c); size += c.length; if (size > 25 * 1024 * 1024) return send(413, { error: 'Recording too long.' }); }
+        const agent = hub.agents.find((a) => a.id === 'openai');
+        if (!agent?.callable) { req.resume(); return send(400, { error: 'Voice input uses your OpenAI key. Connect ChatGPT in the Connect tab first.' }); }
+        const LIMIT = 24 * 1024 * 1024;
+        if (Number(req.headers['content-length'] ?? 0) > LIMIT) { req.resume(); return send(413, { error: 'Recording too long.' }); }
+        const chunks = []; let size = 0, tooBig = false;
+        for await (const c of req) { if (tooBig) continue; chunks.push(c); size += c.length; if (size > LIMIT) { tooBig = true; chunks.length = 0; } }
+        if (tooBig) return send(413, { error: 'Recording too long.' });
         const { transcribe } = await import('./providers/openai-compatible.js');
-        const type = req.headers['content-type'] ?? 'audio/webm';
-        const ext = /mp4|m4a/.test(type) ? 'm4a' : /wav/.test(type) ? 'wav' : /ogg/.test(type) ? 'ogg' : 'webm';
-        return send(200, await transcribe(agent, { bytes: Buffer.concat(chunks), filename: `speech.${ext}` }));
+        const type = req.headers['content-type'] || 'audio/webm';
+        const ext = /mp4|m4a/.test(type) ? 'm4a' : /wav/.test(type) ? 'wav' : /ogg/.test(type) ? 'ogg' : /mpeg|mp3/.test(type) ? 'mp3' : /flac/.test(type) ? 'flac' : 'webm';
+        return send(200, await transcribe(agent, { bytes: Buffer.concat(chunks), filename: `speech.${ext}`, type }));
       }
       if (req.method === 'POST' && url.pathname === '/api/feedback') {
         await hub.feedback(await readJson(req));

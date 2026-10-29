@@ -3,6 +3,7 @@
 // then shows it. Quitting the app stops the hub. External links open in the default browser.
 import Cocoa
 import WebKit
+import AVFoundation
 
 let resources = Bundle.main.resourceURL!
 let repoPath = (try? String(contentsOf: resources.appendingPathComponent("hub.path"), encoding: .utf8))?
@@ -17,10 +18,12 @@ func readPort() -> Int {
     return 4747
 }
 
-final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigationDelegate, WKUIDelegate {
+final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, AVAudioRecorderDelegate {
     var window: NSWindow!
     var web: WKWebView!
     var proc: Process?
+    var recorder: AVAudioRecorder?
+    var recordingURL: URL?
     var log = ""
     var exited = false
     var exitCode: Int32 = 0
@@ -41,6 +44,8 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigation
         window.delegate = self
         let cfg = WKWebViewConfiguration()
         cfg.websiteDataStore = .default()
+        // The page's microphone button talks to the app through this handler; recording happens natively.
+        cfg.userContentController.add(self, name: "mic")
         web = WKWebView(frame: window.contentView!.bounds, configuration: cfg)
         web.autoresizingMask = [.width, .height]
         web.navigationDelegate = self
@@ -188,6 +193,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigation
         let view = NSMenu(title: "View")
         view.addItem(withTitle: "Reload", action: #selector(reload), keyEquivalent: "r")
         view.addItem(withTitle: "Open in Browser", action: #selector(openInBrowser), keyEquivalent: "b")
+        let talk = NSMenuItem(title: "Talk (⌘⇧M, or click the microphone)", action: #selector(micToggle), keyEquivalent: "M")
+        talk.keyEquivalentModifierMask = [.command, .shift]
+        view.addItem(talk)
         view.addItem(.separator())
         view.addItem(withTitle: "Show Hub Folder in Finder", action: #selector(showFolder), keyEquivalent: "")
         viewItem.submenu = view
@@ -200,6 +208,100 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNavigation
         NSApp.windowsMenu = win
         NSApp.mainMenu = menubar
     }
+    // MARK: microphone (native): the page asks, the app records an AAC file, sends it to the hub to transcribe,
+    // and hands the text back to the page. Avoids WebKit's media-capture limits inside an embedded web view.
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "mic" else { return }
+        let cmd = (message.body as? String) ?? "toggle"
+        if cmd == "start" { micStart() } else if cmd == "stop" { micStop() } else { micToggle() }
+    }
+
+    func micState(_ state: String, _ note: String = "") {
+        let js = "window.hubMicState && window.hubMicState(\(jsString(state)), \(jsString(note)));"
+        web.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    func jsString(_ s: String) -> String {
+        let data = try? JSONSerialization.data(withJSONObject: [s])
+        let arr = data.flatMap { String(data: $0, encoding: .utf8) } ?? "[\"\"]"
+        return String(arr.dropFirst().dropLast())
+    }
+
+    @objc func micToggle() { if recorder?.isRecording == true { micStop() } else { micStart() } }
+
+    func micStart() {
+        if recorder?.isRecording == true { return }
+        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                if self.recorder?.isRecording == true { return }
+                guard granted else {
+                    self.micState("error", "Microphone access is off. System Settings → Privacy & Security → Microphone → allow Agent Hub, then try again.")
+                    return
+                }
+                let url = FileManager.default.temporaryDirectory.appendingPathComponent("agent-hub-speech-\(Int(Date().timeIntervalSince1970)).m4a")
+                let settings: [String: Any] = [
+                    AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                    AVSampleRateKey: 16000.0,
+                    AVNumberOfChannelsKey: 1,
+                    AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue,
+                ]
+                do {
+                    let r = try AVAudioRecorder(url: url, settings: settings)
+                    r.delegate = self
+                    guard r.record() else { self.micState("error", "Could not start recording."); return }
+                    self.recorder = r
+                    self.recordingURL = url
+                    self.micState("recording", "Listening… click the microphone again (or ⌘⇧M) to stop.")
+                } catch {
+                    self.micState("error", "Could not start recording: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func micStop() {
+        guard let r = recorder, r.isRecording else { return }
+        micState("busy", "Transcribing…")
+        r.stop()   // the file is finalized in audioRecorderDidFinishRecording, which uploads it
+    }
+
+    func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
+        DispatchQueue.main.async { self.recorder = nil; self.upload(ok: flag) }
+    }
+
+    func upload(ok: Bool) {
+        guard ok, let url = recordingURL, let data = try? Data(contentsOf: url), data.count > 200 else {
+            micState("error", "Nothing was recorded. Click the microphone, speak, then click it again.")
+            return
+        }
+        var req = URLRequest(url: home.appendingPathComponent("api/transcribe"))
+        req.httpMethod = "POST"
+        req.setValue("audio/mp4", forHTTPHeaderField: "Content-Type")
+        req.timeoutInterval = 60
+        URLSession.shared.uploadTask(with: req, from: data) { [weak self] body, resp, err in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                try? FileManager.default.removeItem(at: url)
+                if let err = err { self.micState("error", "Could not reach the hub: \(err.localizedDescription)"); return }
+                guard let body = body, let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else {
+                    self.micState("error", "The hub sent back something unexpected."); return
+                }
+                if let e = json["error"] as? String { self.micState("error", e); return }
+                let text = (json["text"] as? String) ?? ""
+                self.web.evaluateJavaScript("window.hubSpeech && window.hubSpeech(\(self.jsString(text)));", completionHandler: nil)
+                self.micState("idle", "")
+            }
+        }.resume()
+    }
+
+    func audioRecorderEncodeErrorDidOccur(_ recorder: AVAudioRecorder, error: Error?) {
+        DispatchQueue.main.async {
+            self.recorder = nil
+            self.micState("error", "Recording failed: \(error?.localizedDescription ?? "unknown error")")
+        }
+    }
+
     @objc func reload() { if showing { web.reload() } else { poll(attempt: 0) } }
     @objc func openInBrowser() { NSWorkspace.shared.open(home) }
     @objc func showFolder() { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: hubDir) }
