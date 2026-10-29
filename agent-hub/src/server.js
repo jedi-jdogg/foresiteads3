@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 const run = promisify(execFile);
 import { publicAgent, saveEnv } from './registry.js';
 import { randomBytes } from 'node:crypto';
@@ -183,9 +184,10 @@ async function readJson(req) {
 
 // Which build is running, and whether GitHub has a newer one. Never pulls: the launcher does that on restart.
 async function version() {
-  const git = (...args) => run('git', ['-C', new URL('..', import.meta.url).pathname, ...args]).then((r) => r.stdout.trim()).catch(() => '');
-  const local = await git('rev-parse', '--short', 'HEAD');
+  const git = (...args) => run('git', ['-C', fileURLToPath(new URL('..', import.meta.url)), ...args]).then((r) => r.stdout.trim()).catch(() => '');
+  let local = await git('rev-parse', '--short', 'HEAD');
   const date = await git('log', '-1', '--format=%cs');
+  if (!local) local = (await readFile(new URL('../BUILD', import.meta.url), 'utf8').catch(() => '')).trim();   // downloaded copy
   await git('fetch', '--quiet');
   const behind = Number(await git('rev-list', '--count', 'HEAD..@{u}')) || 0;
   return { local, date, behind };

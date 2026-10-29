@@ -16,7 +16,7 @@ export const ACTIONS_PATH = new URL('actions.json', ROOT);              // the a
 const JOBS_DIR = new URL('logs/jobs/', ROOT);
 const KEY_PATH = join(homedir(), '.ssh', 'agent-hub_ed25519');
 
-const TAILSCALE_BIN = ['/Applications/Tailscale.app/Contents/MacOS/Tailscale', '/usr/local/bin/tailscale', '/opt/homebrew/bin/tailscale', 'tailscale'];
+const TAILSCALE_BIN = ['/Applications/Tailscale.app/Contents/MacOS/Tailscale', '/usr/local/bin/tailscale', '/opt/homebrew/bin/tailscale', 'C:\\Program Files\\Tailscale\\tailscale.exe', 'tailscale'];
 
 export class Machines {
   constructor({ exec = run, sshBin = 'ssh' } = {}) {
@@ -87,7 +87,7 @@ export class Machines {
         const st = JSON.parse(stdout);
         const peer = (p) => ({ host: (p.DNSName ?? '').replace(/\.$/, ''), name: p.HostName, online: Boolean(p.Online), os: p.OS, ip: p.TailscaleIPs?.[0], lastSeen: p.LastSeen });
         return { ok: true, self: peer(st.Self), peers: Object.values(st.Peer ?? {}).map(peer).filter((p) => p.os === 'macOS') };
-      } catch (err) { if (bin === TAILSCALE_BIN.at(-1)) return { ok: false, error: 'Tailscale is not installed on this Mac, or not signed in.', self: null, peers: [] }; }
+      } catch (err) { if (bin === TAILSCALE_BIN.at(-1)) return { ok: false, error: 'Tailscale is not installed on this computer, or not signed in.', self: null, peers: [] }; }
     }
   }
 

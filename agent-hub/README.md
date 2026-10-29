@@ -163,6 +163,25 @@ The **Macs** panel shows which of the five machines answer on SSH (port 22). Set
 `host`, and which agent or app it is dedicated to, in the `machines` list of `agents.json`. The hub
 does not run commands on them.
 
+## Install on a Windows PC
+
+Open **PowerShell** (Start menu, type PowerShell) and paste the contents of
+[`install-windows.ps1`](install-windows.ps1). It installs Node.js, Git and the GitHub tool through winget if they
+are missing, signs you in to GitHub in the browser, downloads the hub to `%USERPROFILE%\foresiteads3`, puts an
+**Agent Hub** shortcut on the Desktop and starts it. The console opens in your browser at
+http://localhost:4747; double-clicking the shortcut again pulls the latest version first. If PowerShell refuses to
+run scripts, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then paste again.
+
+Voice works in the browser on Windows (Chrome or Edge): click the microphone and allow it when asked.
+The Mac-only parts are the Agent Hub app and SSH control of the Macs; everything else is the same.
+
+### Without GitHub access: the downloaded copy
+
+`bash scripts/build-zip.sh` writes `dist/agent-hub-<build>.zip`, a copy with no keys and no git history, for a
+teammate who is not on the repository. They install Node.js LTS from [nodejs.org](https://nodejs.org/en/download),
+unzip, and double-click `start-windows.cmd` (or `start-mac.command`). That copy does not update itself; send a
+new zip for a new build. Instructions for them are in `README-DOWNLOAD.txt` inside the zip.
+
 ## Install on a Mac
 
 The quick way: paste the contents of [`install-mac.sh`](install-mac.sh) into Terminal. It installs Node.js
@@ -275,6 +294,9 @@ without putting authentication in front of it.
 | `src/hub.js` | Ask, smart routing, council and merge, logging, ratings |
 | `src/providers/` | Claude (Anthropic SDK) and the OpenAI-compatible agents (OpenAI SDK) |
 | `install-mac.sh` | One-paste installer for macOS |
+| `install-windows.ps1` | One-paste installer for Windows |
+| `start-windows.cmd` | Windows launcher: updates, installs packages, starts the hub |
+| `scripts/build-zip.sh` | Builds the downloadable zip for people without repository access |
 | `app/` | The Mac app: Swift source, icon, build script |
 | `start-mac.command` | Double-click launcher for macOS: updates, installs, starts |
 | `update-mac.command` | Update without starting |
