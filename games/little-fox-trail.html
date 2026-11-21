@@ -784,7 +784,8 @@ const WORDS=[['cat','🐱'],['dog','🐶'],['sun','☀️'],['bus','🚌'],['hat
 const abcLine=r=>r[0]==='X'?'X is in fox and box.':r[0]+' is for '+r[1]+' and '+r[3]+'.';
 function abcLines(){return['Now trace the small one.',...ABC.flatMap(r=>['Trace the letter '+r[0]+'.',abcLine(r),'Which one starts with the letter '+r[0]+'?']),...WORDS.flatMap(([w])=>['Trace the word '+w+'.','You wrote '+w+'!'])]}
 let abcMode='letters';
-/* The letter is drawn pale with a dashed edge. Points along the middle of its strokes are ticked off as the finger passes near; at 96% the letter is done. */
+/* The letter is drawn pale with a dashed edge. Points along the middle of its strokes are ticked off as the finger passes anywhere near; at 85% the letter is done,
+   so the general shape is enough and a wobbly or slightly off line still counts. */
 function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext('2d'),me=gen,pts=[];host.append(cv);
   const F=s=>`700 ${s}px Andika,"Baloo 2",sans-serif`;let strokes=[],cur=null,hit=0,done=false,s=300;
   const draw=()=>{const r=Math.min(devicePixelRatio||1,2);s=Math.max(160,Math.min(host.clientWidth,host.clientHeight,560));cv.width=cv.height=Math.round(s*r);cv.style.width=cv.style.height=s+'px';x.setTransform(r,0,0,r,0,0);
@@ -797,12 +798,12 @@ function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext(
     if(!strokes.length&&pts.length){const p=pts[0];x.fillStyle='#F7B731';x.beginPath();x.arc(p[0]*s,p[1]*s,s*.04,0,7);x.fill();x.strokeStyle='#C98A12';x.lineWidth=3;x.stroke()}};
   const build=()=>{const R=200,m=document.createElement('canvas');m.width=m.height=R;const mx=m.getContext('2d');mx.font=F(R*.74);mx.textAlign='center';mx.textBaseline='alphabetic';mx.fillText(ch,R/2,R*.74);
     const d=mx.getImageData(0,0,R,R).data,on=(q,y)=>q>=0&&y>=0&&q<R&&y<R&&d[(y*R+q)*4+3]>120;
-    /* only points in the middle of each stroke count, so every part of the letter has to be traced but the finger can wobble */
+    /* only points in the middle of each stroke count */
     for(let y=2;y<R;y+=5)for(let q=2;q<R;q+=5)if(on(q,y)&&on(q-4,y)&&on(q+4,y)&&on(q,y-4)&&on(q,y+4))pts.push([q/R,y/R,0]);draw()};
-  const tick=(nx,ny)=>{for(const p of pts)if(!p[2]&&Math.hypot(p[0]-nx,p[1]-ny)<.065){p[2]=1;hit++}};
+  const tick=(nx,ny)=>{for(const p of pts)if(!p[2]&&Math.hypot(p[0]-nx,p[1]-ny)<.095){p[2]=1;hit++}};
   const add=e=>{const r=cv.getBoundingClientRect(),p=[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height],l=cur[cur.length-1];
     if(l){const n=Math.max(1,Math.ceil(Math.hypot(p[0]-l[0],p[1]-l[1])/.03));for(let k=1;k<=n;k++)tick(l[0]+(p[0]-l[0])*k/n,l[1]+(p[1]-l[1])*k/n)}else tick(p[0],p[1]);
-    cur.push(p);if(pts.length&&hit/pts.length>=.96){done=true;cur=null;draw();onDone()}else draw()};
+    cur.push(p);if(pts.length&&hit/pts.length>=.85){done=true;cur=null;draw();onDone()}else draw()};
   cv.onpointerdown=e=>{if(done)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}cur=[];strokes.push(cur);add(e)};
   cv.onpointermove=e=>{if(cur&&!done)add(e)};cv.onpointerup=cv.onpointercancel=()=>cur=null;
   refit=draw;draw();const go=()=>{if(me===gen)build()};
