@@ -62,7 +62,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 @keyframes pulse{50%{box-shadow:0 5px 0 rgba(31,48,68,.25),0 0 0 10px rgba(255,255,255,.55)}}
 
 /* play */
-#hint{flex:1;min-width:0;font:800 1.2rem/1.2 var(--display)}
+#hint{flex:1;min-width:0;font:800 clamp(1.2rem,3.2vw,1.6rem)/1.2 var(--display);background:var(--paper);border-radius:20px;padding:10px 16px;box-shadow:0 4px 0 var(--line);text-wrap:balance}
 .area{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative}
 .area.row{flex-direction:row;gap:28px}
 .box{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
