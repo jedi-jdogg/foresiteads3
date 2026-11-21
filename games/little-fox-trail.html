@@ -383,25 +383,38 @@ document.querySelectorAll('img.bear,img.cheetah,img.deer,img.baby').forEach(i=>i
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
 let S={done:[],sound:true,voice:true,open:false};
-let ART_SAVED=[];
+let ART_SAVED=[],artCol=null;
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.math))S.math=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
+/* Artwork: every picture has an id and a time. This device keeps the newest 24; with a Claude account every picture is also
+   kept there (one document each), so all his devices show the same gallery. Removed pictures are remembered so they stay removed. */
+const artStore=()=>{try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,24)))}catch(e){try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,8)))}catch(_){}}};
+{const old=ART_SAVED.some(a=>typeof a==='string');ART_SAVED=ART_SAVED.map((a,i)=>typeof a==='string'?{id:'a'+i+'x'+Math.random().toString(36).slice(2,8),u:a,t:Date.now()-i}:a).filter(a=>a&&a.u);if(old)artStore()}
+function removeArt(id){ART_SAVED=ART_SAVED.filter(a=>a.id!==id);artStore();if(!S.artGone.includes(id)){S.artGone.push(id);save()}if(artCol)artCol.doc(id).delete().catch(()=>{})}
+async function syncArt(){if(!artCol)return;try{const snap=await artCol.get(),seen=new Set();let changed=false;
+    for(const d of snap.docs){const v=d.data();if(!v||typeof v.u!=='string'||!v.u.startsWith('data:image/'))continue;
+      if(S.artGone.includes(d.id)){artCol.doc(d.id).delete().catch(()=>{});continue}
+      seen.add(d.id);if(!ART_SAVED.some(a=>a.id===d.id)){ART_SAVED.push({id:d.id,u:v.u,t:+v.t||0});changed=true}}
+    if(ART_SAVED.some(a=>S.artGone.includes(a.id))){ART_SAVED=ART_SAVED.filter(a=>!S.artGone.includes(a.id));changed=true}
+    for(const a of ART_SAVED)if(!seen.has(a.id))await artCol.doc(a.id).set({u:a.u,t:a.t||0}).catch(()=>{});
+    if(changed){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();if(!$('#pics').hidden)openPics()}}catch(e){}}
 /* progress is also kept with the signed-in account when the page is hosted in Claude, so a reload or another device keeps the stars */
 let cloud=null,cloudQ=Promise.resolve();
 const pushCloud=()=>{if(!cloud)return;const d=JSON.parse(JSON.stringify(S));cloudQ=cloudQ.then(()=>cloud.set(d)).catch(()=>{})};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushCloud()};
 async function linkCloud(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;
-  const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;
+  const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;artCol=db.collection('data/users/'+id+'/progress/art');
   if(c&&Array.isArray(c.done)){const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
-    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}for(const k of['abc','math'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
+    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}for(const k of['abc','math','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
     if(grew){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
     pushCloud()}
-  else if(S.done.length)pushCloud()}catch(e){}}
-const saveArt=url=>{ART_SAVED.unshift(url);ART_SAVED=ART_SAVED.slice(0,24);try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED))}catch(e){}};
+  else if(S.done.length||S.stars)pushCloud();
+  syncArt()}catch(e){}}
+const saveArt=url=>{const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:url,t:Date.now()};ART_SAVED.unshift(a);artStore();if(artCol)artCol.doc(a.id).set({u:a.u,t:a.t}).catch(()=>{})};
 
 /* ---------- sound and voice ---------- */
 let AC;
@@ -764,9 +777,9 @@ async function sharePic(u){try{const bin=atob(u.split(',')[1]),a=new Uint8Array(
     const l=document.createElement('a');l.href=u;l.download=name;document.body.append(l);l.click();l.remove();toast('Picture saved to your downloads')}catch(e){toast('Sharing is not available here')}}
 function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
   if(!ART_SAVED.length)g.append(el('p','','No pictures yet. Draw one in the Art Studio and tap Save.'));
-  ART_SAVED.forEach((u,i)=>{const b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
+  ART_SAVED.forEach((a,i)=>{const u=a.u,b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
     b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;$('#picShare').onclick=()=>sharePic(u);const d=$('#picDel');d.textContent='Remove';let armed=false;
-      d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}ART_SAVED.splice(i,1);try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED))}catch(e){}$('#picView').hidden=true;openPics()}};g.append(b)})}
+      d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}removeArt(a.id);$('#picView').hidden=true;openPics()}};g.append(b)})}
 function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cash-S.paidOut,unit=r+(r===1?' star':' stars');$('#starCount3').textContent='⭐ '+a;
   $('#bkRate').textContent=unit+' = $1';const j=$('#bkJar');j.innerHTML='';for(let k=0;k<r;k++)j.append(el('span',k<a?'':'off','⭐'));
   const t=$('#bkTrade');t.disabled=a<r;t.textContent=a>=r?'Trade '+unit+' for $1':(r-a)+' more to go';
