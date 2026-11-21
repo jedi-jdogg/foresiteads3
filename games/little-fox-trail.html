@@ -48,7 +48,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .tab.on{background:var(--ink);color:#fff;box-shadow:0 5px 0 #0E1A28}
 .abcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;padding:4px 2px 12px}
 .abcl,.abcw{border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--line);font:700 2.2rem Andika,var(--display)}
-.abcl{aspect-ratio:1}
+.abcl{aspect-ratio:1;font-size:1.7rem}
 .abcw{padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:1.25rem}
 .abcw span{font:34px/1.1 var(--emoji)}
 .abcl.done,.abcw.done{background:#E3F4DC;box-shadow:0 0 0 3px var(--leaf) inset}
@@ -142,7 +142,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .pal{display:flex;gap:14px;flex:none}
 .sw{width:60px;height:60px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 0 var(--line);display:grid;place-items:center}
 .sw i{font:800 1.1rem var(--display);font-style:normal;background:#fff;width:30px;height:30px;border-radius:50%;display:grid;place-items:center}
-.sw.sel,.tool.sel{outline:4px solid var(--ink);outline-offset:2px}
+.sw.sel,.tool.sel,.morecol.sel{outline:4px solid var(--ink);outline-offset:2px}
 .pad{border-radius:26%;opacity:.55;box-shadow:0 6px 0 rgba(31,48,68,.2);transition:opacity .15s,transform .15s}
 .pad.lit{opacity:1;transform:scale(1.06)}
 .msg{font:800 1.5rem var(--display);min-height:1.5em}
@@ -393,8 +393,13 @@ function openClips(){return new Promise(res=>{try{const r=indexedDB.open(KEY+'-v
 function putClip(k,b){clips.set(k,b);clipBuf.delete(k);try{idb.transaction('clips','readwrite').objectStore('clips').put(b,k)}catch(e){}}
 function delClip(k){clips.delete(k);clipBuf.delete(k);try{idb.transaction('clips','readwrite').objectStore('clips').delete(k)}catch(e){}}
 function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
-async function clipBuffer(k){if(clipBuf.has(k))return clipBuf.get(k);const b=clips.get(k);if(!b||!ac())return null;
-  try{const ab=await b.arrayBuffer(),buf=await new Promise((ok,no)=>AC.decodeAudioData(ab,ok,no));clipBuf.set(k,buf);return buf}catch(e){return null}}
+/* Built-in voice: voice.json sits beside the page and holds one small sound clip per line. A recording made on the device wins over it. */
+let pack={};
+function loadPack(){try{fetch('voice.json').then(r=>r.ok?r.json():{}).then(j=>{pack=j||{}}).catch(()=>{})}catch(e){}}
+function unpack(s){const bin=atob(s),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a.buffer}
+document.addEventListener('pointerdown',()=>ac(),{passive:true});
+async function clipBuffer(k){if(clipBuf.has(k))return clipBuf.get(k);const b=clips.get(k);if((!b&&!pack[k])||!ac())return null;
+  try{const ab=b?await b.arrayBuffer():unpack(pack[k]),buf=await new Promise((ok,no)=>AC.decodeAudioData(ab,ok,no));clipBuf.set(k,buf);return buf}catch(e){return null}}
 let sayGen=0,sayNode=null;
 function playBuf(buf){return new Promise(res=>{try{const s=AC.createBufferSource();s.buffer=buf;s.connect(AC.destination);s.onended=res;sayNode=s;s.start()}catch(e){res()}})}
 function speakDevice(t){return new Promise(res=>{try{const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=.95;u.pitch=1.1;u.onend=u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,9000)}catch(e){res()}})}
@@ -608,21 +613,22 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=()=>last=null;
   const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);return t.toDataURL('image/jpeg',.8)};
   const tools=[];const tool=(label,html,on,cls)=>{const b=el('button','tool'+(cls?' '+cls:''));b.setAttribute('aria-label',label);if(typeof html==='string')b.textContent=html;else if(html)b.append(html);b.onclick=()=>{sfx.tap();on(b)};bar.append(b);tools.push(b);return b};
-  const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)));
+  const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)||(b.dataset.p==='1'&&mode==='pen')));
   ['#1F3044','#E8556D','#F28B30','#F7C948','#4CA774','#3F7FD1','#7A5CC2','#F28BB3','#8A5A3C','#6CC5E0'].forEach(c=>{const b=tool('Color','',()=>{color=c;mode='pen';stampRow.hidden=true;mark()},'col');b.style.background=c;b.dataset.m='pen';b.dataset.c=c});
   /* More colors: greys, skin tones, four shades of twelve hues, and a free color picker */
-  const moreBtn=tool('More colors','🎨',()=>{colorRow.hidden=!colorRow.hidden;stampRow.hidden=true},'col');moreBtn.dataset.m='pen';moreBtn.dataset.c='-';
-  const pickColor=c=>{color=c;mode='pen';moreBtn.dataset.c=c;moreBtn.style.background=c;moreBtn.textContent='';mark()};
+  const moreBtn=tool('More colors','🎨',()=>{colorRow.hidden=!colorRow.hidden;stampRow.hidden=true},'col');moreBtn.dataset.m='pen';moreBtn.dataset.c='-';moreBtn.className='btn morecol';moreBtn.textContent='🎨 More colors';
+  const pickColor=c=>{color=c;mode='pen';moreBtn.dataset.c=c;moreBtn.style.boxShadow='0 0 0 5px '+c+' inset';mark()};
   const shades=['#000000','#4A4A4A','#8C8C8C','#C4C4C4','#FFFFFF','#FFE0C2','#F5C9A0','#D9A06B','#A9713F','#7A4B28','#4E2E17'];
   [32,48,64,80].forEach(l=>[0,22,40,55,90,140,172,198,222,262,292,328].forEach(h=>shades.push(`hsl(${h} 82% ${l}%)`)));
   shades.forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Color');b.onclick=()=>{sfx.tap();pickColor(c)};colorRow.append(b)});
   const any=el('input','anycol');any.type='color';any.id='anyColor';any.value='#3F7FD1';any.setAttribute('aria-label','Pick any color');any.oninput=()=>pickColor(any.value);colorRow.append(any);
   [5,10,22].forEach(s=>{const dot=el('span','dot');dot.style.width=dot.style.height=(s*.9+6)+'px';tool('Brush size',dot,()=>{size=s;mark()}).dataset.s=s});
+  tool('Pencil','✏️',()=>{mode='pen';stampRow.hidden=colorRow.hidden=true;mark()}).dataset.p='1';
   tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()}).dataset.m='rainbow';
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
-  const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=!stampRow.hidden;colorRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️',CHEETAH,BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';sfx.tap();mark()};stampRow.append(b)});
+  const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
+  [...new Set(['⭐','❤️',CHEETAH,BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
@@ -675,9 +681,14 @@ function openBook(){show('book');$('#starCount2').textContent='⭐ '+avail();con
 function openStudio(){leaveGame();show('studio');const h=$('#studioHost');h.innerHTML='';easel(h,{studio:true})}
 /* hands the drawing to the phone or tablet's own share sheet (Messages, Mail, AirDrop, Photos...) */
 async function sharePic(u){try{const bin=atob(u.split(',')[1]),a=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)a[k]=bin.charCodeAt(k);
-    const f=new File([a],'cheetah-and-bear-drawing.jpg',{type:'image/jpeg'});
-    if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'My drawing'});
-    else toast('Sharing works in the home-screen app')}catch(e){if(!e||e.name!=='AbortError')toast('Sharing works in the home-screen app')}}
+    const name='cheetah-and-bear-drawing.jpg',f=new File([a],name,{type:'image/jpeg'});
+    /* 1: the device's own share sheet, in any phone or tablet browser */
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'My drawing'});return}}catch(e){if(e&&e.name==='AbortError')return}
+    /* 2: inside Claude, hand the picture to Claude's save step (the share sheet in the Claude phone app, a download on a computer) */
+    if(window.claude&&window.claude.use){try{const d=await window.claude.use('downloads');if(d){await d.save({filename:name,data:new Blob([a],{type:'image/jpeg'})});toast('Picture saved');return}}catch(e){if(e&&e.code==='declined')return}
+      toast('Sharing is not available in this view');return}
+    /* 3: an ordinary browser on a computer: download the picture */
+    const l=document.createElement('a');l.href=u;l.download=name;document.body.append(l);l.click();l.remove();toast('Picture saved to your downloads')}catch(e){toast('Sharing is not available here')}}
 function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
   if(!ART_SAVED.length)g.append(el('p','','No pictures yet. Draw one in the Art Studio and tap Save.'));
   ART_SAVED.forEach((u,i)=>{const b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
@@ -698,8 +709,8 @@ const ABC=[['A','apple','🍎','ant','🐜'],['B','ball','⚽','bus','🚌'],['C
  ['Y','yo-yo','🪀','yarn','🧶'],['Z','zebra','🦓','zero','0️⃣']];
 const WORDS=[['cat','🐱'],['dog','🐶'],['sun','☀️'],['bus','🚌'],['hat','🎩'],['pig','🐷'],['bed','🛏️'],['cup','☕'],['fox','🦊'],['bee','🐝'],['car','🚗'],['egg','🥚'],['key','🔑'],['moon','🌙'],['fish','🐟'],['frog','🐸'],['star','⭐'],['tree','🌳'],['book','📖'],['cake','🎂']];
 const abcLine=r=>r[0]==='X'?'X is in fox and box.':r[0]+' is for '+r[1]+' and '+r[3]+'.';
-function abcLines(){return[...ABC.flatMap(r=>['Trace the letter '+r[0]+'.',abcLine(r),'Which one starts with the letter '+r[0]+'?']),...WORDS.flatMap(([w])=>['Trace the word '+w+'.','You wrote '+w+'!'])]}
-let abcMode='upper';
+function abcLines(){return['Now trace the small one.',...ABC.flatMap(r=>['Trace the letter '+r[0]+'.',abcLine(r),'Which one starts with the letter '+r[0]+'?']),...WORDS.flatMap(([w])=>['Trace the word '+w+'.','You wrote '+w+'!'])]}
+let abcMode='letters';
 /* The letter is drawn pale with a dashed edge. Points along the middle of its strokes are ticked off as the finger passes near; at 96% the letter is done. */
 function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext('2d'),me=gen,pts=[];host.append(cv);
   const F=s=>`700 ${s}px Andika,"Baloo 2",sans-serif`;let strokes=[],cur=null,hit=0,done=false,s=300;
@@ -727,28 +738,28 @@ function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext(
 function abcEarn(id){if(S.abc.includes(id))return false;S.abc.push(id);S.stars++;save();$('#starCount4').textContent='⭐ '+avail();return true}
 function abcTrace(chars,i,info){leaveGame();const A=$('#abcArea');A.innerHTML='';A.className='area';$('#abcTabs').hidden=true;
   const ch=chars[i],word=info.word,top=el('div','abctop'),stage=el('div','stage'),card=el('div','abccard'),row=el('div','pick');
-  if(word)[...word].forEach((c,k)=>top.append(el('span',k<i?'got':k===i?'now':'',c)));else top.append(el('span','now',ch.toUpperCase()+' '+ch.toLowerCase()));
+  (word?[...word]:chars).forEach((c,k)=>top.append(el('span',k<i?'got':k===i?'now':'',c)));
   const back=el('button','btn',word?'← Words':'← Letters'),clear=el('button','btn','Clear'),next=el('button','btn go','Next');next.hidden=true;row.append(back,clear,next);A.append(top,stage,card,row);
   const finish=(id,line,pics)=>{const first=abcEarn(id);sfx.win();pics.forEach(e=>card.append(el('span','',e)));card.append(document.createTextNode(line+(first?' ⭐':'')));clear.hidden=true;next.hidden=false;say(pick(CHEERS),line)};
   const t=tracer(stage,ch,()=>{
-    if(!word){const r=info.row;finish(ch,abcLine(r),[r[2],r[4]]);
-      next.onclick=()=>{sfx.tap();const n=ABC[(ABC.indexOf(r)+1)%ABC.length];abcTrace([ch===r[0]?n[0]:n[0].toLowerCase()],0,{row:n})}}
-    else if(i<chars.length-1){sfx.good();const me=gen;setTimeout(()=>me===gen&&abcTrace(chars,i+1,info),700)}
+    if(i<chars.length-1){if(!word)abcEarn(ch);sfx.good();const me=gen;setTimeout(()=>me===gen&&abcTrace(chars,i+1,info),700)}
+    else if(!word){const r=info.row;finish(ch,abcLine(r),[r[2],r[4]]);
+      next.onclick=()=>{sfx.tap();const n=ABC[(ABC.indexOf(r)+1)%ABC.length];abcTrace([n[0],n[0].toLowerCase()],0,{row:n})}}
     else{finish('w:'+word,'You wrote '+word+'!',[info.emoji]);
       next.onclick=()=>{sfx.tap();const k=(WORDS.findIndex(w=>w[0]===word)+1)%WORDS.length;abcTrace([...WORDS[k][0]],0,{word:WORDS[k][0],emoji:WORDS[k][1]})}}});
   back.onclick=()=>{sfx.tap();openAbc()};clear.onclick=()=>{sfx.tap();t.clear()};
-  if(i===0)say(word?'Trace the word '+word+'.':'Trace the letter '+ch.toUpperCase()+'.')}
+  if(i===0)say(word?'Trace the word '+word+'.':'Trace the letter '+ch.toUpperCase()+'.');else if(!word)say('Now trace the small one.')}
 function abcQuiz(A){A.className='area';let n=0;const dots=el('div','dots'),box=el('div','box'),me=gen;for(let k=0;k<5;k++)dots.append(el('i'));A.append(dots,box);
   const ask=()=>{if(me!==gen)return;box.innerHTML='';const pool=ABC.filter(r=>r[0]!=='X'),r=pick(pool),right=r[2+2*rnd(2)],others=sample(pool.filter(o=>o[0]!==r[0]),2).map(o=>o[2+2*rnd(2)]),q='Which one starts with the letter '+r[0]+'?';
     box.append(el('div','bigl',r[0]+' '+r[0].toLowerCase()),el('div','msg',q),choices(shuffle([right,...others]),v=>v===right,()=>{dots.children[n].className='on';
       if(++n>=5){n=0;sfx.win();say(pick(CHEERS));toast('Five in a row!');setTimeout(()=>{[...dots.children].forEach(d=>d.className='');ask()},1800)}else ask()}));
     say(q)};ask()}
 function openAbc(){leaveGame();show('abc');$('#starCount4').textContent='⭐ '+avail();const T=$('#abcTabs'),A=$('#abcArea');T.hidden=false;T.innerHTML='';A.innerHTML='';
-  [['upper','ABC'],['lower','abc'],['words','Words'],['sounds','First sounds']].forEach(([m,l])=>{const b=el('button','btn tab'+(m===abcMode?' on':''),l);b.onclick=()=>{sfx.tap();abcMode=m;openAbc()};T.append(b)});
+  [['letters','Aa Letters'],['words','Words'],['sounds','First sounds']].forEach(([m,l])=>{const b=el('button','btn tab'+(m===abcMode?' on':''),l);b.onclick=()=>{sfx.tap();abcMode=m;openAbc()};T.append(b)});
   if(abcMode==='sounds')return abcQuiz(A);
   A.className='scroll';const g=el('div','abcgrid');
   if(abcMode==='words')WORDS.forEach(([w,e])=>{const b=el('button','abcw'+(S.abc.includes('w:'+w)?' done':''));b.append(el('span','',e),document.createTextNode(w));b.onclick=()=>{sfx.tap();abcTrace([...w],0,{word:w,emoji:e})};g.append(b)});
-  else ABC.forEach(r=>{const ch=abcMode==='upper'?r[0]:r[0].toLowerCase(),b=el('button','abcl'+(S.abc.includes(ch)?' done':''),ch);b.setAttribute('aria-label','Letter '+ch);b.onclick=()=>{sfx.tap();abcTrace([ch],0,{row:r})};g.append(b)});
+  else ABC.forEach(r=>{const lo=r[0].toLowerCase(),b=el('button','abcl'+(S.abc.includes(r[0])&&S.abc.includes(lo)?' done':''),r[0]+lo);b.setAttribute('aria-label','Letter '+r[0]);b.onclick=()=>{sfx.tap();abcTrace([r[0],lo],0,{row:r})};g.append(b)});
   A.append(g)}
 $('#goAbc').onclick=()=>{sfx.tap();openAbc()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
@@ -794,7 +805,7 @@ $('#goMap').onclick=()=>{sfx.tap();openMap()};$('#goStudio').onclick=()=>{sfx.ta
 $('#goPics').onclick=()=>{leaveGame();openPics()};$('#picsBack').onclick=openStudio;
 document.querySelectorAll('[data-go="home"]').forEach(b=>b.onclick=openHome);
 document.addEventListener('contextmenu',e=>e.preventDefault());
-const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();openClips();};
+const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();openClips();loadPack();};
 const hot=window.claude&&window.claude.hot;
 try{hot&&hot.snapshot&&hot.snapshot(()=>({S}))}catch(e){}
 if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
