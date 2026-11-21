@@ -37,8 +37,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 /* home */
 #home{align-items:center;justify-content:center;text-align:center;gap:18px;background:linear-gradient(#BFE6F2,var(--sky) 55%,#CFEBB8)}
 #home .hero{font:88px/1 var(--emoji);white-space:nowrap;width:100%}
-#home .hero img{width:min(23vw,104px);height:min(23vw,104px);vertical-align:bottom}
-#home .hero img.baby{width:min(17vw,78px);height:min(17vw,78px)}
+#home .hero img{width:min(34vw,150px);height:min(34vw,150px);vertical-align:bottom}
+#home .hero img.baby{width:min(24vw,106px);height:min(24vw,106px)}
 .fox img.baby{width:50px;height:50px;display:block;margin-top:-6px}
 .summit img{width:46px;height:46px}
 #home h1{font-size:clamp(2.1rem,7.5vw,3.6rem);color:var(--fox-d)}
@@ -230,7 +230,7 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
 
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true"><img class="cheetah" alt=""><img class="bear" alt=""><img class="deer" alt=""><img class="baby" alt=""></div>
+  <div class="hero" aria-hidden="true"><img class="cheetah" alt=""><img class="baby" alt=""></div>
   <h1>Baby Cheetah</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
@@ -341,8 +341,7 @@ const BEAR='bear';
 const CHEETAH='cheetah';
 /* each face is a list of shapes: ['e', cx, cy, rx, ry, fill, outline] or ['p', path, stroke, width], on a 100 x 100 sheet.
    The same list draws the picture on the page and on the game canvases. */
-/* The four friends, drawn from the real toys: Big Cheetah (mustard fur, dark spots, cream ears, brown muzzle, white chin and chest),
-   Teddy (cream and fluffy, big dark-brown nose, bead eyes), Deer (tan, white eye patches and muzzle, wide ears, two little horn nubs)
+/* The two cheetahs, drawn from the real toys: Big Cheetah (mustard fur, dark spots, cream ears, brown muzzle, white chin and chest)
    and Baby Cheetah (pale tan, bold black spots, black-and-white ears, curled tail). */
 const INK='#1F1712',CRM='#FFF6E0';
 const nose=(y,c)=>['f',`M45.5 ${y}Q50 ${y-1.6} 54.5 ${y}Q53 ${y+4.4} 50 ${y+4.4}Q47 ${y+4.4} 45.5 ${y}Z`,c],
@@ -357,17 +356,6 @@ const FACES=(()=>{const M='#D9A93A',MO='#8A6218',SP='#3B2A1A',F='#EADBC2',FO='#B
   ['e',29,13,8,8,CRM,INK],['e',71,13,8,8,CRM,INK],['e',50,32,27,23,M,MO],
   ...dots(SP,[[38,15,2.6],[50,12.5,2.6],[62,15,2.6],[44,21,2.2],[56,21,2.2],[27,29,2.6],[73,29,2.6],[26,40,2.2],[74,40,2.2],[32,47,2],[68,47,2]]),
   ['e',50,46.5,10,6,CRM],['e',50,39.5,11.5,7.5,'#B98348'],nose(38.5,INK),smile(42.9,INK),...eyes(13,30,3.4)],
- bear:[['e',28,66,7.5,10,F,FO],['e',72,66,7.5,10,F,FO],['e',50,72,20,19,F,FO],['e',50,74,11,11,'#F4EAD8'],
-  ['e',34,89,9.5,9,F,FO],['e',66,89,9.5,9,F,FO],['e',34,90,5,4.5,'#DCC6A4'],['e',66,90,5,4.5,'#DCC6A4'],
-  ['e',29,13,8.5,8.5,F,FO],['e',71,13,8.5,8.5,F,FO],['e',29,13,4.5,4.5,'#DCC6A4'],['e',71,13,4.5,4.5,'#DCC6A4'],['e',50,31,27,24,F,FO],
-  ['p','M38 10q3-3 6 0M47 8q3-3 6 0M56 10q3-3 6 0M26 26q-2 3 0 6M74 26q2 3 0 6',FO,1.4],
-  ['e',50,40,12.5,9.5,'#F4EAD8'],['e',50,37,7,5.4,'#4B352B'],['e',48,35.6,1.8,1.1,'#7A5F52'],smile(42.4,'#4B352B'),...eyes(7.5,26.5,2.3)],
- deer:[['e',33,80,8,10,T,TO],['e',67,80,8,10,T,TO],['e',50,69,16,17,T,TO],['e',50,66,8,9,'#DDBB8A'],
-  ['e',42,84,5.2,12,T,TO],['e',58,84,5.2,12,T,TO],['e',42,95,5.4,3.2,'#6B4A38'],['e',58,95,5.4,3.2,'#6B4A38'],
-  ['f','M31 24Q11 5 2 13Q7 29 29 32Z',T,TO,3],['f','M69 24Q89 5 98 13Q93 29 71 32Z',T,TO,3],['f','M27 24Q14 12 7 15Q11 25 26 28Z','#F3EAF4'],['f','M73 24Q86 12 93 15Q89 25 74 28Z','#F3EAF4'],
-  ['e',44,9,2.6,4,'#B79A78',TO],['e',56,9,2.6,4,'#B79A78',TO],['e',50,31,22,22,T,TO],
-  ['e',39,30,7.5,8.5,'#fff'],['e',61,30,7.5,8.5,'#fff'],['e',50,42,11.5,9,'#fff'],['e',31,40,3,1.8,'#F4C6BC'],['e',69,40,3,1.8,'#F4C6BC'],
-  ['e',50,38,3.8,2.9,'#8A5E48'],smile(40.6,'#8A5E48',1.4),...eyes(10.5,30.5,3.1)],
  baby:[['p','M35 84Q12 87 13 68Q14 58 22 60',BO,8],['p','M35 84Q12 87 13 68Q14 58 22 60',B,4.5],...dots(INK,[[15,74,1.8],[20,84,1.8]]),
   ['e',50,75,17,15,B,BO],...dots(INK,[[38,72,3.4],[62,72,3.4],[50,79,3],[41,84,2.4],[59,84,2.4]]),
   ['e',42,90,7,6,B,BO],['e',58,90,7,6,B,BO],...dots(INK,[[42,89,1.6],[58,89,1.6]]),
@@ -389,7 +377,7 @@ function drawOps(x,l){for(const o of l){
 function drawFace(x,k,cx,cy,size){x.save();x.translate(cx-size/2,cy-size/2);x.scale(size/100,size/100);drawOps(x,FACES[k]);x.restore()}
 const faceEl=k=>{const i=el('img',k);i.src=faceUrl(k);i.alt='';return i};
 const icon=(n,e)=>{n.textContent='';if(FACES[e])n.append(faceEl(e));else n.textContent=e;return n};
-const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR),faceEl('deer'),faceEl('baby'));return n};
+const buddy=n=>{n.append(faceEl(CHEETAH),faceEl('baby'));return n};
 document.querySelectorAll('img.bear,img.cheetah,img.deer,img.baby').forEach(i=>i.src=faceUrl(i.className));
 
 /* ---------- saved progress (this device only) ---------- */
@@ -458,7 +446,7 @@ function speakDevice(t){return new Promise(res=>{try{const u=new SpeechSynthesis
 async function say(...parts){if(!S.voice)return;hush();const me=++sayGen;
   for(const t of parts){if(me!==sayGen)return;const buf=await clipBuffer(t);if(me!==sayGen)return;if(buf)await playBuf(buf);else await speakDevice(t)}}
 function hush(){sayGen++;try{sayNode&&sayNode.stop()}catch(e){}sayNode=null;try{speechSynthesis.cancel()}catch(e){}}
-const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the cheetah find the bear. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.','What is the answer? Tap the number.'];
+const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the baby cheetah find the big cheetah. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.','What is the answer? Tap the number.'];
 /* math is spoken in parts ("What is" "23" "plus" "5"); these clips are built in but kept off the recording screen */
 const mathLines=()=>['What is','plus','minus',...[...Array(100).keys()].map(String)];
 const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
@@ -590,7 +578,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
     for(let c=0;c<n*n;c++){const px=(c%n)*s,py=(c/n|0)*s;if(!open[c][0]){x.moveTo(px,py);x.lineTo(px+s,py)}if(!open[c][3]){x.moveTo(px,py);x.lineTo(px,py+s)}
       if(!open[c][1]){x.moveTo(px+s,py);x.lineTo(px+s,py+s)}if(!open[c][2]){x.moveTo(px,py+s);x.lineTo(px+s,py+s)}}x.stroke();
-    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.9);drawFace(x,'baby',(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.9)};
+    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,CHEETAH,(end%n+.5)*s,((end/n|0)+.5)*s,s*.9);drawFace(x,'baby',(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.9)};
   const path=(from,to)=>{const prev={[from]:-1},q=[from];while(q.length){const c=q.shift();if(c===to){const p=[];for(let k=c;k!==from;k=prev[k])p.unshift(k);return p}
     for(let k=0;k<4;k++)if(open[c][k]){const nc=c+DX[k]+DY[k]*n;if(!(nc in prev)){prev[nc]=c;q.push(nc)}}}return[]};
   const go=to=>{if(over||to<0||to>=n*n)return;const p=path(pos,to);if(!p.length||p.length>3)return;p.forEach(c=>trail.add(c));pos=to;sfx.note(trail.size);draw();if(pos===end){over=true;win()}};
@@ -599,7 +587,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
   const key=e=>{const k=['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].indexOf(e.key);if(k>=0&&open[pos][k]){e.preventDefault();go(pos+DX[k]+DY[k]*n)}};
   document.addEventListener('keydown',key);cleanup=()=>document.removeEventListener('keydown',key);
   a.append(cv);refit=()=>{size=Math.min(a.clientWidth,a.clientHeight,620);const r=Math.min(devicePixelRatio||1,2);cv.width=cv.height=size*r;cv.style.width=cv.style.height=size+'px';draw()};refit();
-  return 'Help the cheetah find the bear. Slide your finger along the path.'},
+  return 'Help the baby cheetah find the big cheetah. Slide your finger along the path.'},
 
 mosaic(a,d,w,win){const A=PIXELS[d],n=A.g.length;let sel=0,left=n*n,dn=false;const g=el('div','grid mos');g.style.setProperty('--n',n);
   A.g.join('').split('').forEach(ch=>{const c=el('div','cell px',ch);c.dataset.k=ch-1;g.append(c)});
@@ -713,7 +701,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=guideRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️',CHEETAH,BEAR,'deer','baby',...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
+  [...new Set(['⭐','❤️',CHEETAH,'baby',...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
