@@ -332,17 +332,17 @@ const sfx={tap:()=>tone(440,.08),good:()=>{tone(523,.15);tone(784,.25,'sine',.07
   win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.3,'sine',.07,i*.13)),clap:()=>{tone(170,.12,'square',.05);tone(1200,.08,'triangle',.04)},
   note:k=>tone(262*Math.pow(2,[0,2,4,7,9,12][k%6]/12),.15)};
 /* pick the warmest voice the device has: natural or enhanced ones first, then known friendly names */
-/* a kindly nanny: warm Scottish, Irish or British women's voices first, and the fuller-quality version of any voice over the basic one */
+/* a little-boy buddy: a child voice if the device has one ("Junior"), otherwise a clear friendly voice pitched up; fuller-quality voices first */
 const NANNY=['fiona','moira','serena','kate','martha','stephanie','sonia','libby','maisie','uk english female'],KIND=['samantha','ava','allison','zoe','jenny','aria','karen','google us english'];
-const voiceScore=v=>{const n=v.name.toLowerCase();return(NANNY.some(k=>n.includes(k))?6:KIND.some(k=>n.includes(k))?2:0)+(/natural|enhanced|premium/.test(n)?3:0)+(/en[-_](gb|ie)/i.test(v.lang)?1:0)};
+const voiceScore=v=>{const n=v.name.toLowerCase();return(n.includes('junior')?20:KIND.some(k=>n.includes(k))?4:0)+(/natural|enhanced|premium/.test(n)?3:0)+(/en[-_]us/i.test(v.lang)?1:0)};
 let TTS=null;const CV=['rounded','buttery','airy','glassy'];
 function voices(){try{return speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang))}catch(e){return[]}}
-function bestVoice(){const vs=voices();if(S.vname){const v=vs.find(v=>v.name===S.vname);if(v)return v}
+function bestVoice(){const vs=voices();if(S.vkid){const v=vs.find(v=>v.name===S.vkid);if(v)return v}
   return vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null}
 try{speechSynthesis.getVoices()}catch(e){}
-const CHEERS=['Oh, well done!','Marvellous, dear!','Splendid work!','Oh, you clever thing!','Wonderful, my dear!','Brilliant!'];
-const OPENERS=['Now then, dear.','Right, my dear.','Oh, you’ll like this one, poppet.','Here we go, sweetheart.','Come along now, dear.'];
-function sayDevice(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=.84;u.pitch=1.05;speechSynthesis.speak(u)}catch(e){}}
+const CHEERS=['We did it!','Yay! You got it!','Whoa, awesome!','That was so cool!','You’re really good at this!','Woo-hoo!'];
+const OPENERS=['Ooh, this one is fun!','Okay, let’s go!','I like this one!','Ready? Here we go!','Let’s try it!'];
+function sayDevice(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=1;u.pitch=1.55;speechSynthesis.speak(u)}catch(e){}}
 /* where Claude's own natural voice is offered it is used; otherwise the device's voice speaks */
 function say(t){if(!S.voice)return;if(!TTS)return sayDevice(t);
   try{TTS.speak(t,{voice:S.cv||'rounded',rate:.92}).catch(e=>{if(e&&(e.code==='not_granted'||e.code==='unavailable')){TTS=null;sayDevice(t)}})}catch(e){TTS=null;sayDevice(t)}}
@@ -574,7 +574,7 @@ function reward(i){const first=!S.done.includes(i);let star=first;
   if(first)S.done.push(i);else{const day=new Date().toDateString();if(!S.replay||S.replay.day!==day)S.replay={day,n:0};if(S.replay.n<S.replayCap){S.replay.n++;star=true}}
   if(star)S.stars++;save();
   const cheer=pick(CHEERS);sfx.win();$('#rwT').textContent=cheer;$('#rwP').textContent='Give me a high five!';$('#rwP').hidden=false;$('#hand').className='';$('#hand').hidden=false;$('#rwGot').hidden=true;$('#rwNext').hidden=true;
-  $('#reward').hidden=false;say(cheer+' Now, give me a high five!');
+  $('#reward').hidden=false;say(cheer+' Give me a high five!');
   $('#hand').onclick=()=>{$('#hand').onclick=null;$('#hand').className='hit';sfx.clap();setTimeout(sfx.good,200);
     const panel=$('#reward .panel');for(let k=0;k<12;k++){const s=el('span','spark','⭐'),an=Math.PI*2*k/12;s.style.setProperty('--dx',Math.cos(an)*150+'px');s.style.setProperty('--dy',Math.sin(an)*150+'px');panel.append(s);setTimeout(()=>s.remove(),1000)}
     setTimeout(()=>{const got=$('#rwGot');got.innerHTML='';got.className='got';$('#hand').hidden=true;$('#rwP').hidden=true;$('#rwT').textContent='High five!';
@@ -582,7 +582,7 @@ function reward(i){const first=!S.done.includes(i);let star=first;
       if(first){got.append(el('span','',stickerOf(i)),document.createTextNode('A gold star and a new sticker!'));
         if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?'You reached the top of the trail!':'You finished '+w.name+'!'))}
       else got.append(el('span','',star?'⭐':'👏'),document.createTextNode(star?'Another gold star!':'Great playing!'));
-      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! Another gold star for you, dear!':'High five! Lovely playing, dear!'):(i&7)!==7?'High five! A gold star and a new sticker, just for you, dear!':top?'High five! You reached the very top of the trail! Oh, I am so proud of you, poppet!':'High five! You finished '+w.name+'! Here is your trophy!')},700)}}
+      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! You got another gold star!':'High five! That was fun!'):(i&7)!==7?'High five! You got a gold star and a new sticker!':top?'High five! We made it all the way to the top! You’re the best!':'High five! You finished '+w.name+'! Here is your trophy!')},700)}}
 $('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();openMap()};
 $('#quit').onclick=()=>{leaveGame();openMap()};
 $('#speak').onclick=()=>{const v=S.voice;S.voice=true;say(curHint);S.voice=v};
@@ -618,7 +618,7 @@ function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cas
   const t=$('#bkTrade');t.disabled=a<r;t.textContent=a>=r?'Trade '+unit+' for $1':(r-a)+' more to go';
   $('#bkCash').textContent=usd(owed);$('#bkBills').textContent='💵'.repeat(Math.min(20,Math.round(owed/100)));
   $('#bkNote').textContent=(owed>0?'Show a grown-up to get your dollars!':'Trade your stars to fill the piggy bank.')+(S.paidOut?' Paid so far: '+usd(S.paidOut)+'.':'')}
-$('#bkTrade').onclick=()=>{if(avail()<S.rate)return;S.spent+=S.rate;S.cash+=100;save();tone(988,.12);tone(1319,.3,'sine',.07,.1);openBank();say('Oh, well done, dear! You traded your stars for one dollar. Go and show a grown-up.')};
+$('#bkTrade').onclick=()=>{if(avail()<S.rate)return;S.spent+=S.rate;S.cash+=100;save();tone(988,.12);tone(1319,.3,'sine',.07,.1);openBank();say('Cool! You traded your stars for one dollar! Go show a grown-up!')};
 $('#goBank').onclick=()=>{sfx.tap();openBank()};
 function openHome(){leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
@@ -633,7 +633,7 @@ $('#gateOk').onclick=()=>{if(+$('#gateA').value===gateAns){$('#gate').hidden=tru
 $('#gear').onclick=()=>{const a=6+rnd(4),b=6+rnd(4);gateAns=a*b;$('#gateQ').textContent='What is '+a+' × '+b+'?';$('#gateA').value='';$('#gate').hidden=false};
 $('#setSound').onclick=()=>{S.sound=!S.sound;save();drawSettings();sfx.tap()};
 $('#setVoice').onclick=()=>{S.voice=!S.voice;save();drawSettings();if(!S.voice)hush()};
-$('#setWho').onclick=()=>{if(TTS){S.cv=CV[(CV.indexOf(S.cv||'rounded')+1)%CV.length];save();drawSettings();const on=S.voice;S.voice=true;say('Hello, dear! Shall we play?');S.voice=on;return}const vs=voices();if(vs.length<2)return;const c=bestVoice();S.vname=vs[(vs.indexOf(c)+1)%vs.length].name;save();drawSettings();const on=S.voice;S.voice=true;say('Hello, dear! Shall we play?');S.voice=on};
+$('#setWho').onclick=()=>{if(TTS){S.cv=CV[(CV.indexOf(S.cv||'rounded')+1)%CV.length];save();drawSettings();const on=S.voice;S.voice=true;say('Hi! It’s me! Want to play?');S.voice=on;return}const vs=voices();if(vs.length<2)return;const c=bestVoice();S.vkid=vs[(vs.indexOf(c)+1)%vs.length].name;save();drawSettings();const on=S.voice;S.voice=true;say('Hi! It’s me! Want to play?');S.voice=on};
 $('#setOpen').onclick=()=>{S.open=!S.open;save();drawSettings()};
 $('#setReset').onclick=e=>{if(e.target.dataset.arm){delete e.target.dataset.arm;S.done=[];save();drawSettings();openHome();toast('The trail is ready to start again')}else{e.target.dataset.arm=1;e.target.textContent='Tap again to restart. Stars and money stay.'}};
 $('#setClose').onclick=()=>{delete $('#setReset').dataset.arm;$('#grown').hidden=true};
@@ -642,7 +642,7 @@ $('#goMap').onclick=()=>{sfx.tap();openMap()};$('#goStudio').onclick=()=>{sfx.ta
 $('#goPics').onclick=()=>{leaveGame();openPics()};$('#picsBack').onclick=openStudio;
 document.querySelectorAll('[data-go="home"]').forEach(b=>b.onclick=openHome);
 document.addEventListener('contextmenu',e=>e.preventDefault());
-const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();try{window.claude&&window.claude.use&&window.claude.use('tts').then(t=>{TTS=t||null}).catch(()=>{})}catch(e){}};
+const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();};
 const hot=window.claude&&window.claude.hot;
 try{hot&&hot.snapshot&&hot.snapshot(()=>({S}))}catch(e){}
 if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
