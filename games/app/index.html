@@ -53,8 +53,27 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 #home .hero{font:88px/1 var(--emoji);white-space:nowrap}
 #home h1{font-size:clamp(2.1rem,7.5vw,3.6rem);color:var(--fox-d)}
 #home p{margin:0;color:var(--soft);max-width:24ch}
-.menu{display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}
-.menu .btn{width:100%;font-size:1.3rem;min-height:56px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
+.menu .btn{width:100%;font-size:1.08rem;min-height:56px;padding:6px 8px}
+.menu #goMap,.menu #goBank{grid-column:1/-1;font-size:1.3rem}
+.btn.blue{background:#3F7FD1;color:#fff;box-shadow:0 5px 0 #2C5FA3}
+/* math */
+.eq{font:800 clamp(2.4rem,11vmin,4.2rem)/1 var(--display);display:flex;gap:.3em;align-items:center;flex:none}
+.eq .q{color:var(--fox);border-bottom:5px solid var(--fox);min-width:1.2em;text-align:center}
+.eq .ok2{color:var(--leaf-d);border-bottom:5px solid var(--leaf);min-width:1.2em;text-align:center}
+.mpic{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:76px;font:800 1.6rem var(--display);flex:none}
+.dots2{display:grid;grid-template-columns:repeat(5,22px);gap:5px}
+.dots2 i{width:22px;height:22px;border-radius:50%;background:var(--berry)}
+.dots2 i.b{background:var(--sun)}
+.dots2 i.gone{background:none;border:3px dashed var(--line)}
+.blocks{display:flex;gap:4px;align-items:flex-end}
+.blocks .ten{width:13px;height:70px;border-radius:4px;background:var(--berry) repeating-linear-gradient(transparent 0 6px,rgba(255,255,255,.5) 6px 7px)}
+.blocks .ones{display:flex;flex-direction:column-reverse;flex-wrap:wrap;height:70px;gap:2px 4px}
+.blocks .ones i{width:12px;height:12px;border-radius:3px;background:var(--sun)}
+.mlev{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:4px 2px 12px}
+.mlev button{border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--line);padding:12px 8px;font:800 1.1rem/1.15 var(--display);display:flex;flex-direction:column;gap:4px;align-items:center}
+.mlev small{font:600 .95rem var(--body);color:var(--soft)}
+.mlev .done{background:#E3F4DC;box-shadow:0 0 0 3px var(--leaf) inset}
 .btn.sun{background:var(--sun);box-shadow:0 5px 0 var(--sun-d)}
 /* ABC letters */
 .abctabs{display:flex;gap:8px;flex:none;overflow-x:auto;padding-bottom:6px}
@@ -230,6 +249,7 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
     <button class="btn go" id="goMap">Play</button>
     <button class="btn purple" id="goStudio">🎨 Art Studio</button>
     <button class="btn sun" id="goAbc">🔤 ABC Letters</button>
+    <button class="btn blue" id="goMath">🔢 Math</button>
     <button class="btn green" id="goBook">⭐ Sticker Book</button>
     <button class="btn" id="goBank">🐷 Piggy Bank</button>
   </div>
@@ -272,6 +292,11 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
   <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>ABC Letters</h2><span class="stars" id="starCount4">⭐ 0</span></div>
   <div class="abctabs" id="abcTabs"></div>
   <div class="area" id="abcArea"></div>
+</section>
+
+<section class="screen" id="math" hidden>
+  <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>Math</h2><span class="stars" id="starCount5">⭐ 0</span></div>
+  <div class="area" id="mathArea"></div>
 </section>
 
 <section class="screen" id="voice" hidden>
@@ -369,7 +394,7 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.math))S.math=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
@@ -380,7 +405,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushCl
 async function linkCloud(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;
   const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;
   if(c&&Array.isArray(c.done)){const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
-    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}if(Array.isArray(c.abc)){const u=[...new Set([...c.abc,...S.abc])];if(u.length>S.abc.length){S.abc=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
+    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}for(const k of['abc','math'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
     if(grew){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
     pushCloud()}
   else if(S.done.length)pushCloud()}catch(e){}}
@@ -429,19 +454,21 @@ function speakDevice(t){return new Promise(res=>{try{const u=new SpeechSynthesis
 async function say(...parts){if(!S.voice)return;hush();const me=++sayGen;
   for(const t of parts){if(me!==sayGen)return;const buf=await clipBuffer(t);if(me!==sayGen)return;if(buf)await playBuf(buf);else await speakDevice(t)}}
 function hush(){sayGen++;try{sayNode&&sayNode.stop()}catch(e){}sayNode=null;try{speechSynthesis.cancel()}catch(e){}}
-const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the cheetah find the bear. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.'];
+const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the cheetah find the bear. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.','What is the answer? Tap the number.'];
+/* math is spoken in parts ("What is" "23" "plus" "5"); these clips are built in but kept off the recording screen */
+const mathLines=()=>['What is','plus','minus',...[...Array(100).keys()].map(String)];
 const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
   ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!',...abcLines(),...TRACE.map(t=>'Let’s draw '+t[0]+'!')];
 
 /* ---------- worlds and missions ---------- */
 const WORLDS=[
  {name:'Sunny Meadow',bg:'#CFEBB8',hill:'#8FCB7A',em:['🐝','🦋','🌻','🐞','🐇','🌷','🍄','🐌','🐛','🌼'],types:['shadow','match','count','dots','pattern','sort','puzzle','draw'],draw:'Draw a garden for the bee.'},
- {name:'Whispering Forest',bg:'#A8D5B5',hill:'#4E9A6B',em:['🦉','🦔','🌲','🍂','🐻','🦌','🍁','🌰','🐺','🐗'],types:['odd','maze','match','mosaic','echo','shadow','puzzle','draw'],draw:'Draw a cozy home for the owl.'},
- {name:'Splashy River',bg:'#B5DDF2',hill:'#5FB3D9',em:['🐟','🐸','🦆','🐢','🦀','🐙','🐬','🐚','⛵','🐳'],types:['sort','dots','count','pattern','maze','mosaic','puzzle','draw'],draw:'Draw a boat on the river.'},
- {name:'Snowy Mountain',bg:'#DAD7F0',hill:'#F4F6FB',em:['🦅','🐐','⛄','🏕️','🔥','🦙','🧤','🎿','🐏','🧣'],types:['match','odd','echo','dots','sort','maze','puzzle','draw'],draw:'Draw a snowman and give it a hat.'},
- {name:'Starry Sky',bg:'#2E3C6E',hill:'#6A57B0',dark:true,em:['🚀','🌙','⭐','🪐','🛸','🌈','🎈','👽','🌍','🤖'],types:['pattern','mosaic','count','echo','odd','maze','puzzle','draw'],draw:'You made it to the top! Draw yourself with the cheetah and the bear.'}];
-const TYPES={match:'🃏',shadow:'🔦',sort:'🧺',puzzle:'🧩',pattern:'🔁',odd:'🔍',count:'🔢',dots:'✏️',maze:'🧭',mosaic:'🖌️',echo:'🎵',draw:'🎨'};
-const NAMES={match:'Find the pairs',shadow:'Shadow match',sort:'Sorting',puzzle:'Picture puzzle',pattern:'What comes next',odd:'Odd one out',count:'Counting',dots:'Dot to dot',maze:'Maze',mosaic:'Paint by number',echo:'Copy the tune',draw:'Drawing'};
+ {name:'Whispering Forest',bg:'#A8D5B5',hill:'#4E9A6B',em:['🦉','🦔','🌲','🍂','🐻','🦌','🍁','🌰','🐺','🐗'],types:['odd','maze','match','mosaic','echo','math','puzzle','draw'],draw:'Draw a cozy home for the owl.'},
+ {name:'Splashy River',bg:'#B5DDF2',hill:'#5FB3D9',em:['🐟','🐸','🦆','🐢','🦀','🐙','🐬','🐚','⛵','🐳'],types:['sort','dots','math','pattern','maze','mosaic','puzzle','draw'],draw:'Draw a boat on the river.'},
+ {name:'Snowy Mountain',bg:'#DAD7F0',hill:'#F4F6FB',em:['🦅','🐐','⛄','🏕️','🔥','🦙','🧤','🎿','🐏','🧣'],types:['match','math','echo','dots','sort','maze','puzzle','draw'],draw:'Draw a snowman and give it a hat.'},
+ {name:'Starry Sky',bg:'#2E3C6E',hill:'#6A57B0',dark:true,em:['🚀','🌙','⭐','🪐','🛸','🌈','🎈','👽','🌍','🤖'],types:['pattern','mosaic','math','echo','odd','maze','puzzle','draw'],draw:'You made it to the top! Draw yourself with the cheetah and the bear.'}];
+const TYPES={match:'🃏',shadow:'🔦',sort:'🧺',puzzle:'🧩',pattern:'🔁',odd:'🔍',count:'🔢',dots:'✏️',maze:'🧭',mosaic:'🖌️',echo:'🎵',draw:'🎨',math:'➕'};
+const NAMES={match:'Find the pairs',shadow:'Shadow match',sort:'Sorting',puzzle:'Picture puzzle',pattern:'What comes next',odd:'Odd one out',count:'Counting',dots:'Dot to dot',maze:'Maze',mosaic:'Paint by number',echo:'Copy the tune',draw:'Drawing',math:'Number puzzle'};
 const N=WORLDS.length*8;
 const CATS=[['Animals',['🐶','🐱','🐰','🐻','🐸','🐷','🐮','🦁']],['Food',['🍎','🍌','🍇','🍓','🥕','🍕','🧀','🍪']],
   ['Things that go',['🚗','🚌','🚲','🚂','✈️','🚁','🚜','🚒']],['Clothes',['👕','👖','🧦','🧢','👟','👗','🧥','🥾']]];
@@ -469,8 +496,8 @@ function drag(node,onDrop){
     node.addEventListener('pointermove',mv);node.addEventListener('pointerup',up);node.addEventListener('pointercancel',up)})}
 function rounds(a,n,build,win){const d=el('div','dots'),box=el('div','box');a.append(d,box);for(let i=0;i<n;i++)d.append(el('i'));let r=0;
   const go=()=>{box.innerHTML='';build(box,()=>{d.children[r].className='on';if(++r>=n)win();else go()})};go()}
-function choices(list,isRight,next,num){const row=el('div','pick');list.forEach(v=>{const b=el('button','choice'+(num?' num':''),v);
-  b.onclick=()=>{if(row.dataset.done)return;if(isRight(v)){row.dataset.done=1;b.classList.add('ok');sfx.good();setTimeout(next,900)}else{wobble(b);sfx.oops()}};row.append(b)});return row}
+function choices(list,isRight,next,num){const row=el('div','pick'),g0=gen;list.forEach(v=>{const b=el('button','choice'+(num?' num':''),v);
+  b.onclick=()=>{if(row.dataset.done)return;if(isRight(v)){row.dataset.done=1;b.classList.add('ok');sfx.good();setTimeout(()=>g0===gen&&next(),900)}else{wobble(b);sfx.oops()}};row.append(b)});return row}
 
 /* ---------- the games: each fills the play area and calls win() once ---------- */
 const GAMES={
@@ -589,6 +616,8 @@ echo(a,d,w,win){const np=d<1?3:4,target=[3,4,5,6,7][d],cols=['#E8556D','#3F7FD1'
     if(++inp===seq.length){lock=true;if(seq.length>=target){win();return}msg.textContent='Yes!';await wait(900);seq.push(rnd(np));if(alive())play()}};
   const ps=[...Array(np)].map((_,i)=>{const b=el('button','cell pad');b.style.background=cols[i];b.setAttribute('aria-label','Light '+(i+1));b.onclick=()=>tap(i);pads.append(b);return b});
   a.append(msg,pads);np===3?fit(3,1.8,150):fit(2,2.8,170);play();return 'Watch the lights. Then tap them in the same order.'},
+
+math(a,d,w,win){let first=true;const Ls=[[1],[1,2],[3,4],[5,6],[7,8]][d];rounds(a,3,(box,next)=>{mathRound(box,pick(Ls),next,first);first=false},win);return 'What is the answer? Tap the number.'},
 
 draw(a,d,w,win){easel(a,{done:url=>{saveArt(url);win()}});return w.draw}
 };
@@ -814,6 +843,38 @@ function openAbc(){leaveGame();show('abc');$('#starCount4').textContent='⭐ '+a
   else ABC.forEach(r=>{const lo=r[0].toLowerCase(),b=el('button','abcl'+(S.abc.includes(r[0])&&S.abc.includes(lo)?' done':''),r[0]+lo);b.setAttribute('aria-label','Letter '+r[0]);b.onclick=()=>{sfx.tap();abcTrace([r[0],lo],0,{row:r})};g.append(b)});
   A.append(g)}
 $('#goAbc').onclick=()=>{sfx.tap();openAbc()};
+
+/* ---------- Math: adding and taking away, from counting dots up to two-digit numbers ---------- */
+const MLEVELS=[[1,'Add to 5','2 + 3'],[2,'Add to 10','4 + 5'],[3,'Take away from 5','5 − 2'],[4,'Take away from 10','9 − 4'],[5,'Add to 20','8 + 7'],[6,'Take away from 20','15 − 8'],
+  [7,'Big number plus small','23 + 5'],[8,'Big number minus small','37 − 4'],[9,'Add two big numbers','24 + 35'],[10,'Take away big numbers','58 − 23']];
+function mathQ(L){const R=(lo,hi)=>lo+rnd(hi-lo+1);let a,b,op='+';
+  if(L===1){a=R(1,4);b=R(1,5-a)}else if(L===2){a=R(1,9);b=R(1,10-a)}
+  else if(L===3){op='−';a=R(2,5);b=R(1,a)}else if(L===4){op='−';a=R(5,10);b=R(1,a)}
+  else if(L===5){a=R(2,9);b=R(Math.max(2,11-a),9)}else if(L===6){op='−';a=R(11,18);b=R(a-9,9)}
+  else if(L===7){a=R(10,89);b=R(1,9)}else if(L===8){op='−';a=R(11,99);b=R(1,9)}
+  else if(L===9){a=R(10,80);b=R(10,99-a)}else{op='−';a=R(20,99);b=R(10,a)}
+  return{a,b,op,ans:op==='+'?a+b:a-b}}
+/* a picture of the sum: counting dots for small numbers, tens-bars and ones-cubes for big ones */
+function mathPic(q){const pic=el('div','mpic'),small=q.op==='+'?q.a+q.b<=20:q.a<=20;
+  if(small){const g=el('div','dots2'),n=q.op==='+'?q.a+q.b:q.a;for(let k=0;k<n;k++)g.append(el('i',q.op==='+'?(k<q.a?'':'b'):(k<q.a-q.b?'':'gone')));pic.append(g)}
+  else{const blk=n=>{const d=el('div','blocks');for(let k=0;k<(n/10|0);k++)d.append(el('div','ten'));if(n%10){const o=el('div','ones');for(let k=0;k<n%10;k++)o.append(el('i'));d.append(o)}return d};
+    pic.append(blk(q.a),el('b','',q.op),blk(q.b))}
+  return pic}
+function mathRound(box,L,next,quiet){const q=mathQ(L),eq=el('div','eq'),ans=el('span','q','?');
+  eq.append(el('span','',q.a),el('span','',q.op),el('span','',q.b),el('span','','='),ans);
+  const o=new Set([q.ans]);for(const c of shuffle([q.ans+1,q.ans-1,q.ans+2,q.ans-2,q.ans+10,q.ans-10,q.op==='+'?q.a-q.b:q.a+q.b,q.a]))if(o.size<4&&c>=0&&c<=109)o.add(c);
+  box.append(eq,mathPic(q),choices([...o].sort((x,y)=>x-y),v=>{if(v!==q.ans)return false;ans.textContent=q.ans;ans.className='ok2';say(String(q.ans));return true},next,true));
+  if(!quiet)say('What is',String(q.a),q.op==='+'?'plus':'minus',String(q.b))}
+function openMath(){leaveGame();show('math');$('#starCount5').textContent='⭐ '+avail();const A=$('#mathArea'),g=el('div','mlev');A.innerHTML='';A.className='scroll';
+  MLEVELS.forEach(([L,name,ex])=>{const b=el('button',S.math.includes('m'+L)?'done':'');b.append(document.createTextNode(name),el('small','',ex));b.onclick=()=>{sfx.tap();mathPlay(L)};g.append(b)});A.append(g)}
+function mathPlay(L){leaveGame();const A=$('#mathArea'),me=gen;A.innerHTML='';A.className='area';
+  rounds(A,5,(box,next)=>mathRound(box,L,next),()=>{if(me!==gen)return;const first=!S.math.includes('m'+L);if(first){S.math.push('m'+L);S.stars++;save()}
+    $('#starCount5').textContent='⭐ '+avail();sfx.win();const c=pick(CHEERS);say(c);A.innerHTML='';
+    const row=el('div','pick'),lv=el('button','btn','Levels'),again=el('button','btn','Again'),nx=el('button','btn go','Next level');row.append(lv,again);if(L<MLEVELS.length)row.append(nx);
+    A.append(el('div','bigl',first?'⭐':'👏'),el('div','msg',c+(first?' You earned a star!':'')),row);
+    lv.onclick=()=>{sfx.tap();openMath()};again.onclick=()=>{sfx.tap();mathPlay(L)};nx.onclick=()=>{sfx.tap();mathPlay(L+1)}});
+  const back=el('button','btn','← Levels');back.onclick=()=>{sfx.tap();openMath()};A.append(back)}
+$('#goMath').onclick=()=>{sfx.tap();openMath()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setRate').textContent='Trade rate: '+S.rate+(S.rate===1?' star':' stars')+' = $1';$('#setCap').textContent=S.replayCap?'Replay stars: up to '+S.replayCap+' a day':'Replay stars: off';
@@ -868,7 +929,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='85b59a5198',last=0;
+  var MINE='aa948644ca',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
