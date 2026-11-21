@@ -266,20 +266,34 @@ const CHEETAH='cheetah';
    The same list draws the picture on the page and on the game canvases. */
 const SPOT='#9C6A32',CH='#F6C458',CHO='#B5803F';
 const FACES={
- bear:[['e',27,27,11,11,'#FFFFFF','#C9A27A'],['e',73,27,11,11,'#FFFFFF','#C9A27A'],['e',27,27,5.5,5.5,'#E8CBA8'],['e',73,27,5.5,5.5,'#E8CBA8'],['e',50,56,36,35,'#FFFFFF','#C9A27A'],
-  ['e',27,65,5,5,'#F5DCC6'],['e',73,65,5,5,'#F5DCC6'],['e',50,67,14,11.5,'#F6E7D3'],['e',50,62,5,3.6,'#B5835A'],['p','M50 65.5v4M50 69.5q-4 5-8 1M50 69.5q4 5 8 1','#B5835A',2.4],
-  ['e',38,51,4,4,'#A87850'],['e',62,51,4,4,'#A87850']],
- cheetah:[['e',24,27,14,14,CH,CHO],['e',76,27,14,14,CH,CHO],['e',24,27,7,7,'#FBE3B0'],['e',76,27,7,7,'#FBE3B0'],['e',50,56,40,36,CH,CHO],
+ /* a sitting teddy bear: arms, round body with a tummy patch, feet with paw pads, small ears on top, a snout, and a bow */
+ bear:[['e',28,66,7,10,'#FFFFFF','#C9A27A'],['e',72,66,7,10,'#FFFFFF','#C9A27A'],['e',50,72,20,19,'#FFFFFF','#C9A27A'],['e',50,74,11.5,12,'#F6E7D3'],
+  ['e',34,89,9.5,9.5,'#FFFFFF','#C9A27A'],['e',66,89,9.5,9.5,'#FFFFFF','#C9A27A'],['e',34,89,5.5,5.5,'#E8CBA8'],['e',66,89,5.5,5.5,'#E8CBA8'],
+  ['e',29,13,8.5,8.5,'#FFFFFF','#C9A27A'],['e',71,13,8.5,8.5,'#FFFFFF','#C9A27A'],['e',29,13,4.5,4.5,'#E8CBA8'],['e',71,13,4.5,4.5,'#E8CBA8'],['e',50,31,27,24,'#FFFFFF','#C9A27A'],
+  ['e',50,39,11,8.5,'#F6E7D3'],['f','M46 33.5Q50 31.8 54 33.5Q53 37.8 50 37.8Q47 37.8 46 33.5Z','#B5835A'],['p','M50 37.8v3M50 40.8q-3.2 3.6-6.2 1M50 40.8q3.2 3.6 6.2 1','#B5835A',1.8],
+  ['e',40,28.5,2.8,2.8,'#A87850'],['e',60,28.5,2.8,2.8,'#A87850'],
+  ['f','M50 55.5L39.5 50.5V60.5ZM50 55.5L60.5 50.5V60.5Z','#DDB98F','#B5835A',1.5],['e',50,55.5,3,3,'#C9A27A']],
+ /* a sitting cheetah: curled tail, spotted body, front paws, then the head (drawn large and placed by the 'g' group) */
+ cheetah:[['p','M66 84Q90 86 85 62',CHO,8],['p','M66 84Q90 86 85 62',CH,4.5],['e',85,62,3,3,'#8A5A2B'],['e',50,73,18,19,CH,CHO],['e',50,72,9,12,'#FFF4DC'],
+  ['e',36,68,2,2,SPOT],['e',64,68,2,2,SPOT],['e',35,78,2,2,SPOT],['e',65,78,2,2,SPOT],['e',41,90,7.5,6.5,CH,CHO],['e',59,90,7.5,6.5,CH,CHO],
+  ['g',20,-2.6,.6,[['e',24,27,14,14,CH,CHO],['e',76,27,14,14,CH,CHO],['e',24,27,7,7,'#FBE3B0'],['e',76,27,7,7,'#FBE3B0'],['e',50,56,40,36,CH,CHO],
   ['e',38,31,2.6,2.6,SPOT],['e',50,27,2.6,2.6,SPOT],['e',62,31,2.6,2.6,SPOT],['e',44,38,2.4,2.4,SPOT],['e',56,38,2.4,2.4,SPOT],
   ['e',19,52,2.6,2.6,SPOT],['e',81,52,2.6,2.6,SPOT],['e',18,63,2.4,2.4,SPOT],['e',82,63,2.4,2.4,SPOT],['e',25,75,2.4,2.4,SPOT],['e',75,75,2.4,2.4,SPOT],
   ['e',50,70,18,13,'#FFF4DC'],['p','M37 55Q32 65 37 75M63 55Q68 65 63 75','#8A5A2B',3],['e',50,63,6.5,4.5,'#8A5A2B'],['p','M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1','#8A5A2B',2.5],
-  ['e',34,50,4.5,4.5,'#7A4E24'],['e',66,50,4.5,4.5,'#7A4E24']]};
-const faceUrl=k=>'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'+FACES[k].map(o=>o[0]==='e'
+  ['e',34,50,4.5,4.5,'#7A4E24'],['e',66,50,4.5,4.5,'#7A4E24']]]]};
+/* two more shape kinds: ['f', path, fill, outline, width] is a filled path, ['g', x, y, scale, shapes] places a group */
+const svgOps=l=>l.map(o=>o[0]==='e'
   ?`<ellipse cx="${o[1]}" cy="${o[2]}" rx="${o[3]}" ry="${o[4]}" fill="${o[5]}"${o[6]?` stroke="${o[6]}" stroke-width="3"`:''}/>`
-  :`<path d="${o[1]}" fill="none" stroke="${o[2]}" stroke-width="${o[3]}" stroke-linecap="round"/>`).join('')+'</svg>');
-function drawFace(x,k,cx,cy,size){x.save();x.translate(cx-size/2,cy-size/2);x.scale(size/100,size/100);
-  for(const o of FACES[k]){if(o[0]==='e'){x.beginPath();x.ellipse(o[1],o[2],o[3],o[4],0,0,7);x.fillStyle=o[5];x.fill();if(o[6]){x.strokeStyle=o[6];x.lineWidth=3;x.stroke()}}
-    else{x.strokeStyle=o[2];x.lineWidth=o[3];x.lineCap='round';x.stroke(new Path2D(o[1]))}}x.restore()}
+  :o[0]==='p'?`<path d="${o[1]}" fill="none" stroke="${o[2]}" stroke-width="${o[3]}" stroke-linecap="round"/>`
+  :o[0]==='f'?`<path d="${o[1]}" fill="${o[2]}"${o[3]?` stroke="${o[3]}" stroke-width="${o[4]||1.5}" stroke-linejoin="round"`:''}/>`
+  :`<g transform="translate(${o[1]} ${o[2]}) scale(${o[3]})">${svgOps(o[4])}</g>`).join('');
+const faceUrl=k=>'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'+svgOps(FACES[k])+'</svg>');
+function drawOps(x,l){for(const o of l){
+  if(o[0]==='e'){x.beginPath();x.ellipse(o[1],o[2],o[3],o[4],0,0,7);x.fillStyle=o[5];x.fill();if(o[6]){x.strokeStyle=o[6];x.lineWidth=3;x.stroke()}}
+  else if(o[0]==='p'){x.strokeStyle=o[2];x.lineWidth=o[3];x.lineCap='round';x.stroke(new Path2D(o[1]))}
+  else if(o[0]==='f'){const p=new Path2D(o[1]);x.fillStyle=o[2];x.fill(p);if(o[3]){x.strokeStyle=o[3];x.lineWidth=o[4]||1.5;x.lineJoin='round';x.stroke(p)}}
+  else{x.save();x.translate(o[1],o[2]);x.scale(o[3],o[3]);drawOps(x,o[4]);x.restore()}}}
+function drawFace(x,k,cx,cy,size){x.save();x.translate(cx-size/2,cy-size/2);x.scale(size/100,size/100);drawOps(x,FACES[k]);x.restore()}
 const faceEl=k=>{const i=el('img',k);i.src=faceUrl(k);i.alt='';return i};
 const icon=(n,e)=>{n.textContent='';if(FACES[e])n.append(faceEl(e));else n.textContent=e;return n};
 const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR));return n};
@@ -460,7 +474,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
     for(let c=0;c<n*n;c++){const px=(c%n)*s,py=(c/n|0)*s;if(!open[c][0]){x.moveTo(px,py);x.lineTo(px+s,py)}if(!open[c][3]){x.moveTo(px,py);x.lineTo(px,py+s)}
       if(!open[c][1]){x.moveTo(px+s,py);x.lineTo(px+s,py+s)}if(!open[c][2]){x.moveTo(px,py+s);x.lineTo(px+s,py+s)}}x.stroke();
-    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.72);drawFace(x,CHEETAH,(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.72)};
+    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.9);drawFace(x,CHEETAH,(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.9)};
   const path=(from,to)=>{const prev={[from]:-1},q=[from];while(q.length){const c=q.shift();if(c===to){const p=[];for(let k=c;k!==from;k=prev[k])p.unshift(k);return p}
     for(let k=0;k<4;k++)if(open[c][k]){const nc=c+DX[k]+DY[k]*n;if(!(nc in prev)){prev[nc]=c;q.push(nc)}}}return[]};
   const go=to=>{if(over||to<0||to>=n*n)return;const p=path(pos,to);if(!p.length||p.length>3)return;p.forEach(c=>trail.add(c));pos=to;sfx.note(trail.size);draw();if(pos===end){over=true;win()}};
