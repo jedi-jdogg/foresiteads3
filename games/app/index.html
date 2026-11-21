@@ -172,6 +172,11 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;font-weight:800}
 .setrow{width:100%}
+.vrow{display:flex;align-items:center;gap:8px;background:var(--paper);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.vrow p{flex:1;min-width:0;margin:0}
+.vrow .round{width:46px;min-height:46px;font-size:1.1rem}
+.vrow.has{box-shadow:0 0 0 3px var(--leaf) inset}
+.vrow .rec-on{background:#E8556D;color:#fff;box-shadow:0 5px 0 #B73A50}
 img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
 .tool img.bear,.tool img.cheetah{width:28px;height:28px;vertical-align:middle}
 .bankp{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -232,6 +237,11 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
   </div>
 </section>
 
+<section class="screen" id="voice" hidden>
+  <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>Buddy’s Voice</h2><span class="stars" id="vcCount"></span></div>
+  <div class="scroll"><div class="page"><p id="vcNote" style="margin:0"></p></div><div id="vcList"></div></div>
+</section>
+
 <div class="over" id="reward" hidden><div class="panel">
   <h2 id="rwT">You did it!</h2>
   <button id="hand" aria-label="High five">✋</button>
@@ -245,6 +255,7 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
   <button class="btn setrow" id="setSound"></button>
   <button class="btn setrow" id="setVoice"></button>
   <button class="btn setrow" id="setWho"></button>
+  <button class="btn purple setrow" id="setRec">🎙️ Record the buddy’s voice</button>
   <button class="btn setrow" id="setOpen"></button>
   <button class="btn setrow" id="setRate"></button>
   <button class="btn setrow" id="setCap"></button>
@@ -358,11 +369,27 @@ function bestVoice(){const vs=voices();if(S.vkid){const v=vs.find(v=>v.name===S.
 try{speechSynthesis.getVoices()}catch(e){}
 const CHEERS=['We did it!','Yay! You got it!','Whoa, awesome!','That was so cool!','You’re really good at this!','Woo-hoo!'];
 const OPENERS=['Ooh, this one is fun!','Okay, let’s go!','I like this one!','Ready? Here we go!','Let’s try it!'];
-function sayDevice(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=1;u.pitch=1.55;speechSynthesis.speak(u)}catch(e){}}
-/* where Claude's own natural voice is offered it is used; otherwise the device's voice speaks */
-function say(t){if(!S.voice)return;if(!TTS)return sayDevice(t);
-  try{TTS.speak(t,{voice:S.cv||'rounded',rate:.92}).catch(e=>{if(e&&(e.code==='not_granted'||e.code==='unavailable')){TTS=null;sayDevice(t)}})}catch(e){TTS=null;sayDevice(t)}}
-function hush(){try{TTS&&TTS.stop()}catch(e){}try{speechSynthesis.cancel()}catch(e){}}
+/* Recorded voice: a real person (ideally a child) records each line once on the Buddy's Voice screen.
+   Recordings are kept on this device, keyed by the exact line. A line with no recording falls back to the device voice. */
+const clips=new Map(),clipBuf=new Map();let idb=null;
+function openClips(){return new Promise(res=>{try{const r=indexedDB.open(KEY+'-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('clips');
+  r.onsuccess=()=>{idb=r.result;const q=idb.transaction('clips').objectStore('clips').openCursor();q.onsuccess=()=>{const c=q.result;if(c){clips.set(c.key,c.value);c.continue()}else res()};q.onerror=()=>res()};
+  r.onerror=()=>res()}catch(e){res()}})}
+function putClip(k,b){clips.set(k,b);clipBuf.delete(k);try{idb.transaction('clips','readwrite').objectStore('clips').put(b,k)}catch(e){}}
+function delClip(k){clips.delete(k);clipBuf.delete(k);try{idb.transaction('clips','readwrite').objectStore('clips').delete(k)}catch(e){}}
+function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+async function clipBuffer(k){if(clipBuf.has(k))return clipBuf.get(k);const b=clips.get(k);if(!b||!ac())return null;
+  try{const ab=await b.arrayBuffer(),buf=await new Promise((ok,no)=>AC.decodeAudioData(ab,ok,no));clipBuf.set(k,buf);return buf}catch(e){return null}}
+let sayGen=0,sayNode=null;
+function playBuf(buf){return new Promise(res=>{try{const s=AC.createBufferSource();s.buffer=buf;s.connect(AC.destination);s.onended=res;sayNode=s;s.start()}catch(e){res()}})}
+function speakDevice(t){return new Promise(res=>{try{const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=.95;u.pitch=1.1;u.onend=u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,9000)}catch(e){res()}})}
+/* say('line one','line two'): each line plays its recording if there is one, otherwise the device voice reads it */
+async function say(...parts){if(!S.voice)return;hush();const me=++sayGen;
+  for(const t of parts){if(me!==sayGen)return;const buf=await clipBuffer(t);if(me!==sayGen)return;if(buf)await playBuf(buf);else await speakDevice(t)}}
+function hush(){sayGen++;try{sayNode&&sayNode.stop()}catch(e){}sayNode=null;try{speechSynthesis.cancel()}catch(e){}}
+const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the cheetah find the bear. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.'];
+const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
+  ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!'];
 
 /* ---------- worlds and missions ---------- */
 const WORLDS=[
@@ -585,12 +612,12 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
 /* ---------- starting and finishing a mission ---------- */
 function startLevel(i){leaveGame();curLevel=i;const w=WORLDS[i>>3],t=w.types[i&7],me=gen;show('play');area.innerHTML='';area.className='area';
   let won=false;curHint=GAMES[t](area,i>>3,w,()=>{if(won||me!==gen)return;won=true;setTimeout(()=>me===gen&&reward(i),700)});
-  $('#hint').textContent=curHint;say(pick(OPENERS)+' '+curHint)}
+  $('#hint').textContent=curHint;say(pick(OPENERS),curHint)}
 function reward(i){const first=!S.done.includes(i);let star=first;
   if(first)S.done.push(i);else{const day=new Date().toDateString();if(!S.replay||S.replay.day!==day)S.replay={day,n:0};if(S.replay.n<S.replayCap){S.replay.n++;star=true}}
   if(star)S.stars++;save();
   const cheer=pick(CHEERS);sfx.win();$('#rwT').textContent=cheer;$('#rwP').textContent='Give me a high five!';$('#rwP').hidden=false;$('#hand').className='';$('#hand').hidden=false;$('#rwGot').hidden=true;$('#rwNext').hidden=true;
-  $('#reward').hidden=false;say(cheer+' Give me a high five!');
+  $('#reward').hidden=false;say(cheer,'Give me a high five!');
   $('#hand').onclick=()=>{$('#hand').onclick=null;$('#hand').className='hit';sfx.clap();setTimeout(sfx.good,200);
     const panel=$('#reward .panel');for(let k=0;k<12;k++){const s=el('span','spark','⭐'),an=Math.PI*2*k/12;s.style.setProperty('--dx',Math.cos(an)*150+'px');s.style.setProperty('--dy',Math.sin(an)*150+'px');panel.append(s);setTimeout(()=>s.remove(),1000)}
     setTimeout(()=>{const got=$('#rwGot');got.innerHTML='';got.className='got';$('#hand').hidden=true;$('#rwP').hidden=true;$('#rwT').textContent='High five!';
@@ -598,7 +625,7 @@ function reward(i){const first=!S.done.includes(i);let star=first;
       if(first){got.append(el('span','',stickerOf(i)),document.createTextNode('A gold star and a new sticker!'));
         if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?'You reached the top of the trail!':'You finished '+w.name+'!'))}
       else got.append(el('span','',star?'⭐':'👏'),document.createTextNode(star?'Another gold star!':'Great playing!'));
-      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! You got another gold star!':'High five! That was fun!'):(i&7)!==7?'High five! You got a gold star and a new sticker!':top?'High five! We made it all the way to the top! You’re the best!':'High five! You finished '+w.name+'! Here is your trophy!')},700)}}
+      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! You got another gold star!':'High five! That was fun!'):(i&7)!==7?'High five! You got a gold star and a new sticker!':top?'High five! We made it all the way to the top! You’re the best!':'High five! You finished '+w.name+'!')},700)}}
 $('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();openMap()};
 $('#quit').onclick=()=>{leaveGame();openMap()};
 $('#speak').onclick=()=>{const v=S.voice;S.voice=true;say(curHint);S.voice=v};
@@ -636,7 +663,7 @@ function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cas
   $('#bkNote').textContent=(owed>0?'Show a grown-up to get your dollars!':'Trade your stars to fill the piggy bank.')+(S.paidOut?' Paid so far: '+usd(S.paidOut)+'.':'')}
 $('#bkTrade').onclick=()=>{if(avail()<S.rate)return;S.spent+=S.rate;S.cash+=100;save();tone(988,.12);tone(1319,.3,'sine',.07,.1);openBank();say('Cool! You traded your stars for one dollar! Go show a grown-up!')};
 $('#goBank').onclick=()=>{sfx.tap();openBank()};
-function openHome(){leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
+function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setRate').textContent='Trade rate: '+S.rate+(S.rate===1?' star':' stars')+' = $1';$('#setCap').textContent=S.replayCap?'Replay stars: up to '+S.replayCap+' a day':'Replay stars: off';
   const o=S.cash-S.paidOut,p=$('#setPay');delete p.dataset.arm;p.textContent=o>0?'Owed: '+usd(o)+' · tap when paid':'Nothing owed right now'}
@@ -649,7 +676,28 @@ $('#gateOk').onclick=()=>{if(+$('#gateA').value===gateAns){$('#gate').hidden=tru
 $('#gear').onclick=()=>{const a=6+rnd(4),b=6+rnd(4);gateAns=a*b;$('#gateQ').textContent='What is '+a+' × '+b+'?';$('#gateA').value='';$('#gate').hidden=false};
 $('#setSound').onclick=()=>{S.sound=!S.sound;save();drawSettings();sfx.tap()};
 $('#setVoice').onclick=()=>{S.voice=!S.voice;save();drawSettings();if(!S.voice)hush()};
-$('#setWho').onclick=()=>{if(TTS){S.cv=CV[(CV.indexOf(S.cv||'rounded')+1)%CV.length];save();drawSettings();const on=S.voice;S.voice=true;say('Hi! It’s me! Want to play?');S.voice=on;return}const vs=voices();if(vs.length<2)return;const c=bestVoice();S.vkid=vs[(vs.indexOf(c)+1)%vs.length].name;save();drawSettings();const on=S.voice;S.voice=true;say('Hi! It’s me! Want to play?');S.voice=on};
+/* ---------- Buddy's Voice: record a real voice for every line ---------- */
+let micStream=null,recNow=null;
+function stopMic(){try{recNow&&recNow.stop()}catch(e){}recNow=null;try{micStream&&micStream.getTracks().forEach(t=>t.stop())}catch(e){}micStream=null}
+function openVoice(){leaveGame();show('voice');const L=$('#vcList'),lines=voiceLines();L.innerHTML='';
+  const count=()=>$('#vcCount').textContent=lines.filter(t=>clips.has(t)).length+' of '+lines.length;
+  $('#vcNote').textContent='Tap the red dot, say the line, then tap it again to stop. A child’s own voice works best. Recordings stay on this device, and any line without one is read by the device voice.';
+  lines.forEach(text=>{const row=el('div','vrow'),p=el('p','',text),rec=el('button','btn round','⏺'),play=el('button','btn round','▶'),del=el('button','btn round','✕');
+    rec.setAttribute('aria-label','Record');play.setAttribute('aria-label','Play');del.setAttribute('aria-label','Delete recording');
+    const sync=()=>{const has=clips.has(text);row.classList.toggle('has',has);play.disabled=del.disabled=!has;count()};
+    rec.onclick=async()=>{if(recNow){const mine=recNow.owner===rec;recNow.stop();if(mine)return}
+      if(!navigator.mediaDevices||!window.MediaRecorder){$('#vcNote').textContent='Recording is not available here. Open the home-screen app (or the game’s web address in Safari) to record.';return}
+      try{micStream=micStream||await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){$('#vcNote').textContent='The microphone is not available here. Open the home-screen app (or the game’s web address in Safari) and allow the microphone to record.';return}
+      hush();const chunks=[];let mr;try{mr=new MediaRecorder(micStream)}catch(e){return}
+      mr.owner=rec;recNow=mr;rec.textContent='⏹';rec.classList.add('rec-on');
+      mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+      mr.onstop=()=>{if(recNow===mr)recNow=null;clearTimeout(tm);rec.textContent='⏺';rec.classList.remove('rec-on');const b=new Blob(chunks,{type:mr.mimeType||'audio/mp4'});if(b.size>600)putClip(text,b);sync()};
+      const tm=setTimeout(()=>{if(mr.state==='recording')mr.stop()},9000);mr.start()};
+    play.onclick=()=>{const on=S.voice;S.voice=true;say(text);S.voice=on};
+    del.onclick=()=>{delClip(text);sync()};
+    row.append(p,rec,play,del);L.append(row);sync()})}
+$('#setRec').onclick=()=>{$('#grown').hidden=true;openVoice()};
+$('#setWho').onclick=()=>{const vs=voices();if(vs.length<2)return;const c=bestVoice();S.vkid=vs[(vs.indexOf(c)+1)%vs.length].name;save();drawSettings();const on=S.voice;S.voice=true;say('Hi! It’s me! Want to play?');S.voice=on};
 $('#setOpen').onclick=()=>{S.open=!S.open;save();drawSettings()};
 $('#setReset').onclick=e=>{if(e.target.dataset.arm){delete e.target.dataset.arm;S.done=[];save();drawSettings();openHome();toast('The trail is ready to start again')}else{e.target.dataset.arm=1;e.target.textContent='Tap again to restart. Stars and money stay.'}};
 $('#setClose').onclick=()=>{delete $('#setReset').dataset.arm;$('#grown').hidden=true};
@@ -658,7 +706,7 @@ $('#goMap').onclick=()=>{sfx.tap();openMap()};$('#goStudio').onclick=()=>{sfx.ta
 $('#goPics').onclick=()=>{leaveGame();openPics()};$('#picsBack').onclick=openStudio;
 document.querySelectorAll('[data-go="home"]').forEach(b=>b.onclick=openHome);
 document.addEventListener('contextmenu',e=>e.preventDefault());
-const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();};
+const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();openClips();};
 const hot=window.claude&&window.claude.hot;
 try{hot&&hot.snapshot&&hot.snapshot(()=>({S}))}catch(e){}
 if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
@@ -669,7 +717,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='6058caef9f',last=0;
+  var MINE='a9d0318d9f',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
