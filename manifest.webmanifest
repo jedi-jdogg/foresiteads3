@@ -1,0 +1,29 @@
+{
+  "name": "Cheetah and Bear Trail",
+  "short_name": "Cheetah & Bear",
+  "description": "Climb the trail and play a game at every stop.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#DDF1F5",
+  "theme_color": "#DDF1F5",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
