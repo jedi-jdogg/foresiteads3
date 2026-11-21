@@ -170,7 +170,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true">🐆🐻</div>
+  <div class="hero" aria-hidden="true">🐆🐻‍❄️</div>
   <h1>Little Cheetah and Bear Trail</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
@@ -420,7 +420,7 @@ dots(a,d,w,win){const P=pick(SHAPES[d]),NS='http://www.w3.org/2000/svg',sv=docum
 maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Array(n*n)].map(()=>[0,0,0,0]),seen=new Set([0]),st=[0];
   while(st.length){const c=st[st.length-1],x=c%n,y=c/n|0,o=[0,1,2,3].filter(k=>{const nx=x+DX[k],ny=y+DY[k];return nx>=0&&ny>=0&&nx<n&&ny<n&&!seen.has(ny*n+nx)});
     if(!o.length){st.pop();continue}const k=pick(o),nc=(y+DY[k])*n+x+DX[k];open[c][k]=1;open[nc][(k+2)%4]=1;seen.add(nc);st.push(nc)}
-  const cv=el('canvas','mazecv'),x=cv.getContext('2d'),goal='🐻',end=n*n-1;let pos=0,size=300,over=false;const trail=new Set([0]);
+  const cv=el('canvas','mazecv'),x=cv.getContext('2d'),goal='🐻‍❄️',end=n*n-1;let pos=0,size=300,over=false;const trail=new Set([0]);
   const draw=()=>{const s=size/n;x.setTransform(cv.width/size,0,0,cv.width/size,0,0);x.fillStyle='#FFFDF7';x.fillRect(0,0,size,size);
     x.fillStyle='#FCE7B2';trail.forEach(c=>x.fillRect((c%n)*s+s*.12,(c/n|0)*s+s*.12,s*.76,s*.76));
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
@@ -509,7 +509,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=false;mark();resize()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️','🐆','🐻',...S.done.map(stickerOf)])].forEach(e=>{const b=el('button','tool',e);b.onclick=()=>{stamp=e;stampBtn.textContent=e;mode='stamp';sfx.tap();mark()};stampRow.append(b)});
+  [...new Set(['⭐','❤️','🐆','🐻‍❄️',...S.done.map(stickerOf)])].forEach(e=>{const b=el('button','tool',e);b.onclick=()=>{stamp=e;stampBtn.textContent=e;mode='stamp';sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
@@ -546,11 +546,11 @@ function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t
     b.append(el('span','wname',(S.done.includes(8*k+7)?'🏆 ':'')+w.name));T.append(b)});
   let dp='';for(let t=0;t<=N-1;t+=.1)dp+=(dp?'L':'M')+xp(t).toFixed(2)+' '+y(t).toFixed(1);
   T.insertAdjacentHTML('beforeend',`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${dp}"/></svg>`);
-  T.append(el('div','summit',cur>=N?'🐆🐻':'🏁'));
+  T.append(el('div','summit',cur>=N?'🐆🐻‍❄️':'🏁'));
   for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
     b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
-    if(i===cur){b.classList.add('cur');b.append(el('span','fox','🐆🐻'))}
+    if(i===cur){b.classList.add('cur');b.append(el('span','fox','🐆🐻‍❄️'))}
     b.onclick=()=>{sfx.tap();startLevel(i)};T.append(b)}
   $('#starCount').textContent='⭐ '+avail();
   const sc=$('#mapScroll');sc.scrollTop=y(Math.min(cur,N-1))-sc.clientHeight/2}
