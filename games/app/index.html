@@ -282,9 +282,9 @@ const CHEETAH='cheetah';
    The same list draws the picture on the page and on the game canvases. */
 const SPOT='#9C6A32',CH='#F6C458',CHO='#B5803F';
 const FACES={
- bear:[['e',24,27,15,15,'#FFFFFF','#C9A27A'],['e',76,27,15,15,'#FFFFFF','#C9A27A'],['e',24,27,8,8,'#E8CBA8'],['e',76,27,8,8,'#E8CBA8'],['e',50,56,40,36,'#FFFFFF','#C9A27A'],
-  ['e',24,66,6,6,'#F5DCC6'],['e',76,66,6,6,'#F5DCC6'],['e',50,69,17,13,'#F6E7D3'],['e',50,62,7,5,'#B5835A'],['p','M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1','#B5835A',2.5],
-  ['e',34,50,4.5,4.5,'#A87850'],['e',66,50,4.5,4.5,'#A87850']],
+ bear:[['e',27,27,11,11,'#FFFFFF','#C9A27A'],['e',73,27,11,11,'#FFFFFF','#C9A27A'],['e',27,27,5.5,5.5,'#E8CBA8'],['e',73,27,5.5,5.5,'#E8CBA8'],['e',50,56,36,35,'#FFFFFF','#C9A27A'],
+  ['e',27,65,5,5,'#F5DCC6'],['e',73,65,5,5,'#F5DCC6'],['e',50,67,14,11.5,'#F6E7D3'],['e',50,62,5,3.6,'#B5835A'],['p','M50 65.5v4M50 69.5q-4 5-8 1M50 69.5q4 5 8 1','#B5835A',2.4],
+  ['e',38,51,4,4,'#A87850'],['e',62,51,4,4,'#A87850']],
  cheetah:[['e',24,27,14,14,CH,CHO],['e',76,27,14,14,CH,CHO],['e',24,27,7,7,'#FBE3B0'],['e',76,27,7,7,'#FBE3B0'],['e',50,56,40,36,CH,CHO],
   ['e',38,31,2.6,2.6,SPOT],['e',50,27,2.6,2.6,SPOT],['e',62,31,2.6,2.6,SPOT],['e',44,38,2.4,2.4,SPOT],['e',56,38,2.4,2.4,SPOT],
   ['e',19,52,2.6,2.6,SPOT],['e',81,52,2.6,2.6,SPOT],['e',18,63,2.4,2.4,SPOT],['e',82,63,2.4,2.4,SPOT],['e',25,75,2.4,2.4,SPOT],['e',75,75,2.4,2.4,SPOT],
@@ -655,7 +655,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='5a0980a154',last=0;
+  var MINE='c98b75dbb2',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
