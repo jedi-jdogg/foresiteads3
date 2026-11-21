@@ -237,7 +237,16 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+/* progress is also kept with the signed-in account when the page is hosted in Claude, so a reload or another device keeps the stars */
+let cloud=null,cloudQ=Promise.resolve();
+const pushCloud=()=>{if(!cloud)return;const d={done:[...S.done],sound:S.sound,voice:S.voice,open:S.open,vname:S.vname||''};cloudQ=cloudQ.then(()=>cloud.set(d)).catch(()=>{})};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushCloud()};
+async function linkCloud(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;
+  const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;
+  if(c&&Array.isArray(c.done)){const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);const grew=merged.length>S.done.length;S.done=merged;
+    if(grew){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook()}
+    if(merged.length>c.done.length)pushCloud()}
+  else if(S.done.length)pushCloud()}catch(e){}}
 const saveArt=url=>{ART_SAVED.unshift(url);ART_SAVED=ART_SAVED.slice(0,24);try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED))}catch(e){}};
 
 /* ---------- sound and voice ---------- */
@@ -505,7 +514,7 @@ function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t
   let dp='';for(let t=0;t<=N-1;t+=.1)dp+=(dp?'L':'M')+xp(t).toFixed(2)+' '+y(t).toFixed(1);
   T.insertAdjacentHTML('beforeend',`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${dp}"/></svg>`);
   T.append(el('div','summit',cur>=N?'🦊':'🏁'));
-  for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',TYPES[t]),lock=i>cur&&!S.open;
+  for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
     b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
     if(i===cur){b.classList.add('cur');b.append(el('span','fox','🦊'))}
@@ -537,5 +546,8 @@ $('#goMap').onclick=()=>{sfx.tap();openMap()};$('#goStudio').onclick=()=>{sfx.ta
 $('#goPics').onclick=()=>{leaveGame();openPics()};$('#picsBack').onclick=openStudio;
 document.querySelectorAll('[data-go="home"]').forEach(b=>b.onclick=openHome);
 document.addEventListener('contextmenu',e=>e.preventDefault());
-openHome();
+const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud()};
+const hot=window.claude&&window.claude.hot;
+try{hot&&hot.snapshot&&hot.snapshot(()=>({S}))}catch(e){}
+if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 </script>
