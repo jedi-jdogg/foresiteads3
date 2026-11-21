@@ -158,6 +158,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;font-weight:800}
 .setrow{width:100%}
+img.bear{width:1em;height:1em;vertical-align:-.14em}
+.tool img.bear{width:28px;height:28px;vertical-align:middle}
 .bankp{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
 .bankp h3{margin:0;font-size:1.4rem}
 .jar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:420px;font:34px/1 var(--emoji)}
@@ -170,7 +172,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true">🐆🐻‍❄️</div>
+  <div class="hero" aria-hidden="true">🐆<img class="bear" alt=""></div>
   <h1>Little Cheetah and Bear Trail</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
@@ -256,6 +258,15 @@ const pick=a=>a[rnd(a.length)];
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const sample=(a,n)=>shuffle(a).slice(0,n);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* the bear buddy is drawn here, white with light brown accents, because no emoji looks like that */
+const BEAR='bear';
+const BEAR_URL='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g stroke="#C9A27A" stroke-width="3" fill="#FFFFFF"><circle cx="24" cy="27" r="15"/><circle cx="76" cy="27" r="15"/></g><circle cx="24" cy="27" r="8" fill="#E8CBA8"/><circle cx="76" cy="27" r="8" fill="#E8CBA8"/><ellipse cx="50" cy="56" rx="40" ry="36" fill="#FFFFFF" stroke="#C9A27A" stroke-width="3"/><circle cx="24" cy="66" r="6" fill="#F5DCC6"/><circle cx="76" cy="66" r="6" fill="#F5DCC6"/><ellipse cx="50" cy="69" rx="17" ry="13" fill="#F6E7D3"/><ellipse cx="50" cy="62" rx="7" ry="5" fill="#B5835A"/><path d="M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1" fill="none" stroke="#B5835A" stroke-width="2.5" stroke-linecap="round"/><circle cx="34" cy="50" r="4.5" fill="#A87850"/><circle cx="66" cy="50" r="4.5" fill="#A87850"/></svg>');
+const bearImg=new Image();bearImg.onload=()=>refit&&refit();bearImg.src=BEAR_URL;
+const bearEl=()=>{const i=el('img','bear');i.src=BEAR_URL;i.alt='';return i};
+const icon=(n,e)=>{n.textContent='';if(e===BEAR)n.append(bearEl());else n.textContent=e;return n};
+const buddy=n=>{n.append('🐆',bearEl());return n};
+document.querySelectorAll('img.bear').forEach(i=>i.src=BEAR_URL);
 
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
@@ -420,13 +431,13 @@ dots(a,d,w,win){const P=pick(SHAPES[d]),NS='http://www.w3.org/2000/svg',sv=docum
 maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Array(n*n)].map(()=>[0,0,0,0]),seen=new Set([0]),st=[0];
   while(st.length){const c=st[st.length-1],x=c%n,y=c/n|0,o=[0,1,2,3].filter(k=>{const nx=x+DX[k],ny=y+DY[k];return nx>=0&&ny>=0&&nx<n&&ny<n&&!seen.has(ny*n+nx)});
     if(!o.length){st.pop();continue}const k=pick(o),nc=(y+DY[k])*n+x+DX[k];open[c][k]=1;open[nc][(k+2)%4]=1;seen.add(nc);st.push(nc)}
-  const cv=el('canvas','mazecv'),x=cv.getContext('2d'),goal='🐻‍❄️',end=n*n-1;let pos=0,size=300,over=false;const trail=new Set([0]);
+  const cv=el('canvas','mazecv'),x=cv.getContext('2d'),end=n*n-1;let pos=0,size=300,over=false;const trail=new Set([0]);
   const draw=()=>{const s=size/n;x.setTransform(cv.width/size,0,0,cv.width/size,0,0);x.fillStyle='#FFFDF7';x.fillRect(0,0,size,size);
     x.fillStyle='#FCE7B2';trail.forEach(c=>x.fillRect((c%n)*s+s*.12,(c/n|0)*s+s*.12,s*.76,s*.76));
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
     for(let c=0;c<n*n;c++){const px=(c%n)*s,py=(c/n|0)*s;if(!open[c][0]){x.moveTo(px,py);x.lineTo(px+s,py)}if(!open[c][3]){x.moveTo(px,py);x.lineTo(px,py+s)}
       if(!open[c][1]){x.moveTo(px+s,py);x.lineTo(px+s,py+s)}if(!open[c][2]){x.moveTo(px,py+s);x.lineTo(px+s,py+s)}}x.stroke();
-    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(goal,(end%n+.5)*s,((end/n|0)+.55)*s);x.fillText('🐆',(pos%n+.5)*s,((pos/n|0)+.55)*s)};
+    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';if(bearImg.complete&&bearImg.naturalWidth)x.drawImage(bearImg,(end%n+.16)*s,((end/n|0)+.16)*s,s*.68,s*.68);x.fillText('🐆',(pos%n+.5)*s,((pos/n|0)+.55)*s)};
   const path=(from,to)=>{const prev={[from]:-1},q=[from];while(q.length){const c=q.shift();if(c===to){const p=[];for(let k=c;k!==from;k=prev[k])p.unshift(k);return p}
     for(let k=0;k<4;k++)if(open[c][k]){const nc=c+DX[k]+DY[k]*n;if(!(nc in prev)){prev[nc]=c;q.push(nc)}}}return[]};
   const go=to=>{if(over||to<0||to>=n*n)return;const p=path(pos,to);if(!p.length||p.length>3)return;p.forEach(c=>trail.add(c));pos=to;sfx.note(trail.size);draw();if(pos===end){over=true;win()}};
@@ -495,7 +506,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]};
   const seg=(p,q)=>{x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#fff':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
-  const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(stamp,p[0],p[1]);if(mirror)x.fillText(stamp,cv.width-p[0],p[1])};
+  const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>stamp===BEAR?x.drawImage(bearImg,u-z/2,v-z/2,z,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
   cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
     if(mode==='stamp'){put(p);sfx.tap()}else{last=p;seg(p,[p[0]+.1,p[1]+.1])}};
@@ -509,7 +520,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=false;mark();resize()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️','🐆','🐻‍❄️',...S.done.map(stickerOf)])].forEach(e=>{const b=el('button','tool',e);b.onclick=()=>{stamp=e;stampBtn.textContent=e;mode='stamp';sfx.tap();mark()};stampRow.append(b)});
+  [...new Set(['⭐','❤️','🐆',BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
@@ -546,11 +557,11 @@ function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t
     b.append(el('span','wname',(S.done.includes(8*k+7)?'🏆 ':'')+w.name));T.append(b)});
   let dp='';for(let t=0;t<=N-1;t+=.1)dp+=(dp?'L':'M')+xp(t).toFixed(2)+' '+y(t).toFixed(1);
   T.insertAdjacentHTML('beforeend',`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${dp}"/></svg>`);
-  T.append(el('div','summit',cur>=N?'🐆🐻‍❄️':'🏁'));
+  T.append(cur>=N?buddy(el('div','summit')):el('div','summit','🏁'));
   for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
     b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
-    if(i===cur){b.classList.add('cur');b.append(el('span','fox','🐆🐻‍❄️'))}
+    if(i===cur){b.classList.add('cur');b.append(buddy(el('span','fox')))}
     b.onclick=()=>{sfx.tap();startLevel(i)};T.append(b)}
   $('#starCount').textContent='⭐ '+avail();
   const sc=$('#mapScroll');sc.scrollTop=y(Math.min(cur,N-1))-sc.clientHeight/2}
