@@ -37,8 +37,10 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 /* home */
 #home{align-items:center;justify-content:center;text-align:center;gap:18px;background:linear-gradient(#BFE6F2,var(--sky) 55%,#CFEBB8)}
 #home .hero{font:88px/1 var(--emoji);white-space:nowrap;width:100%}
-.friends{display:block;margin:0 auto;width:min(100%,470px);height:auto;filter:drop-shadow(0 8px 6px rgba(31,48,68,.22))}
-.babyimg{height:52px;width:auto;max-width:none;display:block;margin-top:-8px;filter:drop-shadow(0 3px 2px rgba(31,48,68,.3))}
+#home .hero img{width:min(23vw,104px);height:min(23vw,104px);vertical-align:bottom}
+#home .hero img.baby{width:min(17vw,78px);height:min(17vw,78px)}
+.fox img.baby{width:50px;height:50px;display:block;margin-top:-6px}
+.summit img{width:46px;height:46px}
 #home h1{font-size:clamp(2.1rem,7.5vw,3.6rem);color:var(--fox-d)}
 #home p{margin:0;color:var(--soft);max-width:24ch}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
@@ -214,8 +216,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .vrow .round{width:46px;min-height:46px;font-size:1.1rem}
 .vrow.has{box-shadow:0 0 0 3px var(--leaf) inset}
 .vrow .rec-on{background:#E8556D;color:#fff;box-shadow:0 5px 0 #B73A50}
-img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
-.tool img.bear,.tool img.cheetah{width:28px;height:28px;vertical-align:middle}
+img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14em}
+.tool img.bear,.tool img.cheetah,.tool img.deer,.tool img.baby{width:30px;height:30px;vertical-align:middle}
 .bankp{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
 .bankp h3{margin:0;font-size:1.4rem}
 .jar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:420px;font:34px/1 var(--emoji)}
@@ -228,7 +230,7 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
 
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true"><img class="friends" id="friends" src="friends.webp" alt=""></div>
+  <div class="hero" aria-hidden="true"><img class="cheetah" alt=""><img class="bear" alt=""><img class="deer" alt=""><img class="baby" alt=""></div>
   <h1>Baby Cheetah</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
@@ -335,29 +337,43 @@ const sample=(a,n)=>shuffle(a).slice(0,n);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
 /* the two buddies are drawn here: a spotted cheetah and a white bear with light brown accents */
-/* the real baby cheetah, cut out of a photo of the toy: the trail marker */
-const BABY='data:image/webp;base64,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';
 const BEAR='bear';
 const CHEETAH='cheetah';
 /* each face is a list of shapes: ['e', cx, cy, rx, ry, fill, outline] or ['p', path, stroke, width], on a 100 x 100 sheet.
    The same list draws the picture on the page and on the game canvases. */
-const SPOT='#9C6A32',CH='#F6C458',CHO='#B5803F';
-const FACES={
- /* a sitting teddy bear: arms, round body with a tummy patch, feet with paw pads, small ears on top, a snout, and a bow */
- bear:[['e',28,66,7,10,'#FFFFFF','#C9A27A'],['e',72,66,7,10,'#FFFFFF','#C9A27A'],['e',50,72,20,19,'#FFFFFF','#C9A27A'],['e',50,74,11.5,12,'#F6E7D3'],
-  ['e',34,89,9.5,9.5,'#FFFFFF','#C9A27A'],['e',66,89,9.5,9.5,'#FFFFFF','#C9A27A'],['e',34,89,5.5,5.5,'#E8CBA8'],['e',66,89,5.5,5.5,'#E8CBA8'],
-  ['e',29,13,8.5,8.5,'#FFFFFF','#C9A27A'],['e',71,13,8.5,8.5,'#FFFFFF','#C9A27A'],['e',29,13,4.5,4.5,'#E8CBA8'],['e',71,13,4.5,4.5,'#E8CBA8'],['e',50,31,27,24,'#FFFFFF','#C9A27A'],
-  ['e',50,39,11,8.5,'#F6E7D3'],['f','M46 33.5Q50 31.8 54 33.5Q53 37.8 50 37.8Q47 37.8 46 33.5Z','#B5835A'],['p','M50 37.8v3M50 40.8q-3.2 3.6-6.2 1M50 40.8q3.2 3.6 6.2 1','#B5835A',1.8],
-  ['e',40,28.5,2.8,2.8,'#A87850'],['e',60,28.5,2.8,2.8,'#A87850'],
-  ['f','M50 55.5L39.5 50.5V60.5ZM50 55.5L60.5 50.5V60.5Z','#DDB98F','#B5835A',1.5],['e',50,55.5,3,3,'#C9A27A']],
- /* a sitting cheetah: curled tail, spotted body, front paws, then the head (drawn large and placed by the 'g' group) */
- cheetah:[['p','M66 84Q90 86 85 62',CHO,8],['p','M66 84Q90 86 85 62',CH,4.5],['e',85,62,3,3,'#8A5A2B'],['e',50,73,18,19,CH,CHO],['e',50,72,9,12,'#FFF4DC'],
-  ['e',36,68,2,2,SPOT],['e',64,68,2,2,SPOT],['e',35,78,2,2,SPOT],['e',65,78,2,2,SPOT],['e',41,90,7.5,6.5,CH,CHO],['e',59,90,7.5,6.5,CH,CHO],
-  ['g',20,-2.6,.6,[['e',24,27,14,14,CH,CHO],['e',76,27,14,14,CH,CHO],['e',24,27,7,7,'#FBE3B0'],['e',76,27,7,7,'#FBE3B0'],['e',50,56,40,36,CH,CHO],
-  ['e',38,31,2.6,2.6,SPOT],['e',50,27,2.6,2.6,SPOT],['e',62,31,2.6,2.6,SPOT],['e',44,38,2.4,2.4,SPOT],['e',56,38,2.4,2.4,SPOT],
-  ['e',19,52,2.6,2.6,SPOT],['e',81,52,2.6,2.6,SPOT],['e',18,63,2.4,2.4,SPOT],['e',82,63,2.4,2.4,SPOT],['e',25,75,2.4,2.4,SPOT],['e',75,75,2.4,2.4,SPOT],
-  ['e',50,70,18,13,'#FFF4DC'],['p','M37 55Q32 65 37 75M63 55Q68 65 63 75','#8A5A2B',3],['e',50,63,6.5,4.5,'#8A5A2B'],['p','M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1','#8A5A2B',2.5],
-  ['e',34,50,4.5,4.5,'#7A4E24'],['e',66,50,4.5,4.5,'#7A4E24']]]]};
+/* The four friends, drawn from the real toys: Big Cheetah (mustard fur, dark spots, cream ears, brown muzzle, white chin and chest),
+   Teddy (cream and fluffy, big dark-brown nose, bead eyes), Deer (tan, white eye patches and muzzle, wide ears, two little horn nubs)
+   and Baby Cheetah (pale tan, bold black spots, black-and-white ears, curled tail). */
+const INK='#1F1712',CRM='#FFF6E0';
+const nose=(y,c)=>['f',`M45.5 ${y}Q50 ${y-1.6} 54.5 ${y}Q53 ${y+4.4} 50 ${y+4.4}Q47 ${y+4.4} 45.5 ${y}Z`,c],
+  smile=(y,c,w)=>['p',`M50 ${y}v2.4M50 ${y+2.4}q-3 3-6 .8M50 ${y+2.4}q3 3 6 .8`,c,w||1.6],
+  eyes=(x,y,r)=>[['e',50-x,y,r,r*1.08,INK],['e',50+x,y,r,r*1.08,INK],['e',50-x+r*.3,y-r*.35,r*.3,r*.3,'#fff'],['e',50+x+r*.3,y-r*.35,r*.3,r*.3,'#fff']],
+  dots=(c,l)=>l.map(([x,y,r])=>['e',x,y,r,r*.85,c]);
+const FACES=(()=>{const M='#D9A93A',MO='#8A6218',SP='#3B2A1A',F='#EADBC2',FO='#B79D78',T='#C99F68',TO='#8C6A3C',B='#E0BC78',BO='#8F6A2E';
+ return{
+ cheetah:[['p','M66 86Q90 87 87 66',MO,8],['p','M66 86Q90 87 87 66',M,4.5],['e',87,66,3,3,SP],
+  ['e',50,72,19,20,M,MO],['e',50,63,12,9,CRM],...dots(SP,[[35,71,2.8],[65,71,2.8],[37,81,2.4],[63,81,2.4],[50,80,2.2]]),
+  ['e',41,89,7.5,7,M,MO],['e',59,89,7.5,7,M,MO],...dots(SP,[[39,88,1.5],[61,88,1.5]]),
+  ['e',29,13,8,8,CRM,INK],['e',71,13,8,8,CRM,INK],['e',50,32,27,23,M,MO],
+  ...dots(SP,[[38,15,2.6],[50,12.5,2.6],[62,15,2.6],[44,21,2.2],[56,21,2.2],[27,29,2.6],[73,29,2.6],[26,40,2.2],[74,40,2.2],[32,47,2],[68,47,2]]),
+  ['e',50,46.5,10,6,CRM],['e',50,39.5,11.5,7.5,'#B98348'],nose(38.5,INK),smile(42.9,INK),...eyes(13,30,3.4)],
+ bear:[['e',28,66,7.5,10,F,FO],['e',72,66,7.5,10,F,FO],['e',50,72,20,19,F,FO],['e',50,74,11,11,'#F4EAD8'],
+  ['e',34,89,9.5,9,F,FO],['e',66,89,9.5,9,F,FO],['e',34,90,5,4.5,'#DCC6A4'],['e',66,90,5,4.5,'#DCC6A4'],
+  ['e',29,13,8.5,8.5,F,FO],['e',71,13,8.5,8.5,F,FO],['e',29,13,4.5,4.5,'#DCC6A4'],['e',71,13,4.5,4.5,'#DCC6A4'],['e',50,31,27,24,F,FO],
+  ['p','M38 10q3-3 6 0M47 8q3-3 6 0M56 10q3-3 6 0M26 26q-2 3 0 6M74 26q2 3 0 6',FO,1.4],
+  ['e',50,40,12.5,9.5,'#F4EAD8'],['e',50,37,7,5.4,'#4B352B'],['e',48,35.6,1.8,1.1,'#7A5F52'],smile(42.4,'#4B352B'),...eyes(7.5,26.5,2.3)],
+ deer:[['e',33,80,8,10,T,TO],['e',67,80,8,10,T,TO],['e',50,69,16,17,T,TO],['e',50,66,8,9,'#DDBB8A'],
+  ['e',42,84,5.2,12,T,TO],['e',58,84,5.2,12,T,TO],['e',42,95,5.4,3.2,'#6B4A38'],['e',58,95,5.4,3.2,'#6B4A38'],
+  ['f','M31 24Q11 5 2 13Q7 29 29 32Z',T,TO,3],['f','M69 24Q89 5 98 13Q93 29 71 32Z',T,TO,3],['f','M27 24Q14 12 7 15Q11 25 26 28Z','#F3EAF4'],['f','M73 24Q86 12 93 15Q89 25 74 28Z','#F3EAF4'],
+  ['e',44,9,2.6,4,'#B79A78',TO],['e',56,9,2.6,4,'#B79A78',TO],['e',50,31,22,22,T,TO],
+  ['e',39,30,7.5,8.5,'#fff'],['e',61,30,7.5,8.5,'#fff'],['e',50,42,11.5,9,'#fff'],['e',31,40,3,1.8,'#F4C6BC'],['e',69,40,3,1.8,'#F4C6BC'],
+  ['e',50,38,3.8,2.9,'#8A5E48'],smile(40.6,'#8A5E48',1.4),...eyes(10.5,30.5,3.1)],
+ baby:[['p','M35 84Q12 87 13 68Q14 58 22 60',BO,8],['p','M35 84Q12 87 13 68Q14 58 22 60',B,4.5],...dots(INK,[[15,74,1.8],[20,84,1.8]]),
+  ['e',50,75,17,15,B,BO],...dots(INK,[[38,72,3.4],[62,72,3.4],[50,79,3],[41,84,2.4],[59,84,2.4]]),
+  ['e',42,90,7,6,B,BO],['e',58,90,7,6,B,BO],...dots(INK,[[42,89,1.6],[58,89,1.6]]),
+  ['e',30,17,8,8,'#fff',INK],['e',70,17,8,8,'#fff',INK],['e',30,18,4.6,4.6,INK],['e',70,18,4.6,4.6,INK],['e',50,35,25,22,B,BO],
+  ...dots(INK,[[36,20,3.6],[50,16.5,3.4],[64,20,3.6],[28,32,3.2],[72,32,3.2],[43,25,2.4],[57,25,2.4],[30,45,2.6],[70,45,2.6],[40,50,2],[60,50,2]]),
+  ['e',50,44,10.5,7.5,'#fff'],nose(40.5,INK),smile(44.9,INK),...eyes(11.5,33.5,3.2)]}})();
 /* two more shape kinds: ['f', path, fill, outline, width] is a filled path, ['g', x, y, scale, shapes] places a group */
 const svgOps=l=>l.map(o=>o[0]==='e'
   ?`<ellipse cx="${o[1]}" cy="${o[2]}" rx="${o[3]}" ry="${o[4]}" fill="${o[5]}"${o[6]?` stroke="${o[6]}" stroke-width="3"`:''}/>`
@@ -373,10 +389,8 @@ function drawOps(x,l){for(const o of l){
 function drawFace(x,k,cx,cy,size){x.save();x.translate(cx-size/2,cy-size/2);x.scale(size/100,size/100);drawOps(x,FACES[k]);x.restore()}
 const faceEl=k=>{const i=el('img',k);i.src=faceUrl(k);i.alt='';return i};
 const icon=(n,e)=>{n.textContent='';if(FACES[e])n.append(faceEl(e));else n.textContent=e;return n};
-const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR));return n};
-document.querySelectorAll('img.bear,img.cheetah').forEach(i=>i.src=faceUrl(i.className));
-/* if the photo of the four friends cannot load, show the drawn buddies instead */
-{const f=document.getElementById('friends');if(f)f.onerror=()=>{const h=f.parentNode;h.textContent='';buddy(h)}}
+const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR),faceEl('deer'),faceEl('baby'));return n};
+document.querySelectorAll('img.bear,img.cheetah,img.deer,img.baby').forEach(i=>i.src=faceUrl(i.className));
 
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
@@ -576,7 +590,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
     for(let c=0;c<n*n;c++){const px=(c%n)*s,py=(c/n|0)*s;if(!open[c][0]){x.moveTo(px,py);x.lineTo(px+s,py)}if(!open[c][3]){x.moveTo(px,py);x.lineTo(px,py+s)}
       if(!open[c][1]){x.moveTo(px+s,py);x.lineTo(px+s,py+s)}if(!open[c][2]){x.moveTo(px,py+s);x.lineTo(px+s,py+s)}}x.stroke();
-    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.9);drawFace(x,CHEETAH,(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.9)};
+    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.9);drawFace(x,'baby',(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.9)};
   const path=(from,to)=>{const prev={[from]:-1},q=[from];while(q.length){const c=q.shift();if(c===to){const p=[];for(let k=c;k!==from;k=prev[k])p.unshift(k);return p}
     for(let k=0;k<4;k++)if(open[c][k]){const nc=c+DX[k]+DY[k]*n;if(!(nc in prev)){prev[nc]=c;q.push(nc)}}}return[]};
   const go=to=>{if(over||to<0||to>=n*n)return;const p=path(pos,to);if(!p.length||p.length>3)return;p.forEach(c=>trail.add(c));pos=to;sfx.note(trail.size);draw();if(pos===end){over=true;win()}};
@@ -699,7 +713,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=guideRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️',CHEETAH,BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
+  [...new Set(['⭐','❤️',CHEETAH,BEAR,'deer','baby',...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
@@ -740,7 +754,7 @@ function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t
   for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
     b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
-    if(i===cur){b.classList.add('cur');{const m=el('img','babyimg');m.src=BABY;m.alt='';const f=el('span','fox');f.append(m);b.append(f)}}
+    if(i===cur){b.classList.add('cur');{const f=el('span','fox');f.append(faceEl('baby'));b.append(f)}}
     b.onclick=()=>{sfx.tap();startLevel(i)};T.append(b)}
   $('#starCount').textContent='⭐ '+avail();
   const sc=$('#mapScroll');sc.scrollTop=y(Math.min(cur,N-1))-sc.clientHeight/2}
