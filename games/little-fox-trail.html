@@ -1,6 +1,6 @@
 <title>Cheetah and Bear Trail</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
 <style>
 /* Layout: one-screen app. A calm storybook trail that climbs upward; every stop opens one quiet, full-screen game. Single light look by choice. */
 :root{
@@ -39,8 +39,32 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 #home .hero{font:88px/1 var(--emoji);white-space:nowrap}
 #home h1{font-size:clamp(2.1rem,7.5vw,3.6rem);color:var(--fox-d)}
 #home p{margin:0;color:var(--soft);max-width:24ch}
-.menu{display:flex;flex-direction:column;gap:14px;width:min(100%,340px)}
-.menu .btn{width:100%;font-size:1.35rem;min-height:64px}
+.menu{display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}
+.menu .btn{width:100%;font-size:1.3rem;min-height:56px}
+.btn.sun{background:var(--sun);box-shadow:0 5px 0 var(--sun-d)}
+/* ABC letters */
+.abctabs{display:flex;gap:8px;flex:none;overflow-x:auto;padding-bottom:6px}
+.tab{min-height:46px;padding:4px 18px;font-size:1.05rem;flex:none}
+.tab.on{background:var(--ink);color:#fff;box-shadow:0 5px 0 #0E1A28}
+.abcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;padding:4px 2px 12px}
+.abcl,.abcw{border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--line);font:700 2.2rem Andika,var(--display)}
+.abcl{aspect-ratio:1}
+.abcw{padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:1.25rem}
+.abcw span{font:34px/1.1 var(--emoji)}
+.abcl.done,.abcw.done{background:#E3F4DC;box-shadow:0 0 0 3px var(--leaf) inset}
+.abctop{font:700 2rem/1 Andika,var(--display);display:flex;gap:8px;flex:none}
+.abctop span{opacity:.35}
+.abctop .got{opacity:1;color:var(--leaf-d)}
+.abctop .now{opacity:1;color:var(--fox-d)}
+.stage{flex:1;min-height:0;align-self:stretch;display:grid;place-items:center}
+.tracecv{touch-action:none;border-radius:24px;box-shadow:0 0 0 4px #fff,0 6px 0 var(--line)}
+.abccard{min-height:2.8em;font:800 1.25rem/1.2 var(--display);text-align:center;flex:none}
+.abccard span{font:40px/1 var(--emoji);margin:0 6px;vertical-align:middle}
+.bigl{font:700 clamp(3rem,14vmin,6rem)/1 Andika,var(--display);color:var(--fox-d)}
+/* pop-up pickers that float over the bottom of the drawing sheet */
+.pop{position:absolute;left:8px;right:8px;bottom:8px;z-index:2;background:var(--paper);border-radius:16px;padding:8px;box-shadow:0 4px 14px rgba(31,48,68,.3);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:62%;overflow-y:auto;touch-action:pan-y}
+.tool.sm{width:34px;height:34px}
+.anycol{width:52px;height:34px;border:0;padding:0;background:none}
 #gear{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px))}
 
 /* map */
@@ -183,6 +207,7 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
   <div class="menu">
     <button class="btn go" id="goMap">Play</button>
     <button class="btn purple" id="goStudio">🎨 Art Studio</button>
+    <button class="btn sun" id="goAbc">🔤 ABC Letters</button>
     <button class="btn green" id="goBook">⭐ Sticker Book</button>
     <button class="btn" id="goBank">🐷 Piggy Bank</button>
   </div>
@@ -221,6 +246,12 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
   </div>
 </section>
 
+<section class="screen" id="abc" hidden>
+  <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>ABC Letters</h2><span class="stars" id="starCount4">⭐ 0</span></div>
+  <div class="abctabs" id="abcTabs"></div>
+  <div class="area" id="abcArea"></div>
+</section>
+
 <section class="screen" id="voice" hidden>
   <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>Buddy’s Voice</h2><span class="stars" id="vcCount"></span></div>
   <div class="scroll"><div class="page"><p id="vcNote" style="margin:0"></p></div><div id="vcList"></div></div>
@@ -257,7 +288,7 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
 
 <div class="over" id="picView" hidden><div class="panel">
   <img id="picBig" alt="A saved drawing">
-  <div style="display:flex;gap:12px"><button class="btn" id="picDel">Remove</button><button class="btn go" id="picClose">Close</button></div>
+  <div style="display:flex;gap:12px"><button class="btn" id="picDel">Remove</button><button class="btn green" id="picShare">Share</button><button class="btn go" id="picClose">Close</button></div>
 </div></div>
 <div id="toast" hidden></div>
 
@@ -316,7 +347,7 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
@@ -327,7 +358,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushCl
 async function linkCloud(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;
   const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;
   if(c&&Array.isArray(c.done)){const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
-    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
+    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}if(Array.isArray(c.abc)){const u=[...new Set([...c.abc,...S.abc])];if(u.length>S.abc.length){S.abc=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
     if(grew){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
     pushCloud()}
   else if(S.done.length)pushCloud()}catch(e){}}
@@ -373,7 +404,7 @@ async function say(...parts){if(!S.voice)return;hush();const me=++sayGen;
 function hush(){sayGen++;try{sayNode&&sayNode.stop()}catch(e){}sayNode=null;try{speechSynthesis.cancel()}catch(e){}}
 const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the cheetah find the bear. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.'];
 const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
-  ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!'];
+  ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!',...abcLines()];
 
 /* ---------- worlds and missions ---------- */
 const WORLDS=[
@@ -561,8 +592,8 @@ function scene(w,cols,rows){const c=document.createElement('canvas'),W=c.width=7
   return c.toDataURL('image/jpeg',.85)}
 
 /* ---------- drawing board, shared by drawing missions and the Art Studio ---------- */
-function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','sheet'),cv=el('canvas'),bar=el('div','tools'),stampRow=el('div','stamps');
-  sheet.append(cv);wrap.append(sheet,stampRow,bar);host.append(wrap);stampRow.hidden=true;
+function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','sheet'),cv=el('canvas'),bar=el('div','tools'),stampRow=el('div','pop'),colorRow=el('div','pop');
+  sheet.append(cv,stampRow,colorRow);wrap.append(sheet,bar);host.append(wrap);stampRow.hidden=colorRow.hidden=true;
   const x=cv.getContext('2d'),dpr=Math.min(devicePixelRatio||1,1.5);let color='#1F3044',size=10,mode='pen',mirror=false,stamp='⭐',hue=0,undo=[],last=null,ready=false,marks=0;
   const resize=()=>{const r=sheet.getBoundingClientRect(),W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);if(!W||!H||(W===cv.width&&H===cv.height))return;
     const old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;if(ready)old.getContext('2d').drawImage(cv,0,0);
@@ -572,18 +603,25 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
   const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>FACES[stamp]?drawFace(x,stamp,u,v,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
-  cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
+  cv.onpointerdown=e=>{e.preventDefault();stampRow.hidden=colorRow.hidden=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
     if(mode==='stamp'){put(p);sfx.tap()}else{last=p;seg(p,[p[0]+.1,p[1]+.1])}};
   cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=()=>last=null;
-  const thumb=()=>{const t=document.createElement('canvas');t.width=480;t.height=Math.round(480*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);return t.toDataURL('image/jpeg',.8)};
+  const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);return t.toDataURL('image/jpeg',.8)};
   const tools=[];const tool=(label,html,on,cls)=>{const b=el('button','tool'+(cls?' '+cls:''));b.setAttribute('aria-label',label);if(typeof html==='string')b.textContent=html;else if(html)b.append(html);b.onclick=()=>{sfx.tap();on(b)};bar.append(b);tools.push(b);return b};
   const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)));
   ['#1F3044','#E8556D','#F28B30','#F7C948','#4CA774','#3F7FD1','#7A5CC2','#F28BB3','#8A5A3C','#6CC5E0'].forEach(c=>{const b=tool('Color','',()=>{color=c;mode='pen';stampRow.hidden=true;mark()},'col');b.style.background=c;b.dataset.m='pen';b.dataset.c=c});
+  /* More colors: greys, skin tones, four shades of twelve hues, and a free color picker */
+  const moreBtn=tool('More colors','🎨',()=>{colorRow.hidden=!colorRow.hidden;stampRow.hidden=true},'col');moreBtn.dataset.m='pen';moreBtn.dataset.c='-';
+  const pickColor=c=>{color=c;mode='pen';moreBtn.dataset.c=c;moreBtn.style.background=c;moreBtn.textContent='';mark()};
+  const shades=['#000000','#4A4A4A','#8C8C8C','#C4C4C4','#FFFFFF','#FFE0C2','#F5C9A0','#D9A06B','#A9713F','#7A4B28','#4E2E17'];
+  [32,48,64,80].forEach(l=>[0,22,40,55,90,140,172,198,222,262,292,328].forEach(h=>shades.push(`hsl(${h} 82% ${l}%)`)));
+  shades.forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Color');b.onclick=()=>{sfx.tap();pickColor(c)};colorRow.append(b)});
+  const any=el('input','anycol');any.type='color';any.id='anyColor';any.value='#3F7FD1';any.setAttribute('aria-label','Pick any color');any.oninput=()=>pickColor(any.value);colorRow.append(any);
   [5,10,22].forEach(s=>{const dot=el('span','dot');dot.style.width=dot.style.height=(s*.9+6)+'px';tool('Brush size',dot,()=>{size=s;mark()}).dataset.s=s});
   tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()}).dataset.m='rainbow';
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
-  const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=false;mark();resize()});stampBtn.dataset.m='stamp';
+  const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=!stampRow.hidden;colorRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
   [...new Set(['⭐','❤️',CHEETAH,BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
@@ -635,10 +673,15 @@ function openBook(){show('book');$('#starCount2').textContent='⭐ '+avail();con
   WORLDS.forEach((w,k)=>{const pg=el('div','page'),g=el('div','stick');pg.append(el('h3','',(S.done.includes(8*k+7)?'🏆 ':'')+w.name),g);
     for(let j=0;j<8;j++){const has=S.done.includes(8*k+j);g.append(el('span',has?'':'off',has?w.em[j]:'?'))}P.append(pg)})}
 function openStudio(){leaveGame();show('studio');const h=$('#studioHost');h.innerHTML='';easel(h,{studio:true})}
+/* hands the drawing to the phone or tablet's own share sheet (Messages, Mail, AirDrop, Photos...) */
+async function sharePic(u){try{const bin=atob(u.split(',')[1]),a=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)a[k]=bin.charCodeAt(k);
+    const f=new File([a],'cheetah-and-bear-drawing.jpg',{type:'image/jpeg'});
+    if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'My drawing'});
+    else toast('Sharing works in the home-screen app')}catch(e){if(!e||e.name!=='AbortError')toast('Sharing works in the home-screen app')}}
 function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
   if(!ART_SAVED.length)g.append(el('p','','No pictures yet. Draw one in the Art Studio and tap Save.'));
   ART_SAVED.forEach((u,i)=>{const b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
-    b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;const d=$('#picDel');d.textContent='Remove';let armed=false;
+    b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;$('#picShare').onclick=()=>sharePic(u);const d=$('#picDel');d.textContent='Remove';let armed=false;
       d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}ART_SAVED.splice(i,1);try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED))}catch(e){}$('#picView').hidden=true;openPics()}};g.append(b)})}
 function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cash-S.paidOut,unit=r+(r===1?' star':' stars');$('#starCount3').textContent='⭐ '+a;
   $('#bkRate').textContent=unit+' = $1';const j=$('#bkJar');j.innerHTML='';for(let k=0;k<r;k++)j.append(el('span',k<a?'':'off','⭐'));
@@ -647,6 +690,67 @@ function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cas
   $('#bkNote').textContent=(owed>0?'Show a grown-up to get your dollars!':'Trade your stars to fill the piggy bank.')+(S.paidOut?' Paid so far: '+usd(S.paidOut)+'.':'')}
 $('#bkTrade').onclick=()=>{if(avail()<S.rate)return;S.spent+=S.rate;S.cash+=100;save();tone(988,.12);tone(1319,.3,'sine',.07,.1);openBank();say('Cool! You traded your stars for one dollar! Go show a grown-up!')};
 $('#goBank').onclick=()=>{sfx.tap();openBank()};
+/* ---------- ABC Letters: trace capital and small letters, trace words, and match first sounds ---------- */
+const ABC=[['A','apple','🍎','ant','🐜'],['B','ball','⚽','bus','🚌'],['C','cat','🐱','car','🚗'],['D','dog','🐶','duck','🦆'],['E','egg','🥚','elephant','🐘'],['F','fish','🐟','frog','🐸'],
+ ['G','goat','🐐','grapes','🍇'],['H','hat','🎩','horse','🐴'],['I','iguana','🦎','ice cream','🍦'],['J','juice','🧃','jeep','🚙'],['K','kite','🪁','key','🔑'],['L','lion','🦁','leaf','🍃'],
+ ['M','moon','🌙','monkey','🐵'],['N','nose','👃','nut','🥜'],['O','octopus','🐙','orange','🍊'],['P','pig','🐷','pizza','🍕'],['Q','queen','👸','question','❓'],['R','rabbit','🐰','rainbow','🌈'],
+ ['S','sun','☀️','snake','🐍'],['T','tiger','🐯','train','🚂'],['U','umbrella','☂️','unicorn','🦄'],['V','van','🚐','violin','🎻'],['W','whale','🐳','watch','⌚'],['X','fox','🦊','box','📦'],
+ ['Y','yo-yo','🪀','yarn','🧶'],['Z','zebra','🦓','zero','0️⃣']];
+const WORDS=[['cat','🐱'],['dog','🐶'],['sun','☀️'],['bus','🚌'],['hat','🎩'],['pig','🐷'],['bed','🛏️'],['cup','☕'],['fox','🦊'],['bee','🐝'],['car','🚗'],['egg','🥚'],['key','🔑'],['moon','🌙'],['fish','🐟'],['frog','🐸'],['star','⭐'],['tree','🌳'],['book','📖'],['cake','🎂']];
+const abcLine=r=>r[0]==='X'?'X is in fox and box.':r[0]+' is for '+r[1]+' and '+r[3]+'.';
+function abcLines(){return[...ABC.flatMap(r=>['Trace the letter '+r[0]+'.',abcLine(r),'Which one starts with the letter '+r[0]+'?']),...WORDS.flatMap(([w])=>['Trace the word '+w+'.','You wrote '+w+'!'])]}
+let abcMode='upper';
+/* The letter is drawn pale with a dashed edge. Points along the middle of its strokes are ticked off as the finger passes near; at 96% the letter is done. */
+function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext('2d'),me=gen,pts=[];host.append(cv);
+  const F=s=>`700 ${s}px Andika,"Baloo 2",sans-serif`;let strokes=[],cur=null,hit=0,done=false,s=300;
+  const draw=()=>{const r=Math.min(devicePixelRatio||1,2);s=Math.max(160,Math.min(host.clientWidth,host.clientHeight,560));cv.width=cv.height=Math.round(s*r);cv.style.width=cv.style.height=s+'px';x.setTransform(r,0,0,r,0,0);
+    x.fillStyle='#FFFDF7';x.fillRect(0,0,s,s);x.strokeStyle='#BFDCE3';x.lineWidth=2;
+    [[.22,0],[.37,1],[.74,0]].forEach(([y,dash])=>{x.setLineDash(dash?[8,8]:[]);x.beginPath();x.moveTo(s*.06,s*y);x.lineTo(s*.94,s*y);x.stroke()});
+    x.font=F(s*.74);x.textAlign='center';x.textBaseline='alphabetic';x.fillStyle=done?'#BFE8C8':'#E4EDF0';x.fillText(ch,s/2,s*.74);
+    if(!done){x.setLineDash([6,6]);x.strokeStyle='#8FA9B5';x.lineWidth=2;x.strokeText(ch,s/2,s*.74)}x.setLineDash([]);
+    x.strokeStyle=done?'#4CA774':'#E8743B';x.lineWidth=s*.07;x.lineCap=x.lineJoin='round';
+    strokes.forEach(st=>{if(!st.length)return;x.beginPath();x.moveTo(st[0][0]*s,st[0][1]*s);st.forEach(p=>x.lineTo(p[0]*s+.1,p[1]*s));x.stroke()});
+    if(!strokes.length&&pts.length){const p=pts[0];x.fillStyle='#F7B731';x.beginPath();x.arc(p[0]*s,p[1]*s,s*.04,0,7);x.fill();x.strokeStyle='#C98A12';x.lineWidth=3;x.stroke()}};
+  const build=()=>{const R=200,m=document.createElement('canvas');m.width=m.height=R;const mx=m.getContext('2d');mx.font=F(R*.74);mx.textAlign='center';mx.textBaseline='alphabetic';mx.fillText(ch,R/2,R*.74);
+    const d=mx.getImageData(0,0,R,R).data,on=(q,y)=>q>=0&&y>=0&&q<R&&y<R&&d[(y*R+q)*4+3]>120;
+    /* only points in the middle of each stroke count, so every part of the letter has to be traced but the finger can wobble */
+    for(let y=2;y<R;y+=5)for(let q=2;q<R;q+=5)if(on(q,y)&&on(q-4,y)&&on(q+4,y)&&on(q,y-4)&&on(q,y+4))pts.push([q/R,y/R,0]);draw()};
+  const tick=(nx,ny)=>{for(const p of pts)if(!p[2]&&Math.hypot(p[0]-nx,p[1]-ny)<.065){p[2]=1;hit++}};
+  const add=e=>{const r=cv.getBoundingClientRect(),p=[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height],l=cur[cur.length-1];
+    if(l){const n=Math.max(1,Math.ceil(Math.hypot(p[0]-l[0],p[1]-l[1])/.03));for(let k=1;k<=n;k++)tick(l[0]+(p[0]-l[0])*k/n,l[1]+(p[1]-l[1])*k/n)}else tick(p[0],p[1]);
+    cur.push(p);if(pts.length&&hit/pts.length>=.96){done=true;cur=null;draw();onDone()}else draw()};
+  cv.onpointerdown=e=>{if(done)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}cur=[];strokes.push(cur);add(e)};
+  cv.onpointermove=e=>{if(cur&&!done)add(e)};cv.onpointerup=cv.onpointercancel=()=>cur=null;
+  refit=draw;draw();const go=()=>{if(me===gen)build()};
+  if(document.fonts&&document.fonts.load)document.fonts.load('700 100px Andika').then(go,go);else go();
+  return{clear(){if(done)return;strokes=[];cur=null;hit=0;pts.forEach(p=>p[2]=0);draw()}}}
+function abcEarn(id){if(S.abc.includes(id))return false;S.abc.push(id);S.stars++;save();$('#starCount4').textContent='⭐ '+avail();return true}
+function abcTrace(chars,i,info){leaveGame();const A=$('#abcArea');A.innerHTML='';A.className='area';$('#abcTabs').hidden=true;
+  const ch=chars[i],word=info.word,top=el('div','abctop'),stage=el('div','stage'),card=el('div','abccard'),row=el('div','pick');
+  if(word)[...word].forEach((c,k)=>top.append(el('span',k<i?'got':k===i?'now':'',c)));else top.append(el('span','now',ch.toUpperCase()+' '+ch.toLowerCase()));
+  const back=el('button','btn',word?'← Words':'← Letters'),clear=el('button','btn','Clear'),next=el('button','btn go','Next');next.hidden=true;row.append(back,clear,next);A.append(top,stage,card,row);
+  const finish=(id,line,pics)=>{const first=abcEarn(id);sfx.win();pics.forEach(e=>card.append(el('span','',e)));card.append(document.createTextNode(line+(first?' ⭐':'')));clear.hidden=true;next.hidden=false;say(pick(CHEERS),line)};
+  const t=tracer(stage,ch,()=>{
+    if(!word){const r=info.row;finish(ch,abcLine(r),[r[2],r[4]]);
+      next.onclick=()=>{sfx.tap();const n=ABC[(ABC.indexOf(r)+1)%ABC.length];abcTrace([ch===r[0]?n[0]:n[0].toLowerCase()],0,{row:n})}}
+    else if(i<chars.length-1){sfx.good();const me=gen;setTimeout(()=>me===gen&&abcTrace(chars,i+1,info),700)}
+    else{finish('w:'+word,'You wrote '+word+'!',[info.emoji]);
+      next.onclick=()=>{sfx.tap();const k=(WORDS.findIndex(w=>w[0]===word)+1)%WORDS.length;abcTrace([...WORDS[k][0]],0,{word:WORDS[k][0],emoji:WORDS[k][1]})}}});
+  back.onclick=()=>{sfx.tap();openAbc()};clear.onclick=()=>{sfx.tap();t.clear()};
+  if(i===0)say(word?'Trace the word '+word+'.':'Trace the letter '+ch.toUpperCase()+'.')}
+function abcQuiz(A){A.className='area';let n=0;const dots=el('div','dots'),box=el('div','box'),me=gen;for(let k=0;k<5;k++)dots.append(el('i'));A.append(dots,box);
+  const ask=()=>{if(me!==gen)return;box.innerHTML='';const pool=ABC.filter(r=>r[0]!=='X'),r=pick(pool),right=r[2+2*rnd(2)],others=sample(pool.filter(o=>o[0]!==r[0]),2).map(o=>o[2+2*rnd(2)]),q='Which one starts with the letter '+r[0]+'?';
+    box.append(el('div','bigl',r[0]+' '+r[0].toLowerCase()),el('div','msg',q),choices(shuffle([right,...others]),v=>v===right,()=>{dots.children[n].className='on';
+      if(++n>=5){n=0;sfx.win();say(pick(CHEERS));toast('Five in a row!');setTimeout(()=>{[...dots.children].forEach(d=>d.className='');ask()},1800)}else ask()}));
+    say(q)};ask()}
+function openAbc(){leaveGame();show('abc');$('#starCount4').textContent='⭐ '+avail();const T=$('#abcTabs'),A=$('#abcArea');T.hidden=false;T.innerHTML='';A.innerHTML='';
+  [['upper','ABC'],['lower','abc'],['words','Words'],['sounds','First sounds']].forEach(([m,l])=>{const b=el('button','btn tab'+(m===abcMode?' on':''),l);b.onclick=()=>{sfx.tap();abcMode=m;openAbc()};T.append(b)});
+  if(abcMode==='sounds')return abcQuiz(A);
+  A.className='scroll';const g=el('div','abcgrid');
+  if(abcMode==='words')WORDS.forEach(([w,e])=>{const b=el('button','abcw'+(S.abc.includes('w:'+w)?' done':''));b.append(el('span','',e),document.createTextNode(w));b.onclick=()=>{sfx.tap();abcTrace([...w],0,{word:w,emoji:e})};g.append(b)});
+  else ABC.forEach(r=>{const ch=abcMode==='upper'?r[0]:r[0].toLowerCase(),b=el('button','abcl'+(S.abc.includes(ch)?' done':''),ch);b.setAttribute('aria-label','Letter '+ch);b.onclick=()=>{sfx.tap();abcTrace([ch],0,{row:r})};g.append(b)});
+  A.append(g)}
+$('#goAbc').onclick=()=>{sfx.tap();openAbc()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setRate').textContent='Trade rate: '+S.rate+(S.rate===1?' star':' stars')+' = $1';$('#setCap').textContent=S.replayCap?'Replay stars: up to '+S.replayCap+' a day':'Replay stars: off';
