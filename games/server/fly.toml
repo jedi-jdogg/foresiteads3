@@ -1,0 +1,27 @@
+# Baby Cheetah save server on Fly.io.
+# Change `app` to a name that is free in your Fly account, and `primary_region` to the one nearest you.
+app = "baby-cheetah-save"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  DATA_DIR = "/data"
+
+# the saved games live on this volume, so they survive restarts and deploys
+[mounts]
+  source = "cheetah_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

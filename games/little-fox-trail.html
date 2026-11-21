@@ -224,6 +224,8 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
 .jar .off{filter:grayscale(1);opacity:.25}
 .cash{font:800 4rem/1 var(--display);color:var(--leaf-d)}
 .bills{font:34px/1.2 var(--emoji);word-break:break-all}
+#syncIn{font:800 1.3rem var(--display);width:100%;text-align:center;border:3px solid var(--line);border-radius:14px;padding:10px;background:#fff;color:var(--ink);letter-spacing:.06em;-webkit-user-select:text;user-select:text}
+.famcode{font:800 1.7rem var(--display);letter-spacing:.08em;background:var(--sky);border-radius:14px;padding:10px 14px;-webkit-user-select:text;user-select:text}
 #gateA{font:800 1.5rem var(--display);width:7ch;text-align:center;border:3px solid var(--line);border-radius:14px;padding:8px;background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -307,6 +309,7 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <button class="btn setrow" id="setWho"></button>
   <button class="btn purple setrow" id="setRec">🎙️ Record the buddy’s voice</button>
   <button class="btn setrow" id="setOpen"></button>
+  <button class="btn setrow" id="setSync" hidden></button>
   <button class="btn setrow" id="setRate"></button>
   <button class="btn setrow" id="setCap"></button>
   <button class="btn setrow" id="setPay"></button>
@@ -319,6 +322,18 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <p id="gateQ"></p>
   <input id="gateA" inputmode="numeric" autocomplete="off" aria-label="Answer">
   <div style="display:flex;gap:12px"><button class="btn" id="gateNo">Back</button><button class="btn go" id="gateOk">Open</button></div>
+</div></div>
+
+<div class="over" id="syncPanel" hidden><div class="panel">
+  <h2 style="font-size:1.6rem">Save on every device</h2>
+  <p id="syncMsg"></p>
+  <div class="famcode" id="syncCode" hidden></div>
+  <button class="btn go setrow" id="syncStart">Start saving from this device</button>
+  <input id="syncIn" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" aria-label="Family code">
+  <button class="btn green setrow" id="syncJoin">Use this code</button>
+  <button class="btn setrow" id="syncGo">Save and load now</button>
+  <button class="btn setrow" id="syncStop">Stop saving on this device</button>
+  <button class="btn setrow" id="syncClose">Done</button>
 </div></div>
 
 <div class="over" id="picView" hidden><div class="panel">
@@ -383,7 +398,7 @@ document.querySelectorAll('img.bear,img.cheetah,img.deer,img.baby').forEach(i=>i
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
 let S={done:[],sound:true,voice:true,open:false};
-let ART_SAVED=[],artCol=null;
+let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
 function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
@@ -394,27 +409,54 @@ try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
    kept there (one document each), so all his devices show the same gallery. Removed pictures are remembered so they stay removed. */
 const artStore=()=>{try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,24)))}catch(e){try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,8)))}catch(_){}}};
 {const old=ART_SAVED.some(a=>typeof a==='string');ART_SAVED=ART_SAVED.map((a,i)=>typeof a==='string'?{id:'a'+i+'x'+Math.random().toString(36).slice(2,8),u:a,t:Date.now()-i}:a).filter(a=>a&&a.u);if(old)artStore()}
-function removeArt(id){ART_SAVED=ART_SAVED.filter(a=>a.id!==id);artStore();if(!S.artGone.includes(id)){S.artGone.push(id);save()}if(artCol)artCol.doc(id).delete().catch(()=>{})}
-async function syncArt(){if(!artCol)return;try{const snap=await artCol.get(),seen=new Set();let changed=false;
-    for(const d of snap.docs){const v=d.data();if(!v||typeof v.u!=='string'||!v.u.startsWith('data:image/'))continue;
-      if(S.artGone.includes(d.id)){artCol.doc(d.id).delete().catch(()=>{});continue}
-      seen.add(d.id);if(!ART_SAVED.some(a=>a.id===d.id)){ART_SAVED.push({id:d.id,u:v.u,t:+v.t||0});changed=true}}
+/* ---------- Saving beyond this device ----------
+   `remote` is where the game is saved besides this device. Two kinds exist:
+   - the family server (a small service of our own), used when the app was built with its address and this device has a family code;
+   - the signed-in Claude account, used only inside Claude, which cannot reach outside servers.
+   Both keep one progress record and one record per picture, and both are merged with what is on the device, never just overwritten. */
+let remote=null,remoteQ=Promise.resolve(),pushTimer=0,artCol=null;
+function removeArt(id){ART_SAVED=ART_SAVED.filter(a=>a.id!==id);artStore();if(!S.artGone.includes(id)){S.artGone.push(id);save()}if(remote)remote.delArt(id).catch(()=>{})}
+async function syncArt(){if(!remote)return;try{const list=await remote.listArt(),seen=new Set();let changed=false;
+    for(const d of list){if(S.artGone.includes(d.id)){remote.delArt(d.id).catch(()=>{});continue}seen.add(d.id);
+      if(!ART_SAVED.some(a=>a.id===d.id)){const v=await d.load().catch(()=>null);if(v&&typeof v.u==='string'&&v.u.startsWith('data:image/')){ART_SAVED.push({id:d.id,u:v.u,t:+v.t||0});changed=true}}}
     if(ART_SAVED.some(a=>S.artGone.includes(a.id))){ART_SAVED=ART_SAVED.filter(a=>!S.artGone.includes(a.id));changed=true}
-    for(const a of ART_SAVED)if(!seen.has(a.id))await artCol.doc(a.id).set({u:a.u,t:a.t||0}).catch(()=>{});
+    for(const a of ART_SAVED)if(!seen.has(a.id))await remote.putArt(a.id,{u:a.u,t:a.t||0}).catch(()=>{});
     if(changed){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();if(!$('#pics').hidden)openPics()}}catch(e){}}
-/* progress is also kept with the signed-in account when the page is hosted in Claude, so a reload or another device keeps the stars */
-let cloud=null,cloudQ=Promise.resolve();
-const pushCloud=()=>{if(!cloud)return;const d=JSON.parse(JSON.stringify(S));cloudQ=cloudQ.then(()=>cloud.set(d)).catch(()=>{})};
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushCloud()};
-async function linkCloud(){try{if(!window.claude||!window.claude.use)return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;
-  const id=await user.id();if(!id)return;const ref=db.collection('data/users/'+id).doc('progress'),snap=await ref.get(),c=snap.exists?snap.data():null;cloud=ref;artCol=db.collection('data/users/'+id+'/progress/art');
-  if(c&&Array.isArray(c.done)){const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
-    if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}for(const k of['abc','math','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;
-    if(grew){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
-    pushCloud()}
-  else if(S.done.length||S.stars)pushCloud();
-  syncArt()}catch(e){}}
-const saveArt=url=>{const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:url,t:Date.now()};ART_SAVED.unshift(a);artStore();if(artCol)artCol.doc(a.id).set({u:a.u,t:a.t}).catch(()=>{})};
+/* changes are sent a moment after they happen (so a burst of saves is one send), and at once when the game is closed or hidden */
+const pushRemote=now=>{if(!remote)return;clearTimeout(pushTimer);const go=()=>{const d=JSON.parse(JSON.stringify(S)),r=remote;remoteQ=remoteQ.then(()=>r.putP(d)).catch(()=>{})};if(now)go();else pushTimer=setTimeout(go,600)};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRemote()};
+/* fold a saved record into this device's: finished things are combined, counters take the larger number */
+function mergeRemote(c){if(!c||!Array.isArray(c.done))return false;const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;
+  for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
+  if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}
+  for(const k of['abc','math','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
+  if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;return grew}
+async function syncNow(){if(!remote)return false;try{const c=await remote.getP();
+    if(mergeRemote(c)){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
+    pushRemote();await syncArt();return true}catch(e){return false}}
+function claudeRemote(db,id){const ref=db.collection('data/users/'+id).doc('progress'),col=db.collection('data/users/'+id+'/progress/art');
+  return{name:'claude',getP:async()=>{const d=await ref.get();return d.exists?d.data():null},putP:d=>ref.set(d),
+    listArt:async()=>(await col.get()).docs.map(d=>({id:d.id,load:async()=>d.data()})),putArt:(i,v)=>col.doc(i).set(v),delArt:i=>col.doc(i).delete()}}
+/* the family server: its address is set when the app is built; the family code is typed once per device */
+const SYNC_URL=String(window.BABY_CHEETAH_SYNC||'').replace(/\/+$/,''),CODE_KEY=KEY+'-family';
+let familyCode='';try{familyCode=localStorage.getItem(CODE_KEY)||''}catch(e){}
+function serverRemote(code){const base=SYNC_URL+'/v1/s/'+code,
+    j=async(path,opt)=>{const r=await fetch(base+path,opt);if(r.status===404)return null;if(!r.ok)throw new Error('save server said '+r.status);return r.json()},
+    put=(path,d)=>{const body=JSON.stringify(d);return j(path,{method:'PUT',headers:{'content-type':'application/json'},body,keepalive:body.length<60000})};
+  return{name:'server',getP:()=>j('/progress'),putP:d=>put('/progress',d),listArt:async()=>((await j('/art'))||[]).map(a=>({id:a.id,load:()=>j('/art/'+a.id)})),
+    putArt:(i,v)=>put('/art/'+i,v),delArt:i=>j('/art/'+i,{method:'DELETE'})}}
+const newCode=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=new Uint8Array(12);crypto.getRandomValues(b);return[...b].map(x=>A[x%32]).join('')};
+const showCode=c=>c.replace(/(.{4})(?=.)/g,'$1-');
+const cleanCode=t=>String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function setFamily(code){familyCode=code;try{code?localStorage.setItem(CODE_KEY,code):localStorage.removeItem(CODE_KEY)}catch(e){}remote=code&&SYNC_URL?serverRemote(code):null}
+async function linkCloud(){
+  if(SYNC_URL&&familyCode)remote=serverRemote(familyCode);
+  else if(!SYNC_URL){try{if(window.claude&&window.claude.use){const db=await window.claude.use('db'),user=await window.claude.use('user'),id=db&&user?await user.id():null;if(id)remote=claudeRemote(db,id)}}catch(e){}}
+  if(remote)await syncNow()}
+/* coming back to the game on a device picks up what the other devices did */
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pushRemote(true);else if(remote&&remote.name==='server')syncNow()});
+addEventListener('pagehide',()=>pushRemote(true));
+const saveArt=url=>{const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:url,t:Date.now()};ART_SAVED.unshift(a);artStore();if(remote)remote.putArt(a.id,{u:a.u,t:a.t}).catch(()=>{})};
 
 /* ---------- sound and voice ---------- */
 let AC;
@@ -883,11 +925,24 @@ function mathPlay(L){leaveGame();const A=$('#mathArea'),me=gen;A.innerHTML='';A.
 $('#goMath').onclick=()=>{sfx.tap();openMath()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
+  {const y=$('#setSync');y.hidden=!SYNC_URL;y.textContent=familyCode?'Saving to the family server: on':'Save on every device: off'}
   $('#setRate').textContent='Trade rate: '+S.rate+(S.rate===1?' star':' stars')+' = $1';$('#setCap').textContent=S.replayCap?'Replay stars: up to '+S.replayCap+' a day':'Replay stars: off';
   const o=S.cash-S.paidOut,p=$('#setPay');delete p.dataset.arm;p.textContent=o>0?'Owed: '+usd(o)+' · tap when paid':'Nothing owed right now'}
 $('#setRate').onclick=()=>{const o=[1,2,5,10,20];S.rate=o[(o.indexOf(S.rate)+1)%o.length];save();drawSettings()};
 $('#setCap').onclick=()=>{const o=[0,3,5,10];S.replayCap=o[(o.indexOf(S.replayCap)+1)%o.length];save();drawSettings()};
 $('#setPay').onclick=e=>{const o=S.cash-S.paidOut;if(o<=0)return;if(!e.target.dataset.arm){e.target.dataset.arm=1;e.target.textContent='Tap again: I paid '+usd(o);return}S.paidOut=S.cash;save();drawSettings();toast('Marked as paid')};
+/* family server panel */
+function drawSync(msg){const on=!!familyCode;$('#syncMsg').textContent=msg||(on?'This device saves to the family server. Type this code on his other devices to share one game. Keep it private: anyone with the code can open the saved game.':'Start here on the device that has his game, then type its code on the others.');
+  $('#syncCode').hidden=!on;$('#syncCode').textContent=showCode(familyCode);for(const k of['syncStart','syncIn','syncJoin'])$('#'+k).hidden=on;for(const k of['syncGo','syncStop'])$('#'+k).hidden=!on;
+  const st=$('#syncStop');delete st.dataset.arm;st.textContent='Stop saving on this device'}
+$('#setSync').onclick=()=>{$('#grown').hidden=true;drawSync();$('#syncPanel').hidden=false};
+$('#syncClose').onclick=()=>{$('#syncPanel').hidden=true;drawSettings();$('#grown').hidden=false};
+$('#syncStart').onclick=async()=>{const code=newCode();drawSync('Setting up…');try{await serverRemote(code).putP(JSON.parse(JSON.stringify(S)));setFamily(code);await syncNow();drawSync()}catch(e){drawSync('The save server could not be reached. Check the internet and try again.')}};
+$('#syncJoin').onclick=async()=>{const code=cleanCode($('#syncIn').value);if(!/^[A-HJ-NP-Z2-9]{12}$/.test(code)){drawSync('That code is not complete. It has 12 letters and numbers.');return}
+  drawSync('Looking for the saved game…');try{const c=await serverRemote(code).getP();if(!c){drawSync('No saved game was found with that code. Check it and try again.');return}
+    setFamily(code);const ok=await syncNow();drawSync(ok?'':'Linked, but the first load did not finish. Tap "Save and load now".')}catch(e){drawSync('The save server could not be reached. Check the internet and try again.')}};
+$('#syncGo').onclick=async()=>{drawSync('Saving and loading…');const ok=await syncNow();drawSync(ok?'Up to date. '+ART_SAVED.length+' pictures and '+S.stars+' stars are saved.':'The save server could not be reached. Check the internet and try again.')};
+$('#syncStop').onclick=e=>{if(!e.target.dataset.arm){e.target.dataset.arm=1;e.target.textContent='Tap again to stop. Nothing is deleted.';return}setFamily('');drawSync()};
 let gateAns=0;
 $('#gateNo').onclick=()=>$('#gate').hidden=true;
 $('#gateOk').onclick=()=>{if(+$('#gateA').value===gateAns){$('#gate').hidden=true;drawSettings();$('#grown').hidden=false}else{wobble($('#gateA'));$('#gateA').value=''}};

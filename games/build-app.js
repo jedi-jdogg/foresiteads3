@@ -11,7 +11,10 @@ fs.mkdirSync(out, { recursive: true });
 const cut = src.indexOf('<section');
 if (cut < 0) throw new Error('Could not find the start of the page body');
 const head = src.slice(0, cut), body = src.slice(cut);
-const version = crypto.createHash('sha256').update(src).digest('hex').slice(0, 10);
+/* the family save server's address, if one has been deployed (see games/server/README.md) */
+let syncUrl = '';
+try { syncUrl = String(JSON.parse(fs.readFileSync(path.join(__dirname, 'sync-config.json'), 'utf8')).url || ''); } catch (e) {}
+const version = crypto.createHash('sha256').update(src + syncUrl).digest('hex').slice(0, 10);
 
 const updater = `
 <script>
@@ -52,6 +55,7 @@ const html = `<!doctype html>
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.BABY_CHEETAH_SYNC=${JSON.stringify(syncUrl)};</script>
 ${head}</head>
 <body>
 ${body}${updater}
