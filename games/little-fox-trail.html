@@ -1,4 +1,4 @@
-<title>Little Cheetah and Bear Trail</title>
+<title>Cheetah and Bear Trail</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
 <style>
@@ -158,8 +158,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;font-weight:800}
 .setrow{width:100%}
-img.bear{width:1em;height:1em;vertical-align:-.14em}
-.tool img.bear{width:28px;height:28px;vertical-align:middle}
+img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
+.tool img.bear,.tool img.cheetah{width:28px;height:28px;vertical-align:middle}
 .bankp{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
 .bankp h3{margin:0;font-size:1.4rem}
 .jar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:420px;font:34px/1 var(--emoji)}
@@ -172,8 +172,8 @@ img.bear{width:1em;height:1em;vertical-align:-.14em}
 
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true">🐆<img class="bear" alt=""></div>
-  <h1>Little Cheetah and Bear Trail</h1>
+  <div class="hero" aria-hidden="true"><img class="cheetah" alt=""><img class="bear" alt=""></div>
+  <h1>Cheetah and Bear Trail</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
     <button class="btn go" id="goMap">Play</button>
@@ -259,14 +259,31 @@ const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],
 const sample=(a,n)=>shuffle(a).slice(0,n);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
-/* the bear buddy is drawn here, white with light brown accents, because no emoji looks like that */
+/* the two buddies are drawn here: a spotted cheetah and a white bear with light brown accents */
 const BEAR='bear';
-const BEAR_URL='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g stroke="#C9A27A" stroke-width="3" fill="#FFFFFF"><circle cx="24" cy="27" r="15"/><circle cx="76" cy="27" r="15"/></g><circle cx="24" cy="27" r="8" fill="#E8CBA8"/><circle cx="76" cy="27" r="8" fill="#E8CBA8"/><ellipse cx="50" cy="56" rx="40" ry="36" fill="#FFFFFF" stroke="#C9A27A" stroke-width="3"/><circle cx="24" cy="66" r="6" fill="#F5DCC6"/><circle cx="76" cy="66" r="6" fill="#F5DCC6"/><ellipse cx="50" cy="69" rx="17" ry="13" fill="#F6E7D3"/><ellipse cx="50" cy="62" rx="7" ry="5" fill="#B5835A"/><path d="M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1" fill="none" stroke="#B5835A" stroke-width="2.5" stroke-linecap="round"/><circle cx="34" cy="50" r="4.5" fill="#A87850"/><circle cx="66" cy="50" r="4.5" fill="#A87850"/></svg>');
-const bearImg=new Image();bearImg.onload=()=>refit&&refit();bearImg.src=BEAR_URL;
-const bearEl=()=>{const i=el('img','bear');i.src=BEAR_URL;i.alt='';return i};
-const icon=(n,e)=>{n.textContent='';if(e===BEAR)n.append(bearEl());else n.textContent=e;return n};
-const buddy=n=>{n.append('🐆',bearEl());return n};
-document.querySelectorAll('img.bear').forEach(i=>i.src=BEAR_URL);
+const CHEETAH='cheetah';
+/* each face is a list of shapes: ['e', cx, cy, rx, ry, fill, outline] or ['p', path, stroke, width], on a 100 x 100 sheet.
+   The same list draws the picture on the page and on the game canvases. */
+const SPOT='#9C6A32',CH='#F6C458',CHO='#B5803F';
+const FACES={
+ bear:[['e',24,27,15,15,'#FFFFFF','#C9A27A'],['e',76,27,15,15,'#FFFFFF','#C9A27A'],['e',24,27,8,8,'#E8CBA8'],['e',76,27,8,8,'#E8CBA8'],['e',50,56,40,36,'#FFFFFF','#C9A27A'],
+  ['e',24,66,6,6,'#F5DCC6'],['e',76,66,6,6,'#F5DCC6'],['e',50,69,17,13,'#F6E7D3'],['e',50,62,7,5,'#B5835A'],['p','M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1','#B5835A',2.5],
+  ['e',34,50,4.5,4.5,'#A87850'],['e',66,50,4.5,4.5,'#A87850']],
+ cheetah:[['e',24,27,14,14,CH,CHO],['e',76,27,14,14,CH,CHO],['e',24,27,7,7,'#FBE3B0'],['e',76,27,7,7,'#FBE3B0'],['e',50,56,40,36,CH,CHO],
+  ['e',38,31,2.6,2.6,SPOT],['e',50,27,2.6,2.6,SPOT],['e',62,31,2.6,2.6,SPOT],['e',44,38,2.4,2.4,SPOT],['e',56,38,2.4,2.4,SPOT],
+  ['e',19,52,2.6,2.6,SPOT],['e',81,52,2.6,2.6,SPOT],['e',18,63,2.4,2.4,SPOT],['e',82,63,2.4,2.4,SPOT],['e',25,75,2.4,2.4,SPOT],['e',75,75,2.4,2.4,SPOT],
+  ['e',50,70,18,13,'#FFF4DC'],['p','M37 55Q32 65 37 75M63 55Q68 65 63 75','#8A5A2B',3],['e',50,63,6.5,4.5,'#8A5A2B'],['p','M50 67v5M50 72q-6 6-11 1M50 72q6 6 11 1','#8A5A2B',2.5],
+  ['e',34,50,4.5,4.5,'#7A4E24'],['e',66,50,4.5,4.5,'#7A4E24']]};
+const faceUrl=k=>'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'+FACES[k].map(o=>o[0]==='e'
+  ?`<ellipse cx="${o[1]}" cy="${o[2]}" rx="${o[3]}" ry="${o[4]}" fill="${o[5]}"${o[6]?` stroke="${o[6]}" stroke-width="3"`:''}/>`
+  :`<path d="${o[1]}" fill="none" stroke="${o[2]}" stroke-width="${o[3]}" stroke-linecap="round"/>`).join('')+'</svg>');
+function drawFace(x,k,cx,cy,size){x.save();x.translate(cx-size/2,cy-size/2);x.scale(size/100,size/100);
+  for(const o of FACES[k]){if(o[0]==='e'){x.beginPath();x.ellipse(o[1],o[2],o[3],o[4],0,0,7);x.fillStyle=o[5];x.fill();if(o[6]){x.strokeStyle=o[6];x.lineWidth=3;x.stroke()}}
+    else{x.strokeStyle=o[2];x.lineWidth=o[3];x.lineCap='round';x.stroke(new Path2D(o[1]))}}x.restore()}
+const faceEl=k=>{const i=el('img',k);i.src=faceUrl(k);i.alt='';return i};
+const icon=(n,e)=>{n.textContent='';if(FACES[e])n.append(faceEl(e));else n.textContent=e;return n};
+const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR));return n};
+document.querySelectorAll('img.bear,img.cheetah').forEach(i=>i.src=faceUrl(i.className));
 
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
@@ -443,7 +460,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
     x.strokeStyle='#1F3044';x.lineWidth=Math.max(3,s*.08);x.lineCap='round';x.beginPath();
     for(let c=0;c<n*n;c++){const px=(c%n)*s,py=(c/n|0)*s;if(!open[c][0]){x.moveTo(px,py);x.lineTo(px+s,py)}if(!open[c][3]){x.moveTo(px,py);x.lineTo(px,py+s)}
       if(!open[c][1]){x.moveTo(px+s,py);x.lineTo(px+s,py+s)}if(!open[c][2]){x.moveTo(px,py+s);x.lineTo(px+s,py+s)}}x.stroke();
-    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';if(bearImg.complete&&bearImg.naturalWidth)x.drawImage(bearImg,(end%n+.16)*s,((end/n|0)+.16)*s,s*.68,s*.68);x.fillText('🐆',(pos%n+.5)*s,((pos/n|0)+.55)*s)};
+    x.font=`${s*.6}px serif`;x.textAlign='center';x.textBaseline='middle';drawFace(x,BEAR,(end%n+.5)*s,((end/n|0)+.5)*s,s*.72);drawFace(x,CHEETAH,(pos%n+.5)*s,((pos/n|0)+.5)*s,s*.72)};
   const path=(from,to)=>{const prev={[from]:-1},q=[from];while(q.length){const c=q.shift();if(c===to){const p=[];for(let k=c;k!==from;k=prev[k])p.unshift(k);return p}
     for(let k=0;k<4;k++)if(open[c][k]){const nc=c+DX[k]+DY[k]*n;if(!(nc in prev)){prev[nc]=c;q.push(nc)}}}return[]};
   const go=to=>{if(over||to<0||to>=n*n)return;const p=path(pos,to);if(!p.length||p.length>3)return;p.forEach(c=>trail.add(c));pos=to;sfx.note(trail.size);draw();if(pos===end){over=true;win()}};
@@ -498,7 +515,7 @@ function scene(w,cols,rows){const c=document.createElement('canvas'),W=c.width=7
   const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,w.dark?'#1F2A52':'#8FD0EE');g.addColorStop(1,w.dark?'#6A57B0':'#FDF3C8');x.fillStyle=g;x.fillRect(0,0,W,H);
   x.fillStyle=w.dark?'#FFF3B0':'#F7B731';x.beginPath();x.arc(W*.82,H*.16,H*.1,0,7);x.fill();
   x.fillStyle=w.hill;x.beginPath();x.ellipse(W*.25,H*1.02,W*.5,H*.34,0,0,7);x.fill();x.globalAlpha=.8;x.beginPath();x.ellipse(W*.8,H*1.05,W*.5,H*.3,0,0,7);x.fill();x.globalAlpha=1;
-  x.textAlign='center';x.textBaseline='middle';const ems=shuffle([...w.em,'🐆',...w.em]),tw=W/cols,th=H/rows;x.font=`${Math.min(tw,th)*.56}px serif`;
+  x.textAlign='center';x.textBaseline='middle';const ems=shuffle([...w.em,...w.em]),tw=W/cols,th=H/rows;x.font=`${Math.min(tw,th)*.56}px serif`;
   for(let r=0;r<rows;r++)for(let q=0;q<cols;q++)x.fillText(ems[(r*cols+q)%ems.length],(q+.3+Math.random()*.4)*tw,(r+.35+Math.random()*.35)*th);
   return c.toDataURL('image/jpeg',.85)}
 
@@ -512,7 +529,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]};
   const seg=(p,q)=>{x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#fff':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
-  const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>stamp===BEAR?x.drawImage(bearImg,u-z/2,v-z/2,z,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
+  const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>FACES[stamp]?drawFace(x,stamp,u,v,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
   cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
     if(mode==='stamp'){put(p);sfx.tap()}else{last=p;seg(p,[p[0]+.1,p[1]+.1])}};
@@ -526,7 +543,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{mode='stamp';stampRow.hidden=false;mark();resize()});stampBtn.dataset.m='stamp';
-  [...new Set(['⭐','❤️','🐆',BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';sfx.tap();mark()};stampRow.append(b)});
+  [...new Set(['⭐','❤️',CHEETAH,BEAR,...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';sfx.tap();mark()};stampRow.append(b)});
   tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
   tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
   let doneBtn=null;
@@ -550,7 +567,7 @@ function reward(i){const first=!S.done.includes(i);let star=first;
       const w=WORLDS[i>>3],top=S.done.length>=N;
       if(first){got.append(el('span','',stickerOf(i)),document.createTextNode('A gold star and a new sticker!'));
         if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?'You reached the top of the trail!':'You finished '+w.name+'!'))}
-      else got.append(el('span','',star?'⭐':'🐆'),document.createTextNode(star?'Another gold star!':'Great playing!'));
+      else got.append(el('span','',star?'⭐':'👏'),document.createTextNode(star?'Another gold star!':'Great playing!'));
       got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! Another gold star for you, dear!':'High five! Lovely playing, dear!'):(i&7)!==7?'High five! A gold star and a new sticker, just for you, dear!':top?'High five! You reached the very top of the trail! Oh, I am so proud of you, poppet!':'High five! You finished '+w.name+'! Here is your trophy!')},700)}}
 $('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();openMap()};
 $('#quit').onclick=()=>{leaveGame();openMap()};
