@@ -210,6 +210,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
   <h2 style="font-size:1.6rem">For grown-ups</h2>
   <button class="btn setrow" id="setSound"></button>
   <button class="btn setrow" id="setVoice"></button>
+  <button class="btn setrow" id="setWho"></button>
   <button class="btn setrow" id="setOpen"></button>
   <button class="btn setrow" id="setReset">Start the trail over</button>
   <button class="btn go setrow" id="setClose">Done</button>
@@ -248,7 +249,15 @@ function tone(f,t=.15,type='sine',v=.07,when=0){if(!S.sound)return;try{AC=AC||ne
 const sfx={tap:()=>tone(440,.08),good:()=>{tone(523,.15);tone(784,.25,'sine',.07,.12)},oops:()=>tone(196,.2,'triangle',.05),
   win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.3,'sine',.07,i*.13)),clap:()=>{tone(170,.12,'square',.05);tone(1200,.08,'triangle',.04)},
   note:k=>tone(262*Math.pow(2,[0,2,4,7,9,12][k%6]/12),.15)};
-function say(t){if(!S.voice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+/* pick the warmest voice the device has: natural or enhanced ones first, then known friendly names */
+const VOICE_PREF=['natural','enhanced','premium','ava','samantha','zoe','allison','jenny','aria','google us english','karen','moira'];
+function voices(){try{return speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang))}catch(e){return[]}}
+function bestVoice(){const vs=voices();if(S.vname){const v=vs.find(v=>v.name===S.vname);if(v)return v}
+  for(const p of VOICE_PREF){const v=vs.find(v=>v.name.toLowerCase().includes(p));if(v)return v}return vs[0]||null}
+try{speechSynthesis.getVoices()}catch(e){}
+const CHEERS=['You did it!','Wow, great job!','Amazing work!','You are a superstar!','Yay, you got it!','That was awesome!'];
+const OPENERS=['Okay!','Here we go!','Let’s try this one!','Ooh, a fun one!','Ready?'];
+function say(t){if(!S.voice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),v=bestVoice();if(v){u.voice=v;u.lang=v.lang}u.rate=.88;u.pitch=1.2;speechSynthesis.speak(u)}catch(e){}}
 function hush(){try{speechSynthesis.cancel()}catch(e){}}
 
 /* ---------- worlds and missions ---------- */
@@ -472,10 +481,10 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
 /* ---------- starting and finishing a mission ---------- */
 function startLevel(i){leaveGame();curLevel=i;const w=WORLDS[i>>3],t=w.types[i&7],me=gen;show('play');area.innerHTML='';area.className='area';
   let won=false;curHint=GAMES[t](area,i>>3,w,()=>{if(won||me!==gen)return;won=true;setTimeout(()=>me===gen&&reward(i),700)});
-  $('#hint').textContent=curHint;say(curHint)}
+  $('#hint').textContent=curHint;say(pick(OPENERS)+' '+curHint)}
 function reward(i){const first=!S.done.includes(i);if(first){S.done.push(i);save()}
-  sfx.win();$('#rwT').textContent='You did it!';$('#rwP').textContent='Give me a high five!';$('#rwP').hidden=false;$('#hand').className='';$('#hand').hidden=false;$('#rwGot').hidden=true;$('#rwNext').hidden=true;
-  $('#reward').hidden=false;say('You did it! Give me a high five!');
+  const cheer=pick(CHEERS);sfx.win();$('#rwT').textContent=cheer;$('#rwP').textContent='Give me a high five!';$('#rwP').hidden=false;$('#hand').className='';$('#hand').hidden=false;$('#rwGot').hidden=true;$('#rwNext').hidden=true;
+  $('#reward').hidden=false;say(cheer+' Give me a high five!');
   $('#hand').onclick=()=>{$('#hand').onclick=null;$('#hand').className='hit';sfx.clap();setTimeout(sfx.good,200);
     const panel=$('#reward .panel');for(let k=0;k<12;k++){const s=el('span','spark','⭐'),an=Math.PI*2*k/12;s.style.setProperty('--dx',Math.cos(an)*150+'px');s.style.setProperty('--dy',Math.sin(an)*150+'px');panel.append(s);setTimeout(()=>s.remove(),1000)}
     setTimeout(()=>{const got=$('#rwGot');got.innerHTML='';got.className='got';$('#hand').hidden=true;$('#rwP').hidden=true;$('#rwT').textContent='High five!';
@@ -483,7 +492,7 @@ function reward(i){const first=!S.done.includes(i);if(first){S.done.push(i);save
       if(first){got.append(el('span','',stickerOf(i)),document.createTextNode('A gold star and a new sticker!'));
         if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?'You reached the top of the trail!':'You finished '+w.name+'!'))}
       else got.append(el('span','','⭐'),document.createTextNode('Great playing!'));
-      got.hidden=false;$('#rwNext').hidden=false;say(first?'A gold star and a new sticker!':'Great playing!')},700)}}
+      got.hidden=false;$('#rwNext').hidden=false;say(!first?'High five! That was great playing!':(i&7)!==7?'High five! You earned a gold star and a new sticker!':top?'High five! You reached the very top of the trail! I am so proud of you!':'High five! You finished '+w.name+'! Here is your trophy!')},700)}}
 $('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();openMap()};
 $('#quit').onclick=()=>{leaveGame();openMap()};
 $('#speak').onclick=()=>{const v=S.voice;S.voice=true;say(curHint);S.voice=v};
@@ -515,10 +524,11 @@ function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
     b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;const d=$('#picDel');d.textContent='Remove';let armed=false;
       d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}ART_SAVED.splice(i,1);try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED))}catch(e){}$('#picView').hidden=true;openPics()}};g.append(b)})}
 function openHome(){leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
-function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over'}
+function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over'}
 $('#gear').onclick=()=>{drawSettings();$('#grown').hidden=false};
 $('#setSound').onclick=()=>{S.sound=!S.sound;save();drawSettings();sfx.tap()};
 $('#setVoice').onclick=()=>{S.voice=!S.voice;save();drawSettings();if(!S.voice)hush()};
+$('#setWho').onclick=()=>{const vs=voices();if(vs.length<2)return;const c=bestVoice();S.vname=vs[(vs.indexOf(c)+1)%vs.length].name;save();drawSettings();const on=S.voice;S.voice=true;say('Hi! I am your trail buddy. Let’s play!');S.voice=on};
 $('#setOpen').onclick=()=>{S.open=!S.open;save();drawSettings()};
 $('#setReset').onclick=e=>{if(e.target.dataset.arm){delete e.target.dataset.arm;S.done=[];save();drawSettings();openHome();toast('The trail is ready to start again')}else{e.target.dataset.arm=1;e.target.textContent='Tap again to erase all stars'}};
 $('#setClose').onclick=()=>{delete $('#setReset').dataset.arm;$('#grown').hidden=true};
