@@ -6,13 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Cheetah &amp; Bear">
+<meta name="apple-mobile-web-app-title" content="Baby Cheetah">
 <meta name="theme-color" content="#DDF1F5">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Cheetah and Bear Trail</title>
+<title>Baby Cheetah</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
 <style>
@@ -50,7 +50,9 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 
 /* home */
 #home{align-items:center;justify-content:center;text-align:center;gap:18px;background:linear-gradient(#BFE6F2,var(--sky) 55%,#CFEBB8)}
-#home .hero{font:88px/1 var(--emoji);white-space:nowrap}
+#home .hero{font:88px/1 var(--emoji);white-space:nowrap;width:100%}
+.friends{display:block;margin:0 auto;width:min(100%,470px);height:auto;filter:drop-shadow(0 8px 6px rgba(31,48,68,.22))}
+.babyimg{height:52px;width:auto;max-width:none;display:block;margin-top:-8px;filter:drop-shadow(0 3px 2px rgba(31,48,68,.3))}
 #home h1{font-size:clamp(2.1rem,7.5vw,3.6rem);color:var(--fox-d)}
 #home p{margin:0;color:var(--soft);max-width:24ch}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
@@ -242,8 +244,8 @@ img.bear,img.cheetah{width:1em;height:1em;vertical-align:-.14em}
 <body>
 <section class="screen" id="home">
   <button class="btn round" id="gear" aria-label="Settings for grown-ups">⚙️</button>
-  <div class="hero" aria-hidden="true"><img class="cheetah" alt=""><img class="bear" alt=""></div>
-  <h1>Cheetah and Bear Trail</h1>
+  <div class="hero" aria-hidden="true"><img class="friends" id="friends" src="friends.webp" alt=""></div>
+  <h1>Baby Cheetah</h1>
   <p>Climb the trail. Play a game at every stop.</p>
   <div class="menu">
     <button class="btn go" id="goMap">Play</button>
@@ -349,6 +351,8 @@ const sample=(a,n)=>shuffle(a).slice(0,n);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
 /* the two buddies are drawn here: a spotted cheetah and a white bear with light brown accents */
+/* the real baby cheetah, cut out of a photo of the toy: the trail marker */
+const BABY='data:image/webp;base64,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';
 const BEAR='bear';
 const CHEETAH='cheetah';
 /* each face is a list of shapes: ['e', cx, cy, rx, ry, fill, outline] or ['p', path, stroke, width], on a 100 x 100 sheet.
@@ -387,6 +391,8 @@ const faceEl=k=>{const i=el('img',k);i.src=faceUrl(k);i.alt='';return i};
 const icon=(n,e)=>{n.textContent='';if(FACES[e])n.append(faceEl(e));else n.textContent=e;return n};
 const buddy=n=>{n.append(faceEl(CHEETAH),faceEl(BEAR));return n};
 document.querySelectorAll('img.bear,img.cheetah').forEach(i=>i.src=faceUrl(i.className));
+/* if the photo of the four friends cannot load, show the drawn buddies instead */
+{const f=document.getElementById('friends');if(f)f.onerror=()=>{const h=f.parentNode;h.textContent='';buddy(h)}}
 
 /* ---------- saved progress (this device only) ---------- */
 const KEY='little-fox-trail-v1';
@@ -750,7 +756,7 @@ function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t
   for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
     b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
-    if(i===cur){b.classList.add('cur');b.append(buddy(el('span','fox')))}
+    if(i===cur){b.classList.add('cur');{const m=el('img','babyimg');m.src=BABY;m.alt='';const f=el('span','fox');f.append(m);b.append(f)}}
     b.onclick=()=>{sfx.tap();startLevel(i)};T.append(b)}
   $('#starCount').textContent='⭐ '+avail();
   const sc=$('#mapScroll');sc.scrollTop=y(Math.min(cur,N-1))-sc.clientHeight/2}
@@ -929,7 +935,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='aa948644ca',last=0;
+  var MINE='72cfee8c7b',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){

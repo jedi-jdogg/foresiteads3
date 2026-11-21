@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Builds the installable (home-screen) version of Cheetah and Bear Trail.
+/* Builds the installable (home-screen) version of Baby Cheetah.
    Source of truth: games/little-fox-trail.html (the page published in Claude).
    Output: games/app/  — a static folder any HTTPS host can serve.
    Run:  node games/build-app.js   after every change to the game file. */
@@ -46,7 +46,7 @@ const html = `<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Cheetah &amp; Bear">
+<meta name="apple-mobile-web-app-title" content="Baby Cheetah">
 <meta name="theme-color" content="#DDF1F5">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -60,7 +60,7 @@ ${body}${updater}
 `;
 
 const manifest = {
-  name: 'Cheetah and Bear Trail', short_name: 'Cheetah & Bear',
+  name: 'Baby Cheetah', short_name: 'Baby Cheetah',
   description: 'Climb the trail and play a game at every stop.',
   start_url: './', scope: './', display: 'standalone', orientation: 'any',
   background_color: '#DDF1F5', theme_color: '#DDF1F5',
@@ -71,9 +71,9 @@ const manifest = {
   ],
 };
 
-const sw = `/* Cheetah and Bear Trail offline support. Game files: newest from the internet first, saved copy when offline. */
+const sw = `/* Baby Cheetah offline support. Game files: newest from the internet first, saved copy when offline. */
 const CACHE='cbt-cache-v1';
-const SHELL=['./','voice.json','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
+const SHELL=['./','voice.json','friends.webp','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).catch(()=>{}))});
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 const keep=(req,res)=>{if(res&&(res.ok||res.type==='opaque')){const cp=res.clone();caches.open(CACHE).then(c=>c.put(req,cp)).catch(()=>{})}return res};
@@ -92,6 +92,8 @@ self.addEventListener('fetch',e=>{
 });
 `;
 
+/* the photo of the four friends for the home screen */
+if (fs.existsSync(path.join(__dirname, 'friends.webp'))) fs.copyFileSync(path.join(__dirname, 'friends.webp'), path.join(out, 'friends.webp'));
 /* the built-in voice clips, one file beside the page */
 if (fs.existsSync(path.join(__dirname, 'voice.json'))) fs.copyFileSync(path.join(__dirname, 'voice.json'), path.join(out, 'voice.json'));
 fs.writeFileSync(path.join(out, 'index.html'), html);
