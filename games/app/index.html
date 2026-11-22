@@ -443,7 +443,7 @@ async function syncArt(){if(!remote)return;try{const list=await remote.listArt()
     for(const a of ART_SAVED)if(!seen.has(a.id))await remote.putArt(a.id,{u:a.u,t:a.t||0}).catch(()=>{});
     if(changed){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();if(!$('#pics').hidden)openPics()}}catch(e){}}
 /* changes are sent a moment after they happen (so a burst of saves is one send), and at once when the game is closed or hidden */
-const pushRemote=now=>{if(!remote)return;clearTimeout(pushTimer);const go=()=>{const d=JSON.parse(JSON.stringify(S)),r=remote;remoteQ=remoteQ.then(()=>r.putP(d)).catch(()=>{})};if(now)go();else pushTimer=setTimeout(go,600)};
+const pushRemote=now=>{if(!remote)return;clearTimeout(pushTimer);const go=()=>{const d=JSON.parse(JSON.stringify(S)),r=remote;remoteQ=remoteQ.then(()=>r.putP(d,now===true)).catch(()=>{})};if(now)go();else pushTimer=setTimeout(go,600)};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRemote()};
 /* fold a saved record into this device's: finished things are combined, counters take the larger number */
 function mergeRemote(c){if(!c||!Array.isArray(c.done))return false;const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;
@@ -462,8 +462,8 @@ const SYNC_URL=String(window.BABY_CHEETAH_SYNC||'').replace(/\/+$/,''),CODE_KEY=
 let familyCode='';try{familyCode=localStorage.getItem(CODE_KEY)||''}catch(e){}
 function serverRemote(code){const base=SYNC_URL+'/v1/s/'+code,
     j=async(path,opt)=>{const r=await fetch(base+path,opt);if(r.status===404)return null;if(!r.ok)throw new Error('save server said '+r.status);return r.json()},
-    put=(path,d)=>{const body=JSON.stringify(d);return j(path,{method:'PUT',headers:{'content-type':'application/json'},body,keepalive:body.length<60000})};
-  return{name:'server',getP:()=>j('/progress'),putP:d=>put('/progress',d),listArt:async()=>((await j('/art'))||[]).map(a=>({id:a.id,load:()=>j('/art/'+a.id)})),
+    put=(path,d,last)=>{const body=JSON.stringify(d),o={method:'PUT',headers:{'content-type':'application/json'},body};if(last&&body.length<60000)o.keepalive=true;return j(path,o).catch(e=>{if(!last)throw e;delete o.keepalive;return j(path,o)})};
+  return{name:'server',getP:()=>j('/progress'),putP:(d,last)=>put('/progress',d,last),listArt:async()=>((await j('/art'))||[]).map(a=>({id:a.id,load:()=>j('/art/'+a.id)})),
     putArt:(i,v)=>put('/art/'+i,v),delArt:i=>j('/art/'+i,{method:'DELETE'})}}
 const newCode=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=new Uint8Array(12);crypto.getRandomValues(b);return[...b].map(x=>A[x%32]).join('')};
 const showCode=c=>c.replace(/(.{4})(?=.)/g,'$1-');
@@ -953,15 +953,16 @@ $('#setRate').onclick=()=>{const o=[1,2,5,10,20];S.rate=o[(o.indexOf(S.rate)+1)%
 $('#setCap').onclick=()=>{const o=[0,3,5,10];S.replayCap=o[(o.indexOf(S.replayCap)+1)%o.length];save();drawSettings()};
 $('#setPay').onclick=e=>{const o=S.cash-S.paidOut;if(o<=0)return;if(!e.target.dataset.arm){e.target.dataset.arm=1;e.target.textContent='Tap again: I paid '+usd(o);return}S.paidOut=S.cash;save();drawSettings();toast('Marked as paid')};
 /* family server panel */
+const why=e=>String(e&&e.message||e||'no details').slice(0,80);
 function drawSync(msg){const on=!!familyCode;$('#syncMsg').textContent=msg||(on?'This device saves to the family server. Type this code on his other devices to share one game. Keep it private: anyone with the code can open the saved game.':'Start here on the device that has his game, then type its code on the others.');
   $('#syncCode').hidden=!on;$('#syncCode').textContent=showCode(familyCode);for(const k of['syncStart','syncIn','syncJoin'])$('#'+k).hidden=on;for(const k of['syncGo','syncStop'])$('#'+k).hidden=!on;
   const st=$('#syncStop');delete st.dataset.arm;st.textContent='Stop saving on this device'}
 $('#setSync').onclick=()=>{$('#grown').hidden=true;drawSync();$('#syncPanel').hidden=false};
 $('#syncClose').onclick=()=>{$('#syncPanel').hidden=true;drawSettings();$('#grown').hidden=false};
-$('#syncStart').onclick=async()=>{const code=newCode();drawSync('Setting up…');try{await serverRemote(code).putP(JSON.parse(JSON.stringify(S)));setFamily(code);await syncNow();drawSync()}catch(e){drawSync('The save server could not be reached. Check the internet and try again.')}};
+$('#syncStart').onclick=async()=>{const code=newCode();drawSync('Setting up…');try{await serverRemote(code).putP(JSON.parse(JSON.stringify(S)));setFamily(code);await syncNow();drawSync()}catch(e){drawSync('The save server could not be reached. Check the internet and try again. ('+why(e)+')')}};
 $('#syncJoin').onclick=async()=>{const code=cleanCode($('#syncIn').value);if(!/^[A-HJ-NP-Z2-9]{12}$/.test(code)){drawSync('That code is not complete. It has 12 letters and numbers.');return}
   drawSync('Looking for the saved game…');try{const c=await serverRemote(code).getP();if(!c){drawSync('No saved game was found with that code. Check it and try again.');return}
-    setFamily(code);const ok=await syncNow();drawSync(ok?'':'Linked, but the first load did not finish. Tap "Save and load now".')}catch(e){drawSync('The save server could not be reached. Check the internet and try again.')}};
+    setFamily(code);const ok=await syncNow();drawSync(ok?'':'Linked, but the first load did not finish. Tap "Save and load now".')}catch(e){drawSync('The save server could not be reached. Check the internet and try again. ('+why(e)+')')}};
 $('#syncGo').onclick=async()=>{drawSync('Saving and loading…');const ok=await syncNow();drawSync(ok?'Up to date. '+ART_SAVED.length+' pictures and '+S.stars+' stars are saved.':'The save server could not be reached. Check the internet and try again.')};
 $('#syncStop').onclick=e=>{if(!e.target.dataset.arm){e.target.dataset.arm=1;e.target.textContent='Tap again to stop. Nothing is deleted.';return}setFamily('');drawSync()};
 /* move a saved game between places by file: download it inside Claude, load it in the installed game */
@@ -1022,7 +1023,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='15f92ce10b',last=0;
+  var MINE='e8786bc3dc',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
