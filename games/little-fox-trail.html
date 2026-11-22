@@ -216,6 +216,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
 .pics button{border-radius:14px;overflow:hidden;box-shadow:0 0 0 4px #fff,0 5px 0 var(--line);background:#fff}
 .pics img{display:block;width:100%}
+.pcount{grid-column:1/-1;margin:0;color:var(--soft);font-weight:800}
 .over{position:fixed;inset:0;z-index:50;background:rgba(31,48,68,.55);display:grid;place-items:center;padding:20px}
 .panel{background:var(--paper);border-radius:28px;padding:24px;width:min(100%,420px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;position:relative}
 .panel h2{font-size:2.2rem;color:var(--fox-d)}
@@ -439,7 +440,26 @@ const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
 /* Artwork: every picture has an id and a time. This device keeps the newest 24; with a Claude account every picture is also
    kept there (one document each), so all his devices show the same gallery. Removed pictures are remembered so they stay removed. */
-const artStore=()=>{try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,24)))}catch(e){try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,8)))}catch(_){}}};
+/* Pictures live in the browser's database (IndexedDB), which has room for all of them; the old small store (localStorage)
+   only held 24 and dropped to 8 when full, which is how pictures were being lost. Up to ART_MAX pictures are kept;
+   saving one more removes the oldest, on this device and on the family server. */
+const ART_MAX=100;let artDb=null,artIds=new Set(),artQ=Promise.resolve();
+const artTx=(mode,fn)=>new Promise((ok,no)=>{const t=artDb.transaction('pics',mode);fn(t.objectStore('pics'));t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error)});
+function artStore(){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));
+  if(!artDb){try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,24)))}catch(e){}return}
+  const want=new Map(ART_SAVED.map(a=>[a.id,a]));
+  artQ=artQ.then(()=>artTx('readwrite',st=>{for(const[id,a]of want)if(!artIds.has(id))st.put({id,u:a.u,t:a.t||0},id);for(const id of artIds)if(!want.has(id))st.delete(id)}))
+    .then(()=>{artIds=new Set(want.keys())}).catch(()=>{})}
+function loadArt(){return new Promise(res=>{let r;try{r=indexedDB.open(KEY+'-pictures',1)}catch(e){return res()}
+  r.onupgradeneeded=()=>r.result.createObjectStore('pics');r.onerror=()=>res();
+  r.onsuccess=()=>{artDb=r.result;const q=artDb.transaction('pics').objectStore('pics').getAll();
+    q.onsuccess=()=>{for(const a of q.result||[]){artIds.add(a.id);if(a.u&&!ART_SAVED.some(x=>x.id===a.id))ART_SAVED.push({id:a.id,u:a.u,t:a.t||0})}
+      ART_SAVED=ART_SAVED.filter(a=>!S.artGone.includes(a.id));artStore();
+      artQ.then(()=>{if(ART_SAVED.every(a=>artIds.has(a.id)))try{localStorage.removeItem(KEY+'-art')}catch(e){}});
+      if(!$('#pics').hidden)openPics();res()};q.onerror=()=>res()}})}
+/* keeps the newest ART_MAX: anything older is removed everywhere, so it does not come back from the server */
+function trimArt(){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));const old=ART_SAVED.slice(ART_MAX);if(!old.length)return;
+  ART_SAVED=ART_SAVED.slice(0,ART_MAX);for(const a of old){if(!S.artGone.includes(a.id))S.artGone.push(a.id);if(remote)remote.delArt(a.id).catch(()=>{})}save()}
 {const old=ART_SAVED.some(a=>typeof a==='string');ART_SAVED=ART_SAVED.map((a,i)=>typeof a==='string'?{id:'a'+i+'x'+Math.random().toString(36).slice(2,8),u:a,t:Date.now()-i}:a).filter(a=>a&&a.u);if(old)artStore()}
 /* ---------- Saving beyond this device ----------
    `remote` is where the game is saved besides this device. Two kinds exist:
@@ -453,7 +473,7 @@ async function syncArt(){if(!remote)return;try{const list=await remote.listArt()
       if(!ART_SAVED.some(a=>a.id===d.id)){const v=await d.load().catch(()=>null);if(v&&typeof v.u==='string'&&v.u.startsWith('data:image/')){ART_SAVED.push({id:d.id,u:v.u,t:+v.t||0});changed=true}}}
     if(ART_SAVED.some(a=>S.artGone.includes(a.id))){ART_SAVED=ART_SAVED.filter(a=>!S.artGone.includes(a.id));changed=true}
     for(const a of ART_SAVED)if(!seen.has(a.id))await remote.putArt(a.id,{u:a.u,t:a.t||0}).catch(()=>{});
-    if(changed){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();if(!$('#pics').hidden)openPics()}}catch(e){}}
+    if(changed){trimArt();artStore();if(!$('#pics').hidden)openPics()}}catch(e){}}
 /* changes are sent a moment after they happen (so a burst of saves is one send), and at once when the game is closed or hidden */
 const pushRemote=now=>{if(!remote)return;clearTimeout(pushTimer);const go=()=>{const d=JSON.parse(JSON.stringify(S)),r=remote;remoteQ=remoteQ.then(()=>r.putP(d,now===true)).catch(()=>{})};if(now)go();else pushTimer=setTimeout(go,600)};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRemote()};
@@ -488,7 +508,7 @@ async function linkCloud(){
 /* coming back to the game on a device picks up what the other devices did */
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pushRemote(true);else if(remote&&remote.name==='server')syncNow()});
 addEventListener('pagehide',()=>pushRemote(true));
-const saveArt=url=>{const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:url,t:Date.now()};ART_SAVED.unshift(a);artStore();if(remote)remote.putArt(a.id,{u:a.u,t:a.t}).catch(()=>{})};
+const saveArt=url=>{const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),u:url,t:Date.now()};ART_SAVED.unshift(a);trimArt();artStore();if(remote)remote.putArt(a.id,{u:a.u,t:a.t}).catch(()=>{})};
 
 /* ---------- sound and voice ---------- */
 let AC;
@@ -877,6 +897,7 @@ async function sharePic(u){try{const bin=atob(u.split(',')[1]),a=new Uint8Array(
     const l=document.createElement('a');l.href=u;l.download=name;document.body.append(l);l.click();l.remove();toast('Picture saved to your downloads')}catch(e){toast('Sharing is not available here')}}
 function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
   if(!ART_SAVED.length)g.append(el('p','','No pictures yet. Draw one in the Art Studio and tap Save.'));
+  else g.append(el('p','pcount',ART_SAVED.length+' of '+ART_MAX+' pictures saved'+(ART_SAVED.length>=ART_MAX-5?'. When it is full, saving a new one removes the oldest.':'')));
   ART_SAVED.forEach((a,i)=>{const u=a.u,b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
     b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;$('#picShare').onclick=()=>sharePic(u);const d=$('#picDel');d.textContent='Remove';let armed=false;
       d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}removeArt(a.id);$('#picView').hidden=true;openPics()}};g.append(b)})}
@@ -1058,7 +1079,7 @@ $('#importFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';
   try{const j=JSON.parse(await f.text());if(!j||j.game!=='baby-cheetah'||!j.progress||!Array.isArray(j.progress.done))throw 0;
     mergeRemote(j.progress);let n=0;
     for(const a of(Array.isArray(j.art)?j.art:[]))if(a&&typeof a.u==='string'&&a.u.startsWith('data:image/')&&/^[A-Za-z0-9]{3,40}$/.test(String(a.id))&&!S.artGone.includes(a.id)&&!ART_SAVED.some(x=>x.id===a.id)){ART_SAVED.push({id:a.id,u:a.u,t:+a.t||0});n++}
-    ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();save();drawSettings();toast('Loaded: '+S.stars+' stars and '+n+' new pictures');if(remote)syncNow()}
+    trimArt();artStore();save();drawSettings();toast('Loaded: '+S.stars+' stars and '+n+' new pictures');if(remote)syncNow()}
   catch(err){toast('That file is not a Baby Cheetah saved game')}};
 let gateAns=0;
 $('#gateNo').onclick=()=>$('#gate').hidden=true;
@@ -1096,7 +1117,7 @@ $('#goMap').onclick=()=>{sfx.tap();openMap()};$('#goStudio').onclick=()=>{sfx.ta
 $('#goPics').onclick=()=>{leaveGame();openPics()};$('#picsBack').onclick=openStudio;
 document.querySelectorAll('[data-go="home"]').forEach(b=>b.onclick=openHome);
 document.addEventListener('contextmenu',e=>e.preventDefault());
-const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();linkCloud();openClips();loadPack();};
+const boot=d=>{if(d&&d.S&&Array.isArray(d.S.done)){Object.assign(S,d.S);norm();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}openHome();loadArt().then(linkCloud);openClips();loadPack();};
 const hot=window.claude&&window.claude.hot;
 try{hot&&hot.snapshot&&hot.snapshot(()=>({S}))}catch(e){}
 if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
