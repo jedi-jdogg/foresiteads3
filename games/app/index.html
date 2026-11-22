@@ -460,7 +460,7 @@ try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
 /* Pictures live in the browser's database (IndexedDB), which has room for all of them; the old small store (localStorage)
    only held 24 and dropped to 8 when full, which is how pictures were being lost. Up to ART_MAX pictures are kept;
    saving one more removes the oldest, on this device and on the family server. */
-const ART_MAX=100;let artDb=null,artIds=new Set(),artQ=Promise.resolve();
+const ART_MAX=2000;let artDb=null,artIds=new Set(),artQ=Promise.resolve();
 const artTx=(mode,fn)=>new Promise((ok,no)=>{const t=artDb.transaction('pics',mode);fn(t.objectStore('pics'));t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error)});
 function artStore(){ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));
   if(!artDb){try{localStorage.setItem(KEY+'-art',JSON.stringify(ART_SAVED.slice(0,24)))}catch(e){}return}
@@ -915,7 +915,7 @@ async function sharePic(u){try{const bin=atob(u.split(',')[1]),a=new Uint8Array(
 function openPics(){show('pics');const g=$('#picGrid');g.innerHTML='';
   if(!ART_SAVED.length)g.append(el('p','','No pictures yet. Draw one in the Art Studio and tap Save.'));
   else g.append(el('p','pcount',ART_SAVED.length+' of '+ART_MAX+' pictures saved'+(ART_SAVED.length>=ART_MAX-5?'. When it is full, saving a new one removes the oldest.':'')));
-  ART_SAVED.forEach((a,i)=>{const u=a.u,b=el('button'),im=el('img');im.src=u;im.alt='Drawing '+(i+1);b.append(im);
+  ART_SAVED.forEach((a,i)=>{const u=a.u,b=el('button'),im=el('img');im.src=u;im.loading="lazy";im.decoding="async";im.alt='Drawing '+(i+1);b.append(im);
     b.onclick=()=>{$('#picBig').src=u;$('#picView').hidden=false;$('#picShare').onclick=()=>sharePic(u);const d=$('#picDel');d.textContent='Remove';let armed=false;
       d.onclick=()=>{if(!armed){armed=true;d.textContent='Tap again to remove';return}removeArt(a.id);$('#picView').hidden=true;openPics()}};g.append(b)})}
 function openBank(){leaveGame();show('bank');const a=avail(),r=S.rate,owed=S.cash-S.paidOut,unit=r+(r===1?' star':' stars');$('#starCount3').textContent='⭐ '+a;
@@ -1145,7 +1145,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='4a8c7e8c16',last=0;
+  var MINE='5de4ea75dd',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
