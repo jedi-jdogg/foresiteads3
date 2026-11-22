@@ -51,7 +51,17 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .usaq{flex:none;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:4.4em}
 .usaq b{font:800 clamp(1.3rem,5vw,1.9rem)/1.1 var(--display)}
 .usaq small{font:600 1rem var(--body);color:var(--soft);min-height:1.3em}
-.usamap{width:100%;height:100%;touch-action:manipulation}
+.usamap{width:100%;height:100%;touch-action:none}
+#usaArea{position:relative}
+.zoombtns{position:absolute;right:4px;bottom:4px;display:flex;flex-direction:column;gap:8px}
+.zoombtns .round{width:48px;min-height:48px;font-size:1.6rem}
+.zoombtns .round[disabled]{opacity:.35}
+#usa.compact .tab{min-height:34px;padding:2px 12px;font-size:.88rem}
+#usa.compact .abctabs{padding-bottom:2px;gap:6px}
+#usa.compact .usaq{min-height:0;gap:2px}
+#usa.compact .usaq b{font-size:1.2rem}
+#usa.compact .usaq small{min-height:0;font-size:.9rem}
+#usa.compact .bar h2{font-size:1.25rem}
 .usamap path{stroke:#fff;stroke-width:1.3;vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer}
 .usamap .dim{fill:#E1E9EC!important;pointer-events:none}
 .usamap .found{fill:#7CCB93!important}
@@ -193,6 +203,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .sw.sel,.tool.sel,.morecol.sel{outline:4px solid var(--ink);outline-offset:2px}
 .pad{border-radius:26%;opacity:.55;box-shadow:0 6px 0 rgba(31,48,68,.2);transition:opacity .15s,transform .15s}
 .pad.lit{opacity:1;transform:scale(1.06)}
+.pad{position:relative}
+.pad::after{content:attr(data-n);position:absolute;inset:0;display:grid;place-items:center;font:800 calc(var(--c)*.5)/1 var(--display);color:#fff;text-shadow:0 3px 0 rgba(31,48,68,.35)}
 .msg{font:800 1.5rem var(--display);min-height:1.5em}
 
 /* easel */
@@ -746,15 +758,20 @@ mosaic(a,d,w,win){const A=PIXELS[d],n=A.g.length;let sel=0,left=n*n,dn=false;con
   a.append(g,pal);fit(n,n+1.8,72,2);return 'Pick a color. Paint the squares that have the same number.'},
 
 echo(a,d,w,win){const np=d<1?3:4,target=[3,4,5,6,7][d],cols=['#E8556D','#3F7FD1','#F7C948','#4CA774'],fr=[262,330,392,523],me=gen,alive=()=>me===gen;
-  const msg=el('div','msg','Watch…'),pads=el('div','grid');pads.style.setProperty('--n',np===3?3:2);
+  /* slow and counted: each light shows its place in the order (1, 2, 3...) and the buddy counts along, so he can follow it */
+  const msg=el('div','msg','Watch…'),steps=el('div','dots'),pads=el('div','grid');pads.style.setProperty('--n',np===3?3:2);
   let seq=[rnd(np),rnd(np)],inp=0,lock=true;
-  const lit=async i=>{ps[i].classList.add('lit');tone(fr[i],.35);await wait(450);ps[i].classList.remove('lit');await wait(220)};
-  const play=async()=>{lock=true;msg.textContent='Watch…';await wait(800);for(const i of seq){if(!alive())return;await lit(i)}if(!alive())return;msg.textContent='Your turn!';inp=0;lock=false};
-  const tap=async i=>{if(lock)return;lit(i);
-    if(i!==seq[inp]){lock=true;msg.textContent='Let’s watch again.';await wait(1100);if(alive())play();return}
-    if(++inp===seq.length){lock=true;if(seq.length>=target){win();return}msg.textContent='Yes!';await wait(900);seq.push(rnd(np));if(alive())play()}};
+  const showSteps=done=>{steps.innerHTML='';seq.forEach((_,k)=>steps.append(el('i',k<done?'on':'')))};
+  const lit=async(i,n,on,off)=>{const p=ps[i];p.dataset.n=n;p.classList.add('lit');tone(fr[i],.4);await wait(on);p.classList.remove('lit');p.dataset.n='';await wait(off)};
+  const play=async()=>{lock=true;showSteps(0);msg.textContent='Watch…';await wait(1300);
+    for(let k=0;k<seq.length;k++){if(!alive())return;msg.textContent='Watch… '+(k+1);say(String(k+1));showSteps(k+1);await lit(seq[k],k+1,950,550)}
+    if(!alive())return;showSteps(0);msg.textContent='Your turn! Start with 1.';inp=0;lock=false};
+  const tap=async i=>{if(lock)return;lit(i,inp+1,450,0);
+    if(i!==seq[inp]){lock=true;msg.textContent='Let’s watch again.';await wait(1400);if(alive())play();return}
+    showSteps(++inp);msg.textContent=inp<seq.length?'Now '+(inp+1)+'…':'Yes!';
+    if(inp===seq.length){lock=true;if(seq.length>=target){win();return}await wait(1200);seq.push(rnd(np));if(alive())play()}};
   const ps=[...Array(np)].map((_,i)=>{const b=el('button','cell pad');b.style.background=cols[i];b.setAttribute('aria-label','Light '+(i+1));b.onclick=()=>tap(i);pads.append(b);return b});
-  a.append(msg,pads);np===3?fit(3,1.8,150):fit(2,2.8,170);play();return 'Watch the lights. Then tap them in the same order.'},
+  a.append(msg,steps,pads);np===3?fit(3,2.1,150):fit(2,3.1,170);play();return 'Watch the lights. Then tap them in the same order.'},
 
 math(a,d,w,win){let first=true;const Ls=[[1],[1,2],[3,4],[5,6],[7,8]][d];rounds(a,3,(box,next)=>{mathRound(box,pick(Ls),next,first);first=false},win);return 'What is the answer? Tap the number.'},
 
@@ -833,9 +850,21 @@ const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 
   ['a ladybug',C(50,56,30)+'M30 34A22 16 0 0 1 70 34M50 26V86M42 22L36 10M58 22L64 10M22 46L10 40M20 60H8M24 74L12 82M78 46L90 40M80 60H92M76 74L88 82'+C(36,48,5)+C(64,48,5)+C(34,68,5)+C(66,68,5)],
   ['a robot','M30 16H70V44H30ZM50 16V8M40 37H60M24 48H76V82H24ZM36 58H64V72H36ZM24 54H12V74M76 54H88V74M38 82V94H30M62 82V94H70'+C(50,5,2.5)+C(41,28,4)+C(59,28,4)],
   ['a train','M10 40H52V72H10ZM52 22H86V72H52ZM60 30H78V46H60ZM20 40V24H32V40M6 72H92'+C(26,14,5)+C(24,78,8)+C(46,78,8)+C(72,78,10)],
-  ['a castle','M12 90V36H20V44H28V36H36V52H64V36H72V44H80V36H88V90ZM42 90V70A8 8 0 0 1 58 70V90M50 52V22M50 22L64 28L50 34M20 56H28V66H20ZM72 56H80V66H72Z']];
+  ['a castle','M12 90V36H20V44H28V36H36V52H64V36H72V44H80V36H88V90ZM42 90V70A8 8 0 0 1 58 70V90M50 52V22M50 22L64 28L50 34M20 56H28V66H20ZM72 56H80V66H72Z'],
+  ['a cheetah',C(50,30,17)+'M37 19L35 8L45 15M63 19L65 8L55 15'+C(44,28,2)+C(56,28,2)+'M47 35H53L50 38ZM50 38V41M43 30Q42 36 46 41M57 30Q58 36 54 41'+E(50,68,15,19)+'M42 84V94H48M58 84V94H52M64 76Q86 82 84 58'+C(44,64,2)+C(56,70,2)+C(47,77,2)+C(57,59,2)+C(40,22,1.4)+C(60,22,1.4)+C(50,17,1.4)],
+  ['a bear',C(50,36,22)+C(32,18,7)+C(68,18,7)+E(50,46,10,7)+E(50,42,4,3)+C(42,32,2.5)+C(58,32,2.5)+E(50,78,22,15)+C(36,90,6)+C(64,90,6)],
+  ['a dog',E(46,60,24,13)+C(76,40,11)+'M71 32Q64 46 69 51'+E(87,44,6,4)+C(78,37,1.6)+'M32 70V88M40 71V88M54 71V88M62 70V88M22 56Q8 46 12 34'],
+  ['an elephant',E(44,56,28,20)+C(72,42,15)+E(64,46,9,13)+'M84 50Q94 66 88 82Q85 86 83 80Q87 66 79 56'+C(77,38,1.8)+'M26 72V90H36V75M50 74V90H60V72M16 52L8 64'],
+  ['a lion',ring(10,50,42,22,(x,y)=>C(x,y,8))+C(50,42,16)+C(44,38,2)+C(56,38,2)+'M47 45H53L50 48ZM50 48V51M50 51Q46 55 42 52M50 51Q54 55 58 52'],
+  ['a giraffe',E(46,72,22,11)+'M56 64L66 18M66 66L74 20'+E(73,14,9,6)+'M69 9V3M76 9V3'+C(76,13,1.2)+'M30 80V96M38 82V96M54 82V96M62 80V96M24 70L16 82'+C(40,70,3)+C(52,74,3)+C(64,42,2)+C(69,30,2)],
+  ['a pig',C(50,52,28)+E(50,60,10,7)+C(46,60,1.8)+C(54,60,1.8)+'M29 34L25 16L41 26M71 34L75 16L59 26'+C(40,46,2.5)+C(60,46,2.5)+'M44 72Q50 76 56 72'],
+  ['a frog',E(50,58,30,20)+C(34,38,9)+C(66,38,9)+C(34,38,3)+C(66,38,3)+'M32 64Q50 78 68 64'+C(46,56,1)+C(54,56,1)+'M22 74L10 88H26M78 74L90 88H74'],
+  ['a penguin',E(50,56,22,34)+E(50,62,14,24)+C(44,36,2)+C(56,36,2)+'M46 42L50 48L54 42ZM28 50Q18 66 28 76M72 50Q82 66 72 76M40 90L36 96H46ZM60 90L64 96H54Z'],
+  ['a duck',E(46,64,26,14)+C(70,40,10)+'M79 38L92 41L79 45'+C(72,37,1.5)+'M32 60Q46 52 56 64M40 78V88H34M52 78V88H46'],
+  ['a monkey',C(50,38,17)+C(31,38,6)+C(69,38,6)+E(50,44,11,9)+C(44,34,2)+C(56,34,2)+'M45 48Q50 52 55 48'+E(50,72,13,14)+'M40 84V94M60 84V94M62 78Q84 84 82 64Q80 56 73 60'],
+  ['a dinosaur',E(44,64,24,14)+'M62 56Q74 36 76 18M68 66Q80 42 84 20'+E(82,15,8,6)+C(84,13,1.2)+'M20 62Q6 64 2 76M28 74V92H36V76M50 76V92H58V74'+C(38,58,3)+C(50,62,3)+C(44,68,2)]];
   const LV={1:['a circle','a square','a triangle','a star','a heart','a tree','a balloon','the moon','a cloud','a happy face','a diamond','an egg','a raindrop','an arrow','a plus sign'],
-    3:['a cat','a car','a rocket','a butterfly','a snowman','a teddy bear','a bird','a turtle','a snail','an owl','a bunny','a whale','a ladybug','a robot','a train','a castle']};
+    3:['a cat','a car','a rocket','a butterfly','a snowman','a teddy bear','a bird','a turtle','a snail','an owl','a bunny','a whale','a ladybug','a robot','a train','a castle','a cheetah','an elephant','a giraffe','a monkey','a dinosaur']};
   return all.map(t=>[t[0],t[1],LV[1].includes(t[0])?1:LV[3].includes(t[0])?3:2]).sort((a,b)=>a[2]-b[2])})();
 function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','sheet'),cv=el('canvas'),bar=el('div','tools'),stampRow=el('div','pop'),colorRow=el('div','pop'),guideRow=el('div','pop tall'),SVGNS='http://www.w3.org/2000/svg',guide=document.createElementNS(SVGNS,'svg'),gpath=document.createElementNS(SVGNS,'path');
   guide.setAttribute('viewBox','0 0 100 100');guide.setAttribute('class','guide');guide.append(gpath);guide.style.display='none';guideRow.hidden=true;
@@ -1067,11 +1096,32 @@ const usaActive=()=>usaReg==='all'?USA:USA.filter(s=>REG[usaReg].includes(s.id))
 function usaMap(host,active,onTap){const NS='http://www.w3.org/2000/svg',ids=new Set(active.map(s=>s.id)),svg=document.createElementNS(NS,'svg'),mk=(t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);svg.append(n);return n};
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const s of active){x0=Math.min(x0,s.b[0]);y0=Math.min(y0,s.b[1]);x1=Math.max(x1,s.b[2]);y1=Math.max(y1,s.b[3])}
   const pad=Math.max(x1-x0,y1-y0)*.05+6;x0-=pad;y0-=pad;x1+=pad;y1+=pad;svg.setAttribute('viewBox',[x0,y0,x1-x0,y1-y0].join(' '));svg.setAttribute('class','usamap');
-  const scale=Math.min((host.clientWidth||300)/(x1-x0),(host.clientHeight||300)/(y1-y0)),el2={};
+  const el2={},hits=[],box={x:x0,y:y0,w:x1-x0,h:y1-y0},vb={...box},pxPer=()=>Math.min((host.clientWidth||300)/vb.w,(host.clientHeight||300)/vb.h);
+  const scale=pxPer();
   for(const s of USA){const p=mk('path',{d:s.d,fill:USA_COL[s.c%USA_COL.length]});p.dataset.id=s.id;if(!ids.has(s.id))p.setAttribute('class','dim');el2[s.id]=p}
-  for(const s of active)if(Math.min(s.b[2]-s.b[0],s.b[3]-s.b[1])*scale<22){const c=mk('circle',{cx:s.x,cy:s.y,r:12/scale,class:'hit'});c.dataset.id=s.id}
-  svg.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-id]');if(t&&ids.has(t.dataset.id))onTap(t.dataset.id)});
-  host.innerHTML='';host.append(svg);
+  /* small states get a larger invisible touch spot; it shrinks back as the map is zoomed in */
+  for(const s of active)if(Math.min(s.b[2]-s.b[0],s.b[3]-s.b[1])*scale<30){const c=mk('circle',{cx:s.x,cy:s.y,r:1,class:'hit'});c.dataset.id=s.id;c.dataset.min=Math.min(s.b[2]-s.b[0],s.b[3]-s.b[1]);hits.push(c)}
+  /* zoom: pinch, the + and − buttons, or double-tap; drag to move around when zoomed in */
+  const apply=()=>{vb.w=Math.min(box.w,Math.max(box.w/8,vb.w));vb.h=vb.w*box.h/box.w;vb.x=Math.min(box.x+box.w-vb.w,Math.max(box.x,vb.x));vb.y=Math.min(box.y+box.h-vb.h,Math.max(box.y,vb.y));
+    svg.setAttribute('viewBox',[vb.x,vb.y,vb.w,vb.h].join(' '));const k=pxPer();for(const c of hits)c.setAttribute('r',+c.dataset.min*k<30?16/k:0.001);zoomOut.disabled=vb.w>=box.w-0.5};
+  const toSvg=(cx,cy)=>{const r=svg.getBoundingClientRect(),k=pxPer(),ox=(r.width-vb.w*k)/2,oy=(r.height-vb.h*k)/2;return[vb.x+(cx-r.left-ox)/k,vb.y+(cy-r.top-oy)/k]};
+  const zoomAt=(f,cx,cy)=>{const[px,py]=cx==null?[vb.x+vb.w/2,vb.y+vb.h/2]:toSvg(cx,cy);const nw=Math.min(box.w,Math.max(box.w/8,vb.w/f)),g=nw/vb.w;vb.x=px-(px-vb.x)*g;vb.y=py-(py-vb.y)*g;vb.w=nw;apply()};
+  const pts=new Map();let moved=false,startDist=0,startW=0,lastTap=0;
+  svg.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)moved=false;if(pts.size===2){const[a,b]=[...pts.values()];startDist=Math.hypot(a.x-b.x,a.y-b.y);startW=vb.w}});
+  svg.addEventListener('pointermove',e=>{const old=pts.get(e.pointerId);if(!old)return;const now={x:e.clientX,y:e.clientY};
+    if(pts.size===1){const k=pxPer(),dx=now.x-old.x,dy=now.y-old.y;if(Math.abs(dx)+Math.abs(dy)>2&&vb.w<box.w-0.5){moved=true;vb.x-=dx/k;vb.y-=dy/k;apply()}if(Math.abs(dx)+Math.abs(dy)>6)moved=true}
+    pts.set(e.pointerId,now);
+    if(pts.size===2){const[a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(startDist>0){moved=true;zoomAt(vb.w/(startW*startDist/d),(a.x+b.x)/2,(a.y+b.y)/2)}}});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)startDist=0};svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+  svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.25:0.8,e.clientX,e.clientY)},{passive:false});
+  svg.addEventListener('click',e=>{if(moved){moved=false;return}const t=e.target.closest&&e.target.closest('[data-id]');
+    const now=Date.now();if(!t||!ids.has(t.dataset.id)){if(now-lastTap<350)zoomAt(2,e.clientX,e.clientY);lastTap=now;return}
+    /* a tap on a tiny state while the map is small zooms in there first, so the next tap lands on the right state */
+    const st=USA.find(v=>v.id===t.dataset.id),k=pxPer();if(Math.min(st.b[2]-st.b[0],st.b[3]-st.b[1])*k<16&&vb.w>box.w/3){sfx.tap();zoomAt(Math.min(4,box.w/vb.w*3/Math.max(1,box.w/vb.w)),e.clientX,e.clientY);return}
+    onTap(t.dataset.id)});
+  const zb=el('div','zoombtns'),zoomIn=el('button','btn round','+'),zoomOut=el('button','btn round','−');zoomIn.setAttribute('aria-label','Zoom in');zoomOut.setAttribute('aria-label','Zoom out');
+  zoomIn.onclick=()=>{sfx.tap();zoomAt(1.6)};zoomOut.onclick=()=>{sfx.tap();if(vb.w*1.6>=box.w){Object.assign(vb,box);apply()}else zoomAt(1/1.6)};zb.append(zoomIn,zoomOut);
+  host.innerHTML='';host.append(svg,zb);apply();
   return{set(id,cls){el2[id].setAttribute('class',cls||'')},flash(id,cls){const p=el2[id],was=p.getAttribute('class')||'';p.setAttribute('class',cls);setTimeout(()=>{if(p.getAttribute('class')===cls)p.setAttribute('class',was)},700)},
     label(id){const s=USA.find(v=>v.id===id);mk('text',{x:s.x,y:s.y,'font-size':Math.min(13/scale,Math.max(7/scale,(s.b[2]-s.b[0])*.28))}).textContent=id}}}
 function usaDone(kind,cheer){const id=kind+':'+usaReg,first=!S.geo.includes(id);if(first){S.geo.push(id);S.stars++;save()}$('#starCount6').textContent='⭐ '+avail();sfx.win();say(cheer);
@@ -1093,7 +1143,7 @@ function usaStart(){leaveGame();const me=gen,A=$('#usaArea'),Q=$('#usaQ'),P=$('#
     P.append(choices(opts,v=>v===t.n,()=>{map.set(t.id,'found');map.label(t.id);dots.children[i].className='on';i++;if(i>=queue.length)usaDone('n',pick(CHEERS));else ask()}));
     P.firstChild.addEventListener('click',e=>{const b=e.target.closest('.choice');if(b&&b.textContent!==t.n){sub.textContent='';}});
     if(i===0)say('Which state is this?')};ask()}
-function openUsa(){leaveGame();show('usa');$('#starCount6').textContent='⭐ '+avail();const T=$('#usaTabs'),R=$('#usaRegs'),me=gen;T.innerHTML='';R.innerHTML='';$('#usaQ').innerHTML='';$('#usaPick').innerHTML='';$('#usaArea').innerHTML='';
+function openUsa(){leaveGame();show('usa');$('#usa').classList.toggle('compact',usaReg==='all');$('#starCount6').textContent='⭐ '+avail();const T=$('#usaTabs'),R=$('#usaRegs'),me=gen;T.innerHTML='';R.innerHTML='';$('#usaQ').innerHTML='';$('#usaPick').innerHTML='';$('#usaArea').innerHTML='';
   [['explore','Explore'],['find','Find it'],['name','Name it']].forEach(([m,l])=>{const b=el('button','btn tab'+(m===usaMode?' on':''),l);b.onclick=()=>{sfx.tap();usaMode=m;openUsa()};T.append(b)});
   REGN.forEach(([r,l])=>{const b=el('button','btn tab'+(r===usaReg?' on':''),l+(usaMode!=='explore'&&S.geo.includes((usaMode==='find'?'f':'n')+':'+r)?' ⭐':''));b.onclick=()=>{sfx.tap();usaReg=r;openUsa()};R.append(b)});
   loadUsa().then(()=>{if(me===gen&&!$('#usa').hidden)usaStart()}).catch(()=>{$('#usaQ').textContent='The map could not be loaded. Check the internet and try again.'})}
