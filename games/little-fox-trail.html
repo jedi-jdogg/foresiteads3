@@ -45,7 +45,24 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 #home p{margin:0;color:var(--soft);max-width:24ch}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
 .menu .btn{width:100%;font-size:1.08rem;min-height:56px;padding:6px 8px}
-.menu #goMap,.menu #goBank{grid-column:1/-1;font-size:1.3rem}
+.menu #goMap{grid-column:1/-1;font-size:1.3rem}
+.btn.teal{background:#2E9C97;color:#fff;box-shadow:0 5px 0 #1F736F}
+/* USA map */
+.usaq{flex:none;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:4.4em}
+.usaq b{font:800 clamp(1.3rem,5vw,1.9rem)/1.1 var(--display)}
+.usaq small{font:600 1rem var(--body);color:var(--soft);min-height:1.3em}
+.usamap{width:100%;height:100%;touch-action:manipulation}
+.usamap path{stroke:#fff;stroke-width:1.3;vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer}
+.usamap .dim{fill:#E1E9EC!important;pointer-events:none}
+.usamap .found{fill:#7CCB93!important}
+.usamap .sel{fill:var(--fox)!important}
+.usamap .miss{fill:#F2B8B0!important}
+.usamap .hint{animation:usahint 1s ease-in-out infinite}
+.usamap .hit{fill:transparent;cursor:pointer}
+.usamap text{font-family:var(--display);font-weight:800;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+@keyframes usahint{50%{fill:var(--sun)}}
+#usaPick{flex:none;min-height:8px}
+#usaPick .choice{width:auto;height:auto;min-height:56px;padding:8px 16px;font:800 1.15rem var(--display)}
 .btn.blue{background:#3F7FD1;color:#fff;box-shadow:0 5px 0 #2C5FA3}
 /* math */
 .eq{font:800 clamp(2.4rem,11vmin,4.2rem)/1 var(--display);display:flex;gap:.3em;align-items:center;flex:none}
@@ -242,6 +259,7 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
     <button class="btn purple" id="goStudio">🎨 Art Studio</button>
     <button class="btn sun" id="goAbc">🔤 ABC Letters</button>
     <button class="btn blue" id="goMath">🔢 Math</button>
+    <button class="btn teal" id="goUsa">🗺️ USA Map</button>
     <button class="btn green" id="goBook">⭐ Sticker Book</button>
     <button class="btn" id="goBank">🐷 Piggy Bank</button>
   </div>
@@ -289,6 +307,15 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
 <section class="screen" id="math" hidden>
   <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>Math</h2><span class="stars" id="starCount5">⭐ 0</span></div>
   <div class="area" id="mathArea"></div>
+</section>
+
+<section class="screen" id="usa" hidden>
+  <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>USA Map</h2><span class="stars" id="starCount6">⭐ 0</span></div>
+  <div class="abctabs" id="usaTabs"></div>
+  <div class="abctabs" id="usaRegs"></div>
+  <div class="usaq" id="usaQ"></div>
+  <div class="area" id="usaArea"></div>
+  <div class="pick" id="usaPick"></div>
 </section>
 
 <section class="screen" id="voice" hidden>
@@ -406,7 +433,7 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(!Array.isArray(S.geo))S.geo=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
@@ -434,7 +461,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRe
 function mergeRemote(c){if(!c||!Array.isArray(c.done))return false;const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;
   for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
   if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}
-  for(const k of['abc','math','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
+  for(const k of['abc','math','geo','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
   if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;return grew}
 async function syncNow(){if(!remote)return false;try{const c=await remote.getP();
     if(mergeRemote(c)){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
@@ -508,7 +535,7 @@ async function say(...parts){if(!S.voice)return;hush();const me=++sayGen;
 function hush(){sayGen++;try{sayNode&&sayNode.stop()}catch(e){}sayNode=null;try{speechSynthesis.cancel()}catch(e){}}
 const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.','Put each one where it belongs.','Put the picture back together.','What comes next?','Which one is missing?','Which one is different?','Which one does not belong?','One is facing the other way. Can you find it?','How many are there? Tap the number.','How many are there all together?','Connect the dots. Start at number 1.','Help the baby cheetah find the big cheetah. Slide your finger along the path.','Pick a color. Paint the squares that have the same number.','Watch the lights. Then tap them in the same order.','What is the answer? Tap the number.'];
 /* math is spoken in parts ("What is" "23" "plus" "5"); these clips are built in but kept off the recording screen */
-const mathLines=()=>['What is','plus','minus',...[...Array(100).keys()].map(String)];
+const mathLines=()=>['What is','plus','minus',...[...Array(100).keys()].map(String),'Can you find','That is','This is','Which state is this?',...USA_NAMES];
 const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
   ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!',...abcLines(),...TRACE.map(t=>'Let’s draw '+t[0]+'!')];
 
@@ -954,6 +981,52 @@ function mathPlay(L){leaveGame();const A=$('#mathArea'),me=gen;A.innerHTML='';A.
     lv.onclick=()=>{sfx.tap();openMath()};again.onclick=()=>{sfx.tap();mathPlay(L)};nx.onclick=()=>{sfx.tap();mathPlay(L+1)}});
   const back=el('button','btn','← Levels');back.onclick=()=>{sfx.tap();openMath()};A.append(back)}
 $('#goMath').onclick=()=>{sfx.tap();openMath()};
+
+/* ---------- USA Map: learn where the 50 states are ----------
+   states.json sits beside the page: each state's outline on a 975 x 610 sheet (Alaska and Hawaii inset), name, capital,
+   a colour number that differs from its neighbours', a centre point and a box. Shapes come from US Census boundaries. */
+const USA_NAMES=['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
+const REG={west:['WA','OR','CA','NV','ID','MT','WY','UT','CO','AZ','NM','AK','HI'],midwest:['ND','SD','NE','KS','MN','IA','MO','WI','IL','IN','MI','OH'],
+  south:['TX','OK','AR','LA','MS','AL','TN','KY','WV','VA','NC','SC','GA','FL','MD','DE'],northeast:['PA','NJ','NY','CT','RI','MA','VT','NH','ME']};
+const REGN=[['west','West'],['midwest','Middle'],['south','South'],['northeast','Northeast'],['all','All 50']],USA_COL=['#F9C97C','#A7D8F0','#F4A7B5','#B9E3A8','#CDB8F0'];
+let USA=null,usaMode='explore',usaReg='west';
+const loadUsa=()=>USA?Promise.resolve(USA):fetch('states.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>USA=j);
+const usaActive=()=>usaReg==='all'?USA:USA.filter(s=>REG[usaReg].includes(s.id));
+/* draws the map zoomed to the states in play; the rest are greyed out. Tiny states get a bigger invisible touch spot. */
+function usaMap(host,active,onTap){const NS='http://www.w3.org/2000/svg',ids=new Set(active.map(s=>s.id)),svg=document.createElementNS(NS,'svg'),mk=(t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);svg.append(n);return n};
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const s of active){x0=Math.min(x0,s.b[0]);y0=Math.min(y0,s.b[1]);x1=Math.max(x1,s.b[2]);y1=Math.max(y1,s.b[3])}
+  const pad=Math.max(x1-x0,y1-y0)*.05+6;x0-=pad;y0-=pad;x1+=pad;y1+=pad;svg.setAttribute('viewBox',[x0,y0,x1-x0,y1-y0].join(' '));svg.setAttribute('class','usamap');
+  const scale=Math.min((host.clientWidth||300)/(x1-x0),(host.clientHeight||300)/(y1-y0)),el2={};
+  for(const s of USA){const p=mk('path',{d:s.d,fill:USA_COL[s.c%USA_COL.length]});p.dataset.id=s.id;if(!ids.has(s.id))p.setAttribute('class','dim');el2[s.id]=p}
+  for(const s of active)if(Math.min(s.b[2]-s.b[0],s.b[3]-s.b[1])*scale<22){const c=mk('circle',{cx:s.x,cy:s.y,r:12/scale,class:'hit'});c.dataset.id=s.id}
+  svg.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-id]');if(t&&ids.has(t.dataset.id))onTap(t.dataset.id)});
+  host.innerHTML='';host.append(svg);
+  return{set(id,cls){el2[id].setAttribute('class',cls||'')},flash(id,cls){const p=el2[id],was=p.getAttribute('class')||'';p.setAttribute('class',cls);setTimeout(()=>{if(p.getAttribute('class')===cls)p.setAttribute('class',was)},700)},
+    label(id){const s=USA.find(v=>v.id===id);mk('text',{x:s.x,y:s.y,'font-size':Math.min(13/scale,Math.max(7/scale,(s.b[2]-s.b[0])*.28))}).textContent=id}}}
+function usaDone(kind,cheer){const id=kind+':'+usaReg,first=!S.geo.includes(id);if(first){S.geo.push(id);S.stars++;save()}$('#starCount6').textContent='⭐ '+avail();sfx.win();say(cheer);
+  $('#usaQ').innerHTML='';$('#usaQ').append(el('b','',cheer),el('small','',first?'You earned a star! ⭐':'You know these states!'));
+  const P=$('#usaPick'),again=el('button','btn','Again'),nx=el('button','btn go','Next part');P.innerHTML='';P.append(again);const k=REGN.findIndex(r=>r[0]===usaReg);if(k<REGN.length-1)P.append(nx);
+  again.onclick=()=>{sfx.tap();usaStart()};nx.onclick=()=>{sfx.tap();usaReg=REGN[k+1][0];openUsa()}}
+function usaStart(){leaveGame();const me=gen,A=$('#usaArea'),Q=$('#usaQ'),P=$('#usaPick'),active=usaActive(),name=id=>USA.find(s=>s.id===id).n;Q.innerHTML='';P.innerHTML='';
+  const head=el('b'),sub=el('small'),dots=el('div','dots');Q.append(head,sub,dots);
+  if(usaMode==='explore'){let cur=null;head.textContent='Tap a state';const map=usaMap(A,active,id=>{if(cur)map.set(cur,'');cur=id;map.set(id,'sel');const s=USA.find(v=>v.id===id);head.textContent=s.n;sub.textContent='Capital city: '+s.cap;sfx.tap();say('This is',s.n)});refit=()=>{if(me===gen)usaStart()};return}
+  if(usaMode==='find'){const queue=shuffle(active).slice(0,usaReg==='all'?10:active.length);let i=0,misses=0;for(const q of queue)dots.append(el('i'));
+    const ask=()=>{if(me!==gen)return;misses=0;head.textContent='Find '+queue[i].n;sub.textContent='';say('Can you find',queue[i].n)};
+    const map=usaMap(A,active,id=>{if(me!==gen||i>=queue.length)return;const t=queue[i];
+      if(id===t.id){map.set(id,'found');map.label(id);sfx.good();dots.children[i].className='on';i++;if(i>=queue.length){setTimeout(()=>me===gen&&usaDone('f',pick(CHEERS)),700)}else setTimeout(ask,700)}
+      else{sfx.oops();map.flash(id,'miss');sub.textContent='That is '+name(id)+'. Try again!';say('That is',name(id));if(++misses>=2)map.set(t.id,'hint')}});
+    ask();return}
+  /* name it: one state lights up, pick its name */
+  const queue=shuffle(active).slice(0,5);let i=0;for(const q of queue)dots.append(el('i'));const map=usaMap(A,active,()=>{});head.textContent='Which state is this?';
+  const ask=()=>{if(me!==gen)return;const t=queue[i];map.set(t.id,'sel');P.innerHTML='';const opts=shuffle([t.n,...sample(active.filter(s=>s.id!==t.id),2).map(s=>s.n)]);
+    P.append(choices(opts,v=>v===t.n,()=>{map.set(t.id,'found');map.label(t.id);dots.children[i].className='on';i++;if(i>=queue.length)usaDone('n',pick(CHEERS));else ask()}));
+    P.firstChild.addEventListener('click',e=>{const b=e.target.closest('.choice');if(b&&b.textContent!==t.n){sub.textContent='';}});
+    if(i===0)say('Which state is this?')};ask()}
+function openUsa(){leaveGame();show('usa');$('#starCount6').textContent='⭐ '+avail();const T=$('#usaTabs'),R=$('#usaRegs'),me=gen;T.innerHTML='';R.innerHTML='';$('#usaQ').innerHTML='';$('#usaPick').innerHTML='';$('#usaArea').innerHTML='';
+  [['explore','Explore'],['find','Find it'],['name','Name it']].forEach(([m,l])=>{const b=el('button','btn tab'+(m===usaMode?' on':''),l);b.onclick=()=>{sfx.tap();usaMode=m;openUsa()};T.append(b)});
+  REGN.forEach(([r,l])=>{const b=el('button','btn tab'+(r===usaReg?' on':''),l+(usaMode!=='explore'&&S.geo.includes((usaMode==='find'?'f':'n')+':'+r)?' ⭐':''));b.onclick=()=>{sfx.tap();usaReg=r;openUsa()};R.append(b)});
+  loadUsa().then(()=>{if(me===gen&&!$('#usa').hidden)usaStart()}).catch(()=>{$('#usaQ').textContent='The map could not be loaded. Check the internet and try again.'})}
+$('#goUsa').onclick=()=>{sfx.tap();openUsa()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setExport').hidden=!(window.claude&&window.claude.use);
