@@ -310,6 +310,9 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <button class="btn purple setrow" id="setRec">🎙️ Record the buddy’s voice</button>
   <button class="btn setrow" id="setOpen"></button>
   <button class="btn setrow" id="setSync" hidden></button>
+  <button class="btn setrow" id="setExport" hidden>Download my saved game</button>
+  <button class="btn setrow" id="setImport">Load a saved game file</button>
+  <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
   <button class="btn setrow" id="setRate"></button>
   <button class="btn setrow" id="setCap"></button>
   <button class="btn setrow" id="setPay"></button>
@@ -925,6 +928,7 @@ function mathPlay(L){leaveGame();const A=$('#mathArea'),me=gen;A.innerHTML='';A.
 $('#goMath').onclick=()=>{sfx.tap();openMath()};
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
+  $('#setExport').hidden=!(window.claude&&window.claude.use);
   {const y=$('#setSync');y.hidden=!SYNC_URL;y.textContent=familyCode?'Saving to the family server: on':'Save on every device: off'}
   $('#setRate').textContent='Trade rate: '+S.rate+(S.rate===1?' star':' stars')+' = $1';$('#setCap').textContent=S.replayCap?'Replay stars: up to '+S.replayCap+' a day':'Replay stars: off';
   const o=S.cash-S.paidOut,p=$('#setPay');delete p.dataset.arm;p.textContent=o>0?'Owed: '+usd(o)+' · tap when paid':'Nothing owed right now'}
@@ -943,6 +947,17 @@ $('#syncJoin').onclick=async()=>{const code=cleanCode($('#syncIn').value);if(!/^
     setFamily(code);const ok=await syncNow();drawSync(ok?'':'Linked, but the first load did not finish. Tap "Save and load now".')}catch(e){drawSync('The save server could not be reached. Check the internet and try again.')}};
 $('#syncGo').onclick=async()=>{drawSync('Saving and loading…');const ok=await syncNow();drawSync(ok?'Up to date. '+ART_SAVED.length+' pictures and '+S.stars+' stars are saved.':'The save server could not be reached. Check the internet and try again.')};
 $('#syncStop').onclick=e=>{if(!e.target.dataset.arm){e.target.dataset.arm=1;e.target.textContent='Tap again to stop. Nothing is deleted.';return}setFamily('');drawSync()};
+/* move a saved game between places by file: download it inside Claude, load it in the installed game */
+$('#setExport').onclick=async()=>{const data=JSON.stringify({game:'baby-cheetah',v:1,progress:S,art:ART_SAVED});
+  try{const d=await window.claude.use('downloads');if(!d)throw 0;try{await d.save({filename:'baby-cheetah-save.json',data})}catch(e){if(e&&e.code==='rejected_extension')await d.save({filename:'baby-cheetah-save.txt',data});else throw e}toast('Saved game downloaded')}
+  catch(e){if(!e||e.code!=='declined')toast('The download is not available here')}};
+$('#setImport').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const j=JSON.parse(await f.text());if(!j||j.game!=='baby-cheetah'||!j.progress||!Array.isArray(j.progress.done))throw 0;
+    mergeRemote(j.progress);let n=0;
+    for(const a of(Array.isArray(j.art)?j.art:[]))if(a&&typeof a.u==='string'&&a.u.startsWith('data:image/')&&/^[A-Za-z0-9]{3,40}$/.test(String(a.id))&&!S.artGone.includes(a.id)&&!ART_SAVED.some(x=>x.id===a.id)){ART_SAVED.push({id:a.id,u:a.u,t:+a.t||0});n++}
+    ART_SAVED.sort((x,y)=>(y.t||0)-(x.t||0));artStore();save();drawSettings();toast('Loaded: '+S.stars+' stars and '+n+' new pictures');if(remote)syncNow()}
+  catch(err){toast('That file is not a Baby Cheetah saved game')}};
 let gateAns=0;
 $('#gateNo').onclick=()=>$('#gate').hidden=true;
 $('#gateOk').onclick=()=>{if(+$('#gateA').value===gateAns){$('#gate').hidden=true;drawSettings();$('#grown').hidden=false}else{wobble($('#gateA'));$('#gateA').value=''}};
