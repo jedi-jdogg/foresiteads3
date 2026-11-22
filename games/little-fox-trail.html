@@ -209,6 +209,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 /* book, gallery, overlays */
 .scroll{flex:1;min-height:0;overflow-y:auto;touch-action:pan-y}
 .page{background:var(--paper);border-radius:20px;padding:14px;margin-bottom:14px}
+.trailhead{margin:6px 4px 10px;font:800 1.35rem var(--display);color:var(--fox-d)}
 .page h3{margin:0 0 8px;font:800 1.15rem var(--display)}
 .stick{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px}
 .stick span{aspect-ratio:1;display:grid;place-items:center;border-radius:14px;background:var(--sky);font:34px/1 var(--emoji)}
@@ -268,6 +269,7 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
 
 <section class="screen" id="map" hidden>
   <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2>The Trail</h2><span class="stars" id="starCount">⭐ 0</span></div>
+  <div class="abctabs" id="trailPick"></div>
   <div id="mapScroll"><div id="trail"></div></div>
 </section>
 
@@ -557,15 +559,53 @@ const ALL_HINTS=['Find the two that are the same.','Drag each one to its shadow.
 /* math is spoken in parts ("What is" "23" "plus" "5"); these clips are built in but kept off the recording screen */
 const mathLines=()=>['What is','plus','minus',...[...Array(100).keys()].map(String),'Can you find','That is','This is','Which state is this?',...USA_NAMES];
 const voiceLines=()=>['Hi! It’s me! Want to play?',...OPENERS,...ALL_HINTS,...WORLDS.map(w=>w.draw),...CHEERS,'Give me a high five!','High five! You got a gold star and a new sticker!','High five! You got another gold star!','High five! That was fun!',
-  ...WORLDS.slice(0,-1).map(w=>'High five! You finished '+w.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!',...abcLines(),...TRACE.map(t=>'Let’s draw '+t[0]+'!')];
+  ...WORLDS.filter((w,k)=>k%5!==4).map(w=>'High five! You finished '+w.name+'!'),...TRAILS.slice(1).map(t=>'High five! You finished the '+t.name+'!'),'High five! We made it all the way to the top! You’re the best!','Cool! You traded your stars for one dollar! Go show a grown-up!',...abcLines(),...TRACE.map(t=>'Let’s draw '+t[0]+'!')];
 
 /* ---------- worlds and missions ---------- */
-const WORLDS=[
+const TRAIL1=[
  {name:'Sunny Meadow',bg:'#CFEBB8',hill:'#8FCB7A',em:['🐝','🦋','🌻','🐞','🐇','🌷','🍄','🐌','🐛','🌼'],types:['shadow','match','count','dots','pattern','sort','puzzle','draw'],draw:'Draw a garden for the bee.'},
  {name:'Whispering Forest',bg:'#A8D5B5',hill:'#4E9A6B',em:['🦉','🦔','🌲','🍂','🐻','🦌','🍁','🌰','🐺','🐗'],types:['odd','maze','match','mosaic','echo','math','puzzle','draw'],draw:'Draw a cozy home for the owl.'},
  {name:'Splashy River',bg:'#B5DDF2',hill:'#5FB3D9',em:['🐟','🐸','🦆','🐢','🦀','🐙','🐬','🐚','⛵','🐳'],types:['sort','dots','math','pattern','maze','mosaic','puzzle','draw'],draw:'Draw a boat on the river.'},
  {name:'Snowy Mountain',bg:'#DAD7F0',hill:'#F4F6FB',em:['🦅','🐐','⛄','🏕️','🔥','🦙','🧤','🎿','🐏','🧣'],types:['match','math','echo','dots','sort','maze','puzzle','draw'],draw:'Draw a snowman and give it a hat.'},
- {name:'Starry Sky',bg:'#2E3C6E',hill:'#6A57B0',dark:true,em:['🚀','🌙','⭐','🪐','🛸','🌈','🎈','👽','🌍','🤖'],types:['pattern','mosaic','math','echo','odd','maze','puzzle','draw'],draw:'You made it to the top! Draw yourself with the cheetah and the bear.'}];
+ {name:'Starry Sky',bg:'#2E3C6E',hill:'#6A57B0',dark:true,em:['🚀','🌙','⭐','🪐','🛸','🌈','🎈','👽','🌍','🤖'],types:['pattern','mosaic','math','echo','odd','maze','puzzle','draw'],draw:'You made it to the top! Draw yourself with the two cheetahs.'}];
+/* Six trails of five worlds each. `d` is how hard the games in that world are (0 easiest to 4 hardest).
+   The first trail climbs 0 to 4; the others stay in the middle (2 to 3), which suited him best. */
+TRAIL1.forEach((w,k)=>w.d=k);
+const W=(name,bg,hill,d,em,types,draw,dark)=>({name,bg,hill,d,em,types,draw,dark});
+const TRAILS=[
+ {name:'Cheetah Trail',worlds:TRAIL1},
+ {name:'Ocean Trail',worlds:[
+  W('Sunny Beach','#F7E3B0','#E8C27A',2,['🌴','🥥','🦩','🍉','🏐','👙','🕶️','🍦','🌞','🐚'],['match','pattern','shadow','math','dots','sort','puzzle','draw'],'Draw a sandcastle on the beach.'),
+  W('Coral Reef','#9FDCE6','#46B3C4',2,['🐠','🐡','🦑','🦞','🦐','🦈','🐋','🧜','🐙','🐟'],['odd','count','maze','mosaic','math','echo','puzzle','draw'],'Draw a fish with bright colors.'),
+  W('Pirate Island','#CFE6B0','#8DBE6A',2,['🦜','⚓','🗺️','💰','🧭','🏝️','🗝️','🚣','🍌','🐒'],['match','maze','math','pattern','sort','dots','puzzle','draw'],'Draw a treasure map.'),
+  W('Deep Sea','#6FA8D6','#3F78B0',3,['🤿','🚢','🌊','🦦','🔦','⛴️','🌀','🦘','🐬','🦈'],['echo','odd','math','mosaic','maze','count','puzzle','draw'],'Draw a submarine deep under the sea.'),
+  W('Harbor Town','#F4C9B8','#D9907A',3,['🚤','🛥️','🎣','🍤','🌅','🏰','🎡','⛱️','🦀','⚓'],['pattern','math','dots','match','maze','sort','puzzle','draw'],'You finished the Ocean Trail! Draw your favorite sea creature.')]},
+ {name:'Jungle Trail',worlds:[
+  W('Rainforest','#A6D9A0','#4F9F53',2,['🐍','🦎','🌿','🥭','🌺','🐊','🦍','🐒','🦜','🐸'],['shadow','match','math','dots','pattern','maze','puzzle','draw'],'Draw a monkey swinging in the trees.'),
+  W('Savanna','#F2DC9C','#D0B05C',2,['🦁','🦒','🐘','🦓','🦏','🦛','🐃','🌾','🌞','🦅'],['count','odd','maze','math','mosaic','sort','puzzle','draw'],'Draw a giraffe with a long neck.'),
+  W('Desert Dunes','#F6D6A8','#DDA868',3,['🌵','🐪','🦂','🐫','🏜️','☀️','🏺','🦡','🌶️','🦉'],['match','math','echo','dots','pattern','maze','puzzle','draw'],'Draw a cactus in the desert.'),
+  W('Dino Volcano','#E8B8A8','#B8664E',3,['🌋','🦖','🦕','🥚','☄️','🗿','💥','🌑','⛰️','🔥'],['odd','maze','math','mosaic','echo','sort','puzzle','draw'],'Draw a dinosaur.'),
+  W('Waterfall Valley','#B7E0D8','#5FB09F',3,['🏞️','🐿️','🦚','🦢','🍓','🌸','🍒','🦗','🐦','🌻'],['pattern','math','dots','match','maze','echo','puzzle','draw'],'You finished the Jungle Trail! Draw a waterfall.')]},
+ {name:'Busy Town Trail',worlds:[
+  W('Main Street','#D9E2EC','#9AAFC4',2,['🚌','🚕','🚓','🚑','🚒','🚦','🛴','🏙️','🚲','🚗'],['sort','match','math','dots','pattern','maze','puzzle','draw'],'Draw a fire truck.'),
+  W('Happy Farm','#DDEFB8','#9FC86A',2,['🐄','🐖','🐑','🐔','🐴','🚜','🌽','🐓','🥕','🐶'],['count','shadow','maze','math','mosaic','odd','puzzle','draw'],'Draw a cow on the farm.'),
+  W('Toy Shop','#F5CDE0','#D98AB0',2,['🧸','🪁','🎲','🧩','🪀','🥁','🎸','🎺','⚽','🎨'],['match','math','echo','pattern','maze','sort','puzzle','draw'],'Draw your favorite toy.'),
+  W('Bakery','#F7DFC4','#D9A877',3,['🥐','🍞','🧁','🍩','🍪','🥨','🎂','🥞','🍰','🍫'],['odd','maze','math','mosaic','dots','count','puzzle','draw'],'Draw a birthday cake.'),
+  W('City Lights','#3A3F6E','#7A6FC0',3,['🎆','🎇','🏮','💡','🌃','🎠','🎪','🦇','🌟','🕯️'],['pattern','math','echo','match','maze','dots','puzzle','draw'],'You finished the Busy Town Trail! Draw a city at night.',true)]},
+ {name:'Snowy North Trail',worlds:[
+  W('Ice Floe','#DDF0F7','#A9D3E6',2,['🐧','🧊','❄️','🛷','⛸️','🥶','🌨️','🦥','🐻','🐋'],['match','pattern','math','dots','shadow','maze','puzzle','draw'],'Draw a penguin on the ice.'),
+  W('Pine Woods','#BFDCC4','#5E9C70',3,['🎄','🦊','🦝','🪵','🐾','🦃','🐨','🐼','🍄','🌲'],['odd','count','maze','math','mosaic','echo','puzzle','draw'],'Draw a fox in the snow.'),
+  W('Cozy Cabin','#EAD3C0','#B88A66',3,['🏠','☕','🧦','🧶','🍲','📚','🕰️','🪟','🧣','🔥'],['match','math','pattern','dots','sort','maze','puzzle','draw'],'Draw a cozy house with smoke from the chimney.'),
+  W('Northern Lights','#24365A','#3FA58A',3,['🌌','🦄','🔭','🛰️','🌠','🎐','🐹','🐭','🧭','🦉'],['echo','odd','math','mosaic','maze','pattern','puzzle','draw'],'Draw colorful lights in the night sky.',true),
+  W('Snow Peak','#E6E3F5','#B7B0DC',3,['🏔️','🧗','🚠','🏂','🥾','🗻','🐥','🐣','🦅','🎿'],['math','maze','dots','match','echo','sort','puzzle','draw'],'You finished the Snowy North Trail! Draw a mountain with a flag on top.')]},
+ {name:'Magic Kingdom Trail',worlds:[
+  W('Castle Gate','#E6D8F2','#B49AD6',3,['👑','🛡️','🚩','🌹','🪲','🍋','🍐','🥝','🏰','🐴'],['match','pattern','math','dots','sort','maze','puzzle','draw'],'Draw a castle with tall towers.'),
+  W('Fairy Garden','#F4D8E8','#D79AC0',3,['🧚','🍀','🌼','🍯','🫐','🥑','🌮','🍿','🌷','🐞'],['odd','count','maze','math','mosaic','echo','puzzle','draw'],'Draw a fairy with wings.'),
+  W('Wizard Tower','#CFC8EC','#8C7FD0',3,['🧙','📜','🔮','⚗️','🪄','🕯️','✨','🪅','🦉','📚'],['match','math','pattern','echo','dots','maze','puzzle','draw'],'Draw a wizard with a magic wand.'),
+  W('Dragon Cave','#E3C0B0','#A86850',3,['🐉','🐲','💎','🥇','🏆','🗡️','🪙','🛶','🔥','🦇'],['odd','maze','math','mosaic','sort','pattern','puzzle','draw'],'Draw a friendly dragon.'),
+  W('Rainbow Clouds','#FBE7F0','#F2B5CF',3,['☁️','🍭','🎀','🍬','💖','🪘','🏓','🥏','🌈','🎈'],['pattern','math','echo','match','maze','dots','puzzle','draw'],'You finished every trail! Draw yourself with the cheetahs.')]}];
+const WORLDS=TRAILS.flatMap((t,k)=>t.worlds.map(w=>Object.assign(w,{trail:k})));
+const PER=40,trailOf=i=>Math.floor(i/PER),trailDone=t=>{for(let i=t*PER;i<(t+1)*PER;i++)if(!S.done.includes(i))return false;return true};
 const TYPES={match:'🃏',shadow:'🔦',sort:'🧺',puzzle:'🧩',pattern:'🔁',odd:'🔍',count:'🔢',dots:'✏️',maze:'🧭',mosaic:'🖌️',echo:'🎵',draw:'🎨',math:'➕'};
 const NAMES={match:'Find the pairs',shadow:'Shadow match',sort:'Sorting',puzzle:'Picture puzzle',pattern:'What comes next',odd:'Odd one out',count:'Counting',dots:'Dot to dot',maze:'Maze',mosaic:'Paint by number',echo:'Copy the tune',draw:'Drawing',math:'Number puzzle'};
 const N=WORLDS.length*8;
@@ -845,7 +885,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
 
 /* ---------- starting and finishing a mission ---------- */
 function startLevel(i){leaveGame();curLevel=i;const w=WORLDS[i>>3],t=w.types[i&7],me=gen;show('play');area.innerHTML='';area.className='area';
-  let won=false;curHint=GAMES[t](area,i>>3,w,()=>{if(won||me!==gen)return;won=true;setTimeout(()=>me===gen&&reward(i),700)});
+  let won=false;curHint=GAMES[t](area,w.d,w,()=>{if(won||me!==gen)return;won=true;setTimeout(()=>me===gen&&reward(i),700)});
   $('#hint').textContent=curHint;say(pick(OPENERS),curHint)}
 function reward(i){const first=!S.done.includes(i);let star=first;
   if(first)S.done.push(i);else{const day=new Date().toDateString();if(!S.replay||S.replay.day!==day)S.replay={day,n:0};if(S.replay.n<S.replayCap){S.replay.n++;star=true}}
@@ -855,34 +895,44 @@ function reward(i){const first=!S.done.includes(i);let star=first;
   $('#hand').onclick=()=>{$('#hand').onclick=null;$('#hand').className='hit';sfx.clap();setTimeout(sfx.good,200);
     const panel=$('#reward .panel');for(let k=0;k<12;k++){const s=el('span','spark','⭐'),an=Math.PI*2*k/12;s.style.setProperty('--dx',Math.cos(an)*150+'px');s.style.setProperty('--dy',Math.sin(an)*150+'px');panel.append(s);setTimeout(()=>s.remove(),1000)}
     setTimeout(()=>{const got=$('#rwGot');got.innerHTML='';got.className='got';$('#hand').hidden=true;$('#rwP').hidden=true;$('#rwT').textContent='High five!';
-      const w=WORLDS[i>>3],top=S.done.length>=N;
+      const w=WORLDS[i>>3],tr=TRAILS[w.trail],top=(i%PER)===PER-1||((i&7)===7&&trailDone(w.trail)),all=TRAILS.every((_,k)=>trailDone(k));
       if(first){got.append(el('span','',stickerOf(i)),document.createTextNode('A gold star and a new sticker!'));
-        if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?'You reached the top of the trail!':'You finished '+w.name+'!'))}
+        if((i&7)===7)got.append(el('span','','🏆'),document.createTextNode(top?(all?'You finished every trail!':'You finished the '+tr.name+'!'):'You finished '+w.name+'!'))}
       else got.append(el('span','',star?'⭐':'👏'),document.createTextNode(star?'Another gold star!':'Great playing!'));
-      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! You got another gold star!':'High five! That was fun!'):(i&7)!==7?'High five! You got a gold star and a new sticker!':top?'High five! We made it all the way to the top! You’re the best!':'High five! You finished '+w.name+'!')},700)}}
-$('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();openMap()};
-$('#quit').onclick=()=>{leaveGame();openMap()};
+      got.hidden=false;$('#rwNext').hidden=false;say(!first?(star?'High five! You got another gold star!':'High five! That was fun!'):(i&7)!==7?'High five! You got a gold star and a new sticker!':top?(w.trail===0?'High five! We made it all the way to the top! You’re the best!':'High five! You finished the '+tr.name+'!'):'High five! You finished '+w.name+'!')},700)}}
+$('#rwNext').onclick=()=>{$('#reward').hidden=true;leaveGame();backToMap()};
+$('#quit').onclick=()=>{leaveGame();backToMap()};
 $('#speak').onclick=()=>{const v=S.voice;S.voice=true;say(curHint);S.voice=v};
 
 /* ---------- the trail ---------- */
-function openMap(){show('map');const STEP=104,H=N*STEP+170,y=i=>H-90-i*STEP,xp=t=>50+30*Math.sin(t*.8),T=$('#trail'),cur=nextLevel();
-  T.innerHTML='';T.style.height=H+'px';T.style.background=`linear-gradient(${WORLDS[WORLDS.length-1].bg} 50%,${WORLDS[0].bg} 50%)`;
-  WORLDS.forEach((w,k)=>{const b=el('div','band'+(w.dark?' dark':''));b.style.top=(y(8*k+7)-STEP/2)+'px';b.style.height=8*STEP+'px';b.style.background=w.bg;
-    b.append(el('span','wname',(S.done.includes(8*k+7)?'🏆 ':'')+w.name));T.append(b)});
-  let dp='';for(let t=0;t<=N-1;t+=.1)dp+=(dp?'L':'M')+xp(t).toFixed(2)+' '+y(t).toFixed(1);
+let mapTrail=-1;
+function openMap(pick){show('map');const cur=nextLevel(),curT=Math.min(trailOf(cur),TRAILS.length-1);
+  if(pick!=null)mapTrail=pick;else if(mapTrail<0||!$('#map').dataset.kept)mapTrail=curT;$('#map').dataset.kept='';
+  const tr=mapTrail,base=tr*PER,open=k=>S.open||k===0||trailDone(k-1),worlds=TRAILS[tr].worlds;
+  /* trail picker */
+  const P=$('#trailPick');P.innerHTML='';TRAILS.forEach((t,k)=>{const b=el('button','btn tab'+(k===tr?' on':''),(trailDone(k)?'🏆 ':open(k)?'':'🔒 ')+t.name);
+    b.disabled=!open(k);b.onclick=()=>{sfx.tap();openMap(k)};P.append(b)});
+  requestAnimationFrame(()=>{const on=P.querySelector('.on');if(on)P.scrollLeft=on.offsetLeft-16});
+  const STEP=104,H=PER*STEP+170,y=i=>H-90-i*STEP,xp=t=>50+30*Math.sin(t*.8),T=$('#trail');
+  T.innerHTML='';T.style.height=H+'px';T.style.background=`linear-gradient(${worlds[4].bg} 50%,${worlds[0].bg} 50%)`;
+  worlds.forEach((w,k)=>{const b=el('div','band'+(w.dark?' dark':''));b.style.top=(y(8*k+7)-STEP/2)+'px';b.style.height=8*STEP+'px';b.style.background=w.bg;
+    b.append(el('span','wname',(S.done.includes(base+8*k+7)?'🏆 ':'')+w.name));T.append(b)});
+  let dp='';for(let t=0;t<=PER-1;t+=.1)dp+=(dp?'L':'M')+xp(t).toFixed(2)+' '+y(t).toFixed(1);
   T.insertAdjacentHTML('beforeend',`<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${dp}"/></svg>`);
-  T.append(cur>=N?buddy(el('div','summit')):el('div','summit','🏁'));
-  for(let i=0;i<N;i++){const t=WORLDS[i>>3].types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
-    b.style.left=xp(i)+'%';b.style.top=y(i)+'px';b.setAttribute('aria-label',`Stop ${i+1}: ${NAMES[t]}`);
+  T.append(trailDone(tr)?buddy(el('div','summit')):el('div','summit','🏁'));
+  for(let k=0;k<PER;k++){const i=base+k,w=WORLDS[i>>3],t=w.types[i&7],b=el('button','node',S.done.includes(i)?stickerOf(i):TYPES[t]),lock=i>cur&&!S.open;
+    b.style.left=xp(k)+'%';b.style.top=y(k)+'px';b.setAttribute('aria-label',`Stop ${k+1}: ${NAMES[t]}`);
     if(S.done.includes(i))b.classList.add('done');if(lock){b.classList.add('lock');b.disabled=true}
     if(i===cur){b.classList.add('cur');{const f=el('span','fox');f.append(faceEl('baby'));b.append(f)}}
     b.onclick=()=>{sfx.tap();startLevel(i)};T.append(b)}
   $('#starCount').textContent='⭐ '+avail();
-  const sc=$('#mapScroll');sc.scrollTop=y(Math.min(cur,N-1))-sc.clientHeight/2}
+  const sc=$('#mapScroll'),focus=cur>=base&&cur<base+PER?cur-base:(trailDone(tr)?PER-1:0);sc.scrollTop=y(focus)-sc.clientHeight/2}
+/* returning from a stop keeps the trail he was on */
+const backToMap=()=>{$('#map').dataset.kept='1';openMap()};
 
 /* ---------- sticker book, studio, pictures, settings ---------- */
 function openBook(){show('book');$('#starCount2').textContent='⭐ '+avail();const P=$('#bookPages');P.innerHTML='';
-  WORLDS.forEach((w,k)=>{const pg=el('div','page'),g=el('div','stick');pg.append(el('h3','',(S.done.includes(8*k+7)?'🏆 ':'')+w.name),g);
+  WORLDS.forEach((w,k)=>{if(k%5===0)P.append(el('h3','trailhead',(trailDone(w.trail)?'🏆 ':'')+TRAILS[w.trail].name));const pg=el('div','page'),g=el('div','stick');pg.append(el('h3','',(S.done.includes(8*k+7)?'🏆 ':'')+w.name),g);
     for(let j=0;j<8;j++){const has=S.done.includes(8*k+j);g.append(el('span',has?'':'off',has?w.em[j]:'?'))}P.append(pg)})}
 function openStudio(){leaveGame();show('studio');const h=$('#studioHost');h.innerHTML='';easel(h,{studio:true})}
 /* hands the drawing to the phone or tablet's own share sheet (Messages, Mail, AirDrop, Photos...) */
@@ -1048,7 +1098,7 @@ function openUsa(){leaveGame();show('usa');$('#starCount6').textContent='⭐ '+a
   REGN.forEach(([r,l])=>{const b=el('button','btn tab'+(r===usaReg?' on':''),l+(usaMode!=='explore'&&S.geo.includes((usaMode==='find'?'f':'n')+':'+r)?' ⭐':''));b.onclick=()=>{sfx.tap();usaReg=r;openUsa()};R.append(b)});
   loadUsa().then(()=>{if(me===gen&&!$('#usa').hidden)usaStart()}).catch(()=>{$('#usaQ').textContent='The map could not be loaded. Check the internet and try again.'})}
 $('#goUsa').onclick=()=>{sfx.tap();openUsa()};
-function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':'Keep going · Stop '+(c+1)}
+function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':(c%PER===0?'Start the '+TRAILS[trailOf(c)].name:'Keep going · '+TRAILS[trailOf(c)].name.replace(' Trail','')+' stop '+(c%PER+1))}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setExport').hidden=!(window.claude&&window.claude.use);
   {const y=$('#setSync');y.hidden=!SYNC_URL;y.textContent=familyCode?'Saving to the family server: on':'Save on every device: off'}
