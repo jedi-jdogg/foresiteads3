@@ -61,6 +61,28 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
 .menu .btn{width:100%;font-size:1.08rem;min-height:56px;padding:6px 8px}
 .menu #goMap{grid-column:1/-1;font-size:1.3rem}
+.btn.sci{background:#5BAE5B;color:#fff;box-shadow:0 5px 0 #3E8540}
+.btn.soc{background:#D9774A;color:#fff;box-shadow:0 5px 0 #A9542E}
+/* science and social studies */
+.ltico{font:34px/1 var(--emoji)}
+.lbox{gap:16px;justify-content:flex-start;padding-top:8px;overflow-y:auto}
+.lq{font:800 clamp(1.3rem,5vw,1.9rem)/1.2 var(--display);text-align:center;max-width:30ch;text-wrap:balance}
+.lshow{font:clamp(64px,20vmin,120px)/1 var(--emoji)}
+.lopt{min-height:60px;font-size:1.15rem;padding:8px 18px}
+.lopt.big{font-size:2rem;min-width:84px}
+.lopt.ok{background:#E3F4DC;box-shadow:0 0 0 3px var(--leaf) inset}
+.lopt.hintq{animation:usahint 1s ease-in-out infinite}
+.lopt[disabled]:not(.ok){opacity:.4}
+.lfact{font:700 1.15rem/1.35 var(--body);background:var(--paper);border-radius:18px;padding:12px 16px;max-width:34ch;text-align:center;box-shadow:0 0 0 3px var(--leaf) inset}
+.lslots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.lslot{min-width:110px;min-height:56px;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font:800 1.1rem var(--display);color:var(--soft);padding:4px 8px}
+.lslot.ok{border-style:solid;border-color:var(--leaf);background:#E3F4DC;color:var(--ink)}
+.lgridwrap{display:flex;align-items:center;gap:6px}
+.lcompass{display:flex;flex-direction:column;align-items:center;gap:4px}
+.lgridwrap>b,.lcompass>b{font:800 1.2rem var(--display);color:var(--fox-d)}
+.lgrid{display:grid;grid-template-columns:repeat(3,72px);grid-auto-rows:72px;gap:4px;background:#CFEBB8;padding:6px;border-radius:14px}
+.lgrid div{display:flex;flex-direction:column;align-items:center;justify-content:center;font:34px/1 var(--emoji);background:rgba(255,255,255,.55);border-radius:10px}
+.lgrid small{font:800 .72rem var(--display);color:var(--ink)}
 .btn.teal{background:#2E9C97;color:#fff;box-shadow:0 5px 0 #1F736F}
 /* USA map */
 .usaq{flex:none;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:4.4em}
@@ -291,6 +313,8 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
     <button class="btn sun" id="goAbc">🔤 ABC Letters</button>
     <button class="btn blue" id="goMath">🔢 Math</button>
     <button class="btn teal" id="goUsa">🗺️ USA Map</button>
+    <button class="btn sci" id="goSci">🔬 Science</button>
+    <button class="btn soc" id="goSoc">🌎 Social Studies</button>
     <button class="btn green" id="goBook">⭐ Sticker Book</button>
     <button class="btn" id="goBank">🐷 Piggy Bank</button>
   </div>
@@ -348,6 +372,11 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <div class="usaq" id="usaQ"></div>
   <div class="area" id="usaArea"></div>
   <div class="pick" id="usaPick"></div>
+</section>
+
+<section class="screen" id="learn" hidden>
+  <div class="bar"><button class="btn round" data-go="home" aria-label="Home">🏠</button><h2 id="learnTitle">Science</h2><span class="stars" id="starCount7">⭐ 0</span></div>
+  <div class="area" id="learnArea"></div>
 </section>
 
 <section class="screen" id="voice" hidden>
@@ -465,7 +494,7 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(!Array.isArray(S.geo))S.geo=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(!Array.isArray(S.geo))S.geo=[];if(!Array.isArray(S.learn))S.learn=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
@@ -512,7 +541,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRe
 function mergeRemote(c){if(!c||!Array.isArray(c.done))return false;const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;
   for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
   if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}
-  for(const k of['abc','math','geo','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
+  for(const k of['abc','math','geo','learn','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
   if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;return grew}
 async function syncNow(){if(!remote)return false;try{const c=await remote.getP();
     if(mergeRemote(c)){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
@@ -821,8 +850,8 @@ function scene(w,cols,rows){const c=document.createElement('canvas'),W=c.width=7
   return c.toDataURL('image/jpeg',.85)}
 
 /* ---------- drawing board, shared by drawing missions and the Art Studio ---------- */
-/* 50 pictures to trace in the Art Studio, each drawn on a 100 x 100 sheet: [what the buddy calls it, outline, level].
-   Level 1 is one simple shape, level 2 has a few parts, level 3 has many parts and small details. */
+/* Pictures to trace in the Art Studio, each drawn on a 100 x 100 sheet: [what the buddy calls it, outline, level].
+   Level 1 is one simple shape, level 2 has a few parts, level 3 has many parts and small details, level 4 is a whole scene. */
 const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 0 1 0 ${2*a} 0a${a} ${b} 0 1 0 ${-2*a} 0Z`,C=(x,y,r)=>E(x,y,r,r),PL=p=>'M'+p.map(q=>q.join(' ')).join('L')+'Z',
   ring=(k,x,y,r,f)=>[...Array(k)].map((_,i)=>f(n(x+r*Math.cos(i*2*Math.PI/k)),n(y+r*Math.sin(i*2*Math.PI/k)),i*2*Math.PI/k)).join('');
   const all=[
@@ -879,10 +908,51 @@ const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 
   ['a penguin',E(50,56,22,34)+E(50,62,14,24)+C(44,36,2)+C(56,36,2)+'M46 42L50 48L54 42ZM28 50Q18 66 28 76M72 50Q82 66 72 76M40 90L36 96H46ZM60 90L64 96H54Z'],
   ['a duck',E(46,64,26,14)+C(70,40,10)+'M79 38L92 41L79 45'+C(72,37,1.5)+'M32 60Q46 52 56 64M40 78V88H34M52 78V88H46'],
   ['a monkey',C(50,38,17)+C(31,38,6)+C(69,38,6)+E(50,44,11,9)+C(44,34,2)+C(56,34,2)+'M45 48Q50 52 55 48'+E(50,72,13,14)+'M40 84V94M60 84V94M62 78Q84 84 82 64Q80 56 73 60'],
-  ['a dinosaur',E(44,64,24,14)+'M62 56Q74 36 76 18M68 66Q80 42 84 20'+E(82,15,8,6)+C(84,13,1.2)+'M20 62Q6 64 2 76M28 74V92H36V76M50 76V92H58V74'+C(38,58,3)+C(50,62,3)+C(44,68,2)]];
+  ['a dinosaur',E(44,64,24,14)+'M62 56Q74 36 76 18M68 66Q80 42 84 20'+E(82,15,8,6)+C(84,13,1.2)+'M20 62Q6 64 2 76M28 74V92H36V76M50 76V92H58V74'+C(38,58,3)+C(50,62,3)+C(44,68,2)],
+  /* easy */
+  ['an oval',E(50,50,38,26),1],['a rectangle','M14 28H86V72H14Z',1],['a half circle','M12 64A38 38 0 0 1 88 64Z',1],
+  ['a hexagon',PL([...Array(6)].map((_,i)=>[n(50+38*Math.cos(i*Math.PI/3)),n(50+38*Math.sin(i*Math.PI/3))])),1],
+  ['a zigzag','M10 70L26 30L42 70L58 30L74 70L90 30',1],['a wave','M8 50Q22 28 36 50T64 50T92 50',1],
+  ['a spiral','M50 50a4 4 0 0 1 8 0a8 8 0 0 1 -16 0a12 12 0 0 1 24 0a16 16 0 0 1 -32 0a20 20 0 0 1 40 0a24 24 0 0 1 -48 0a28 28 0 0 1 56 0',1],
+  ['a door','M30 92V16H70V92Z'+C(61,56,3),1],
+  /* medium */
+  ['a cupcake','M26 50H74L66 88H34ZM42 50L44 88M58 50L56 88M24 50Q20 36 34 34Q36 20 50 22Q64 20 66 34Q80 36 76 50Z'+C(50,16,5),2],
+  ['a tent','M10 84L50 16L90 84ZM50 16V84M40 84L50 54L60 84M50 16V6L62 10L50 14',2],
+  ['a candle','M38 40H62V90H38ZM50 40V32M50 30Q40 20 50 6Q60 20 50 30ZM38 50Q44 56 48 48',2],
+  ['a book','M50 24Q34 16 12 20V78Q34 74 50 82Q66 74 88 78V20Q66 16 50 24ZM50 24V82M20 34Q32 32 42 36M20 46Q32 44 42 48M58 36Q68 32 80 34M58 48Q68 44 80 46',2],
+  ['glasses',C(30,52,16)+C(70,52,16)+'M46 50Q50 44 54 50M14 50L6 40M86 50L94 40',2],
+  ['a watermelon slice','M10 34A40 40 0 0 0 90 34ZM18 34A32 32 0 0 0 82 34'+C(40,46,1.8)+C(52,52,1.8)+C(62,44,1.8)+C(46,58,1.8)+C(58,62,1.8),2],
+  ['a strawberry','M50 28Q74 26 76 46Q74 72 50 90Q26 72 24 46Q26 26 50 28ZM50 28L40 16L48 22L50 12L52 22L60 16Z'+C(40,44,1.4)+C(54,42,1.4)+C(62,54,1.4)+C(44,58,1.4)+C(52,70,1.4)+C(36,56,1.4),2],
+  ['a pumpkin',E(50,58,36,28)+'M50 30Q34 44 34 58Q34 74 50 86M50 30Q66 44 66 58Q66 74 50 86M50 30V18Q54 12 60 14',2],
+  ['a T-shirt','M34 14L14 26L22 42L32 36V88H68V36L78 42L86 26L66 14Q58 24 50 24Q42 24 34 14Z',2],
+  ['a flag','M20 92V8M20 14H82V54H20M20 14H44V34H20M44 24H82M44 34H82M20 44H82',2],
+  /* harder */
+  ['an airplane','M10 52Q10 44 20 44H78Q92 46 94 52Q92 58 78 60H20Q10 60 10 52ZM44 56L30 82H42L62 56M46 44L38 28H46L58 44M18 44L10 26H18L28 44M84 46Q90 48 92 52H84Z'+C(58,51,2.5)+C(66,51,2.5)+C(74,51,2.5),3],
+  ['a helicopter',E(46,56,24,16)+'M50 44Q66 44 68 56H50ZM22 54H6M6 46V62M46 40V30M14 30H78M30 72V80M58 72V80M22 80H66',3],
+  ['a bicycle',C(24,66,16)+C(76,66,16)+'M24 66L40 40H66L76 66M40 40L50 66L66 40M50 66H24M36 34H46M66 40L62 28H72'+C(50,66,4),3],
+  ['a hot air balloon','M50 8C76 8 84 30 78 46C72 60 60 66 58 72H42C40 66 28 60 22 46C16 30 24 8 50 8ZM50 8C40 24 40 52 46 72M50 8C60 24 60 52 54 72M42 72L40 82M58 72L60 82M38 82H62L58 96H42Z',3],
+  ['a sheep','M24 60Q16 50 26 44Q26 32 40 34Q46 26 56 32Q68 30 68 42Q76 50 68 60Q66 72 52 70Q44 78 34 70Q20 72 24 60Z'+E(80,46,8,10)+'M74 40L66 36M86 40L92 34'+C(82,44,1.2)+'M34 72V90M42 74V90M54 72V90M62 70V90',3],
+  ['an octopus','M28 50Q28 14 50 14Q72 14 72 50ZM30 50Q20 64 26 78Q30 84 22 88M40 50Q34 68 40 80Q44 86 38 92M50 50V92M60 50Q66 68 60 80Q56 86 62 92M70 50Q80 64 74 78Q70 84 78 88'+C(42,34,3)+C(58,34,3)+'M44 42Q50 46 56 42',3],
+  ['a crab',E(50,60,26,16)+'M42 46V34M58 46V34'+C(42,31,3)+C(58,31,3)+'M26 54Q14 44 16 30M16 30L10 22M16 30L24 24M74 54Q86 44 84 30M84 30L90 22M84 30L76 24M28 66L14 72M30 72L18 82M72 66L86 72M70 72L82 82M44 64Q50 68 56 64',3],
+  ['a jellyfish','M20 50Q20 14 50 14Q80 14 80 50Q72 46 65 50Q57 46 50 50Q43 46 35 50Q28 46 20 50ZM28 52Q24 66 30 78Q34 86 28 94M42 52Q38 68 44 80M58 52Q62 68 56 80M72 52Q76 66 70 78Q66 86 72 94'+C(40,34,2.5)+C(60,34,2.5),3],
+  ['a fox','M50 82L22 46L18 14L40 32H60L82 14L78 46ZM24 22L28 36M76 22L72 36M22 46Q34 62 50 66Q66 62 78 46M46 70H54L50 76Z'+C(38,46,2.5)+C(62,46,2.5),3],
+  ['a tractor',C(30,70,18)+C(30,70,6)+C(78,80,10)+C(78,80,3)+'M18 52H48V28H70V52H90V72H88M54 32H66V48H54ZM80 52V36M48 52V66',3],
+  /* expert */
+  ['a lighthouse','M38 90L42 30H58L62 90ZM40 70H60M41 50H59M40 30V18H60V30M36 18H64L50 6ZM64 22L82 16M64 26L82 32M36 22L18 16M36 26L18 32M4 92Q14 86 24 92T44 92M56 92Q66 86 76 92T96 92M46 90V78H54V90'+C(50,40,3),4],
+  ['a pirate ship','M8 64H92L80 86H20ZM50 64V6M30 16Q50 24 70 16V38Q50 46 30 38ZM26 44Q50 52 74 44V60H26ZM50 6L62 10L50 14M4 94Q14 88 24 94T44 94T64 94T84 94'+C(36,74,3)+C(52,74,3)+C(68,74,3),4],
+  ['a dragon',E(48,62,22,14)+'M64 54Q74 38 70 26'+E(76,22,10,7)+'M72 16L70 8M80 16L82 8M84 24L88 26'+C(78,20,1.4)+'M40 52L28 14L44 28L52 8L56 30L68 20L60 52M26 64Q8 68 6 82L14 78M38 74V90H46M56 74V90H64M10 70L6 66M16 66L14 62',4],
+  ['a fire truck','M6 50H62V80H6ZM62 58H82L94 70V80H62ZM68 62H80L88 70H68ZM10 44L58 30M14 48L62 34M20 43L22 47M30 40L32 44M40 37L42 41M50 34L52 38M40 50V44H48V50'+C(22,82,9)+C(22,82,3)+C(76,82,9)+C(76,82,3)+C(32,64,7),4],
+  ['a house and garden','M30 90V50L52 30L74 50V90ZM46 90V72H58V90M36 56H46V66H36ZM64 40V28H70V46M67 24Q62 18 68 14Q74 10 70 4M12 62V90H16V62'+C(14,52,10)+C(86,14,7)+'M86 2V4M98 14H96M76 14H74M76 92V76M84 92V76M92 92V76M74 82H96',4],
+  ['a carousel','M12 32L50 10L88 32ZM12 32H88V38H12ZM24 38V86M50 38V86M76 38V86M8 86H92V94H8ZM16 62Q22 54 30 60L30 68H18ZM42 58Q48 50 56 56L56 64H44ZM68 62Q74 54 82 60L82 68H70ZM50 10V4',4],
+  ['an aquarium','M10 20H90V88H10ZM10 30Q30 26 50 30T90 30'+E(34,52,10,6)+'M24 52L16 46V58Z'+C(38,50,1.2)+E(66,66,8,5)+'M74 66L82 60V72Z'+C(62,64,1)+'M20 88Q14 72 22 60M26 88Q30 72 24 56M78 88Q84 74 76 60M40 88Q46 80 54 88'+C(44,40,2)+C(48,34,1.5),4],
+  ['a city at night','M6 92V50H22V92M22 92V30H40V92M40 92V60H54V92M54 92V22H72V92M72 92V44H94V92M26 38H36M26 48H36M26 58H36M26 68H36M58 30H68M58 40H68M58 50H68M58 60H68M10 58H18M10 68H18M76 52H90M76 62H90M84 8A10 10 0 1 0 86 26A8 8 0 1 1 84 8Z',4],
+  ['a barn','M8 92V46L26 26H62L80 46V92ZM8 46H80M32 92V64H56V92M32 64L56 92M56 64L32 92M38 34H50V44H38ZM84 92V40A6 6 0 0 1 96 40V92M84 54H96M84 68H96',4],
+  ['a guitar',E(40,74,20,17)+E(46,52,14,12)+C(44,64,5)+'M52 44L80 14M57 49L85 19M78 12L86 4L94 12L86 20M38 82L82 16M32 84H44',4],
+  ['a birthday cake','M24 92V72H76V92M30 72V56H70V72M36 56V44H64V56M44 44V34M50 44V34M56 44V34M44 32Q42 28 44 24Q46 28 44 32M50 32Q48 28 50 24Q52 28 50 32M56 32Q54 28 56 24Q58 28 56 32'+C(12,22,8)+'M12 30Q10 42 14 54'+C(88,22,8)+'M88 30Q90 42 86 54',4],
+  ['a treehouse','M44 94V54H56V94'+C(50,44,30)+'M28 56V36H72V56ZM24 36L50 18L76 36M44 56V46H56V56M30 94V56M38 94V56M30 62H38M30 72H38M30 82H38',4]];
   const LV={1:['a circle','a square','a triangle','a star','a heart','a tree','a balloon','the moon','a cloud','a happy face','a diamond','an egg','a raindrop','an arrow','a plus sign'],
     3:['a cat','a car','a rocket','a butterfly','a snowman','a teddy bear','a bird','a turtle','a snail','an owl','a bunny','a whale','a ladybug','a robot','a train','a castle','a cheetah','an elephant','a giraffe','a monkey','a dinosaur']};
-  return all.map(t=>[t[0],t[1],LV[1].includes(t[0])?1:LV[3].includes(t[0])?3:2]).sort((a,b)=>a[2]-b[2])})();
+  return all.map(t=>[t[0],t[1],t[2]||(LV[1].includes(t[0])?1:LV[3].includes(t[0])?3:2)]).sort((a,b)=>a[2]-b[2])})();
 function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','sheet'),cv=el('canvas'),bar=el('div','tools'),stampRow=el('div','pop'),colorRow=el('div','pop'),guideRow=el('div','pop tall'),SVGNS='http://www.w3.org/2000/svg',guide=document.createElementNS(SVGNS,'svg'),gpath=document.createElementNS(SVGNS,'path');
   guide.setAttribute('viewBox','0 0 100 100');guide.setAttribute('class','guide');guide.append(gpath);guide.style.display='none';guideRow.hidden=true;
   sheet.append(cv,guide,stampRow,colorRow,guideRow);wrap.append(sheet,bar);host.append(wrap);stampRow.hidden=colorRow.hidden=true;
@@ -913,7 +983,7 @@ function easel(host,{done,studio}){const wrap=el('div','easel'),sheet=el('div','
   const drawBtn=el('button','btn morecol','✏️ Things to draw');drawBtn.onclick=()=>{sfx.tap();guideRow.hidden=!guideRow.hidden;stampRow.hidden=colorRow.hidden=true};bar.append(drawBtn);
   const setGuide=t=>{gpath.setAttribute('d',t?t[1]:'');guide.style.display=t?'':'none';guideRow.hidden=true;drawBtn.classList.toggle('sel',!!t);if(t)say('Let’s draw '+t[0]+'!')};
   const none=el('button','btn gnone','No picture');none.onclick=()=>{sfx.tap();setGuide(null)};guideRow.append(none);
-  let lastL=0;TRACE.forEach(t=>{if(t[2]!==lastL){lastL=t[2];guideRow.append(el('div','glabel',['','Easy','Medium','Harder'][lastL]))}const b=el('button','tool gpick');b.setAttribute('aria-label',t[0]);b.innerHTML='<svg viewBox="0 0 100 100"><path d="'+t[1]+'"/></svg>';b.onclick=()=>{sfx.tap();setGuide(t)};guideRow.append(b)});
+  let lastL=0;TRACE.forEach(t=>{if(t[2]!==lastL){lastL=t[2];guideRow.append(el('div','glabel',['','Easy','Medium','Harder','Expert'][lastL]))}const b=el('button','tool gpick');b.setAttribute('aria-label',t[0]);b.innerHTML='<svg viewBox="0 0 100 100"><path d="'+t[1]+'"/></svg>';b.onclick=()=>{sfx.tap();setGuide(t)};guideRow.append(b)});
   [5,10,22].forEach(s=>{const dot=el('span','dot');dot.style.width=dot.style.height=(s*.9+6)+'px';tool('Brush size',dot,()=>{size=s;mark()}).dataset.s=s});
   tool('Pencil','✏️',()=>{mode='pen';stampRow.hidden=colorRow.hidden=true;mark()}).dataset.p='1';
   tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()}).dataset.m='rainbow';
@@ -1165,6 +1235,176 @@ function openUsa(){leaveGame();show('usa');$('#usa').classList.toggle('compact',
   REGN.forEach(([r,l])=>{const b=el('button','btn tab'+(r===usaReg?' on':''),l+(usaMode!=='explore'&&S.geo.includes((usaMode==='find'?'f':'n')+':'+r)?' ⭐':''));b.onclick=()=>{sfx.tap();usaReg=r;openUsa()};R.append(b)});
   loadUsa().then(()=>{if(me===gen&&!$('#usa').hidden)usaStart()}).catch(()=>{$('#usaQ').textContent='The map could not be loaded. Check the internet and try again.'})}
 $('#goUsa').onclick=()=>{sfx.tap();openUsa()};
+
+/* ---------- Science and Social Studies ----------
+   Each subject has topics; each topic is a bank of questions. A round asks 5 of them.
+   Question kinds: {q, show?, a, c} pick the right answer; {q, order:[...]} tap the cards in order; {q, grid:[9 cells], a, c} read a little map.
+   `f` is the fact shown and spoken after the right answer. Voice clips for these lines are in voice-learn.json, loaded when a subject opens. */
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const two=(c,a)=>shuffle([a,...sample(c.filter(x=>x!==a),2)]);
+const HOMES=['🌊 Ocean','🏜️ Desert','🧊 Ice and snow','🌴 Jungle','🚜 Farm','🌲 Forest','💧 Pond'];
+const SENSES=['👃 Nose','👂 Ears','👀 Eyes','👅 Tongue','✋ Hands'];
+const HELPERS=['🧑‍🚒 Firefighter','🧑‍⚕️ Doctor','🧑‍🏫 Teacher','📬 Mail carrier','👮 Police officer','🧑‍🌾 Farmer','🦷 Dentist','🧑‍✈️ Pilot','🧑‍🍳 Chef','🧑‍🔧 Mechanic'];
+const LEARN={
+ sci:{name:'Science',icon:'🔬',topics:[
+  {id:'living',name:'Living things',icon:'🌱',qs:[['a dog','🐶',1],['a rock','🪨',0],['a tree','🌳',1],['a car','🚗',0],['a flower','🌷',1],['a teddy bear','🧸',0],['a fish','🐟',1],['a ball','⚽',0],['a bird','🐦',1],['a chair','🪑',0],['a butterfly','🦋',1],['a spoon','🥄',0]]
+    .map(([n,e,l])=>({q:'Is '+n+' living or not living?',show:e,a:l?'Living':'Not living',c:['Living','Not living'],keep:1,
+      f:l?cap(n)+' is living. '+(['a tree','a flower'].includes(n)?'It grows and needs water and sunlight.':'It grows, eats and breathes.'):cap(n)+' is not living. It does not grow, eat or breathe.'}))},
+  {id:'homes',name:'Animal homes',icon:'🏡',qs:[['a shark','🦈','🌊 Ocean','Sharks live in the ocean. They breathe with gills.'],['a camel','🐫','🏜️ Desert','Camels live in the desert. They can go many days without water.'],
+    ['a penguin','🐧','🧊 Ice and snow','Penguins live where it is icy and cold. They can swim, but they cannot fly.'],['a monkey','🐒','🌴 Jungle','Monkeys live in the jungle. They climb and swing in the trees.'],
+    ['a cow','🐄','🚜 Farm','Cows live on the farm. They give us milk.'],['an owl','🦉','🌲 Forest','Owls live in the forest. They hunt at night.'],['a frog','🐸','💧 Pond','Frogs live near ponds. Baby frogs are called tadpoles.'],
+    ['a whale','🐳','🌊 Ocean','Whales live in the ocean. They breathe air through a blowhole.'],['a scorpion','🦂','🏜️ Desert','Scorpions live in the desert. They hide from the hot sun.'],
+    ['a pig','🐷','🚜 Farm','Pigs live on the farm. They roll in mud to stay cool.'],['a parrot','🦜','🌴 Jungle','Parrots live in the jungle. Some parrots can copy words.'],
+    ['a deer','🦌','🌲 Forest','Deer live in the forest. Baby deer are called fawns.'],['a duck','🦆','💧 Pond','Ducks live near ponds. Their feet are like paddles for swimming.']]
+    .map(([n,e,a,f])=>({q:'Where does '+n+' live?',show:e,a,c:HOMES,f}))},
+  {id:'weather',name:'Weather',icon:'🌦️',qs:[
+    {q:'It is raining. What should you bring?',show:'🌧️',a:'☔ Umbrella',c:['☔ Umbrella','🕶️ Sunglasses','🩳 Shorts'],f:'An umbrella keeps you dry in the rain.'},
+    {q:'It is snowing. What should you wear?',show:'❄️',a:'🧤 Mittens',c:['🧤 Mittens','👙 Swimsuit','🩴 Flip-flops'],f:'Mittens keep your hands warm in the snow.'},
+    {q:'It is hot and sunny. What should you wear?',show:'☀️',a:'🧢 A hat',c:['🧢 A hat','🧣 A scarf','🧤 Mittens'],f:'A hat shades your face from the hot sun.'},
+    {q:'What do we call water falling from clouds?',show:'🌧️',a:'Rain',c:['Rain','Wind','Sunshine'],f:'Clouds are made of tiny drops of water. When the drops get heavy, they fall as rain.'},
+    {q:'What can you see in the sky when the sun shines after rain?',show:'🌦️',a:'🌈 A rainbow',c:['🌈 A rainbow','⭐ Stars','🌙 The moon'],f:'Sunlight shines through raindrops and makes a rainbow.'},
+    {q:'Which weather helps a kite fly?',show:'🪁',a:'💨 Windy',c:['💨 Windy','🌫️ Foggy','❄️ Snowy'],f:'Wind pushes the kite up into the sky.'},
+    {q:'What makes the loud boom in a storm?',show:'⛈️',a:'Thunder',c:['Thunder','Rain','Snow'],f:'Thunder is the sound that lightning makes.'},
+    {q:'Which season is the coldest?',show:'⛄',a:'Winter',c:['Winter','Summer','Spring'],f:'Winter is the coldest season. In many places it snows.'},
+    {q:'Put the seasons in order. Start with spring.',order:['🌷 Spring','☀️ Summer','🍂 Fall','⛄ Winter'],f:'Spring, summer, fall, winter. Then it starts all over again!'}]},
+  {id:'plants',name:'Plants',icon:'🌻',qs:[
+    {q:'Which part of a plant drinks water from the soil?',show:'🌱',a:'Roots',c:['Roots','Flower','Leaves'],f:'Roots grow under the ground and drink up water.'},
+    {q:'What do plants need to grow?',show:'🪴',a:'Water and sunlight',c:['Water and sunlight','Toys and games','Candy'],f:'Plants need water, sunlight, air and soil.'},
+    {q:'Which part of a plant makes seeds?',show:'🌻',a:'Flower',c:['Flower','Roots','Stem'],f:'Flowers make seeds, and new plants grow from seeds.'},
+    {q:'What color are most leaves?',show:'🍃',a:'Green',c:['Green','Purple','Black'],f:'Leaves are green. They use sunlight to make food for the plant.'},
+    {q:'Which of these grows from a seed?',a:'🌳 A tree',c:['🌳 A tree','🪨 A rock','🧸 A teddy bear'],f:'A big tree starts as a tiny seed.'},
+    {q:'A carrot is which part of the plant?',show:'🥕',a:'Root',c:['Root','Flower','Leaf'],f:'When we eat a carrot, we are eating the root!'},
+    {q:'Where do apples grow?',show:'🍎',a:'On a tree',c:['On a tree','In the ocean','Under a rock'],f:'Apples grow on apple trees.'},
+    {q:'How does a plant grow? Put it in order.',order:['🌰 Seed','🌱 Sprout','🪴 Plant','🌻 Flower'],f:'A seed grows into a sprout, then a plant, and then it flowers.'}]},
+  {id:'grow',name:'Growing up',icon:'🦋',qs:[
+    {q:'How does a butterfly grow? Put it in order.',order:['🥚 Egg','🐛 Caterpillar','Chrysalis','🦋 Butterfly'],f:'A caterpillar wraps up in a chrysalis, then comes out as a butterfly!'},
+    {q:'How does a chicken grow? Put it in order.',order:['🥚 Egg','🐣 Hatching','🐥 Chick','🐔 Hen'],f:'A chick hatches from an egg and grows into a chicken.'},
+    {q:'How do people grow? Put it in order.',order:['👶 Baby','🧒 Child','🧑 Grown-up','🧓 Grandparent'],f:'People grow from babies to children to grown-ups.'},
+    {q:'How does a frog grow? Put it in order.',order:['🥚 Eggs','Tadpole','🐸 Frog'],f:'Tadpoles live in water. They grow legs and turn into frogs.'},
+    {q:'What is a baby dog called?',show:'🐶',a:'Puppy',c:['Puppy','Kitten','Calf'],f:'A baby dog is a puppy.'},
+    {q:'What is a baby cat called?',show:'🐱',a:'Kitten',c:['Kitten','Puppy','Chick'],f:'A baby cat is a kitten.'},
+    {q:'What is a baby cow called?',show:'🐄',a:'Calf',c:['Calf','Lamb','Puppy'],f:'A baby cow is a calf.'},
+    {q:'What is a baby sheep called?',show:'🐑',a:'Lamb',c:['Lamb','Kitten','Cub'],f:'A baby sheep is a lamb.'},
+    {q:'What is a baby cheetah called?',show:'🐆',a:'Cub',c:['Cub','Chick','Calf'],f:'A baby cheetah is a cub, just like a baby lion or a baby bear.'}]},
+  {id:'matter',name:'Solid, liquid, gas',icon:'🧊',qs:[...[['an ice cube','🧊','Solid'],['milk','🥛','Liquid'],['a rock','🪨','Solid'],['water','💧','Liquid'],['the steam from a hot pot','♨️','Gas'],['the air in a balloon','🎈','Gas'],['a brick','🧱','Solid'],['honey','🍯','Liquid'],['a spoon','🥄','Solid']]
+    .map(([n,e,a])=>({q:'Is '+n+' a solid, a liquid or a gas?',show:e,a,c:['Solid','Liquid','Gas'],keep:1,
+      f:cap(n)+' is a '+a.toLowerCase()+'. '+(a==='Solid'?'It keeps its own shape.':a==='Liquid'?'It flows and takes the shape of its cup.':'It spreads out to fill the space.')})),
+    {q:'What happens to ice when it gets warm?',show:'🧊',a:'It melts into water',c:['It melts into water','It turns into a rock','It gets bigger'],f:'Warm ice melts and becomes liquid water.'}]},
+  {id:'float',name:'Float or sink',icon:'⛵',qs:[['a rock','🪨',0],['a leaf','🍃',1],['a coin','🪙',0],['a toy duck','🦆',1],['an apple','🍎',1],['a key','🔑',0],['a feather','🪶',1],['a metal spoon','🥄',0],['a beach ball','🏐',1],['a marble','🔵',0]]
+    .map(([n,e,fl])=>({q:'Will '+n+' float or sink?',show:e,a:fl?'Float':'Sink',c:['Float','Sink'],keep:1,
+      f:n==='an apple'?'An apple floats because it has air inside.':cap(n)+(fl?' floats. It is light for its size.':' sinks. It is heavy for its size.')}))},
+  {id:'senses',name:'Five senses',icon:'👀',qs:[
+    {q:'What do you use to smell a flower?',show:'🌷',a:'👃 Nose',c:SENSES,f:'You smell with your nose.'},
+    {q:'What do you use to hear music?',show:'🎵',a:'👂 Ears',c:SENSES,f:'You hear with your ears.'},
+    {q:'What do you use to see a rainbow?',show:'🌈',a:'👀 Eyes',c:SENSES,f:'You see with your eyes.'},
+    {q:'What do you use to taste ice cream?',show:'🍦',a:'👅 Tongue',c:SENSES,f:'You taste with your tongue.'},
+    {q:'What do you use to feel soft fur?',show:'🐈',a:'✋ Hands',c:SENSES,f:'You feel things with your skin, like your hands.'},
+    {q:'What do you use to smell cookies baking?',show:'🍪',a:'👃 Nose',c:SENSES,f:'Your nose can smell yummy cookies from far away.'},
+    {q:'What do you use to hear a dog bark?',show:'🐕',a:'👂 Ears',c:SENSES,f:'Your ears hear sounds, like a dog barking.'},
+    {q:'How many senses do you have?',a:'5',c:['5','2','10'],f:'You have five senses: seeing, hearing, smelling, tasting and touching.'}]},
+  {id:'space',name:'Space',icon:'🚀',qs:[
+    {q:'What gives us light and warmth in the day?',show:'☀️',a:'The sun',c:['The sun','The moon','A cloud'],f:'The sun is a star. It is very hot and very far away.'},
+    {q:'What planet do we live on?',show:'🌍',a:'Earth',c:['Earth','Mars','The moon'],f:'We live on planet Earth. It has land, water and air.'},
+    {q:'The sun is a...',a:'Star',c:['Star','Planet','Moon'],f:'The sun is the closest star to Earth.'},
+    {q:'What do astronauts ride to go to space?',show:'👩‍🚀',a:'🚀 A rocket',c:['🚀 A rocket','🚲 A bike','🚌 A bus'],f:'Rockets are very fast. They blast off into space.'},
+    {q:'What do we often see in the night sky?',show:'🌃',a:'🌙 The moon and stars',c:['🌙 The moon and stars','🌈 A rainbow','☀️ The sun'],f:'At night we can see the moon and the stars.'},
+    {q:'Which planet has big rings?',show:'🪐',a:'Saturn',c:['Saturn','Earth','Mars'],f:'Saturn has rings made of ice and rock.'},
+    {q:'Which planet is called the red planet?',a:'Mars',c:['Mars','Earth','Saturn'],f:'Mars looks red because its dirt is rusty.'},
+    {q:'Put these in order from smallest to biggest.',order:['🌙 The moon','🌍 Earth','☀️ The sun'],f:'The moon is smaller than Earth, and the sun is much, much bigger than both!'}]}]},
+ soc:{name:'Social Studies',icon:'🌎',topics:[
+  {id:'helpers',name:'Community helpers',icon:'🚒',qs:[['Who puts out fires?',0,'Firefighters put out fires and help people stay safe.'],['Who helps you when you are sick?',1,'Doctors help sick people get better.'],
+    ['Who helps you learn at school?',2,'Teachers help children learn.'],['Who brings letters and packages?',3,'Mail carriers bring letters and packages to our homes.'],
+    ['Who helps keep people safe in our town?',4,'Police officers help keep people safe.'],['Who grows food for us to eat?',5,'Farmers grow fruit, vegetables and grain.'],
+    ['Who checks your teeth?',6,'Dentists help keep your teeth healthy.'],['Who flies an airplane?',7,'Pilots fly airplanes.'],['Who cooks food in a restaurant?',8,'Chefs cook food in restaurants.'],['Who fixes cars?',9,'Mechanics fix cars and trucks.']]
+    .map(([q,k,f])=>({q,a:HELPERS[k],c:HELPERS,f}))},
+  {id:'needs',name:'Needs and wants',icon:'🏠',qs:[['food','🍎',1],['water','💧',1],['a home','🏠',1],['warm clothes','🧥',1],['a video game','🎮',0],['candy','🍬',0],['a new toy','🧸',0],['a balloon','🎈',0],['a toy robot','🤖',0],['a doctor when you are sick','🧑‍⚕️',1]]
+    .map(([n,e,nd])=>({q:'Is '+n+' a need or a want?',show:e,a:nd?'Need':'Want',c:['Need','Want'],keep:1,f:cap(n)+(nd?' is a need. We need it to live and be healthy.':' is a want. It is fun, but we can live without it.')}))},
+  {id:'money',name:'Money',icon:'🪙',qs:[
+    {q:'Which coin is worth 1 cent?',a:'Penny',c:['Penny','Nickel','Dime','Quarter'],keep:1,f:'A penny is worth 1 cent.'},
+    {q:'Which coin is worth 5 cents?',a:'Nickel',c:['Penny','Nickel','Dime','Quarter'],keep:1,f:'A nickel is worth 5 cents.'},
+    {q:'Which coin is worth 10 cents?',a:'Dime',c:['Penny','Nickel','Dime','Quarter'],keep:1,f:'A dime is the smallest coin, but it is worth 10 cents.'},
+    {q:'Which coin is worth 25 cents?',a:'Quarter',c:['Penny','Nickel','Dime','Quarter'],keep:1,f:'A quarter is worth 25 cents.'},
+    {q:'How many pennies make a nickel?',a:'5',c:['5','2','10'],f:'5 pennies make 1 nickel.'},
+    {q:'How many cents make one dollar?',a:'100',c:['100','10','50'],f:'100 cents make one dollar.'},
+    {q:'Which is worth more, a dime or a nickel?',a:'Dime',c:['Dime','Nickel'],keep:1,f:'A dime is worth 10 cents and a nickel is worth 5 cents.'},
+    {q:'What do we use money for?',a:'🛒 To buy things',c:['🛒 To buy things','🌱 To plant in the garden','🍽️ To eat for lunch'],f:'We use money to buy things. We can also save it, like in your Piggy Bank!'}]},
+  {id:'maps',name:'Maps and directions',icon:'🧭',qs:[
+    {q:'On a map, which way is north?',show:'🧭',a:'⬆️ Up',c:['⬆️ Up','⬇️ Down','➡️ Right','⬅️ Left'],keep:1,f:'On most maps, north is at the top.'},
+    {q:'On a map, which way is south?',show:'🧭',a:'⬇️ Down',c:['⬆️ Up','⬇️ Down','➡️ Right','⬅️ Left'],keep:1,f:'South is at the bottom of the map.'},
+    {q:'On a map, which way is east?',show:'🧭',a:'➡️ Right',c:['⬆️ Up','⬇️ Down','➡️ Right','⬅️ Left'],keep:1,f:'East is to the right. The sun comes up in the east.'},
+    {q:'On a map, which way is west?',show:'🧭',a:'⬅️ Left',c:['⬆️ Up','⬇️ Down','➡️ Right','⬅️ Left'],keep:1,f:'West is to the left. The sun goes down in the west.'},
+    {q:'Where does the sun come up in the morning?',show:'🌅',a:'East',c:['East','West','North'],f:'The sun comes up in the east and goes down in the west.'},
+    ...[['north','🏞️ Park'],['south','🏪 Store'],['east','🏥 Hospital'],['west','🏠 House']].map(([d,a])=>({q:'Look at the map. What is '+d+' of the school?',grid:1,a,c:['🏞️ Park','🏪 Store','🏥 Hospital','🏠 House'],
+      f:'The '+a.split(' ')[1].toLowerCase()+' is '+d+' of the school.'})),
+    {q:'What does a map show?',a:'Where places are',c:['Where places are','What time it is','How tall you are'],f:'A map is a drawing that shows where places are.'}]},
+  {id:'usa',name:'America',icon:'🦅',qs:[
+    {q:'Which one is the flag of the United States?',a:'🇺🇸',c:['🇺🇸','🇨🇦','🇲🇽'],f:'The American flag is red, white and blue, with stars and stripes.'},
+    {q:'How many stars are on the American flag?',show:'🇺🇸',a:'50',c:['50','13','10'],f:'There are 50 stars, one for each state.'},
+    {q:'How many stripes are on the American flag?',show:'🇺🇸',a:'13',c:['13','50','5'],f:'The 13 stripes stand for the first 13 colonies.'},
+    {q:'How many states are in the United States?',a:'50',c:['50','13','100'],f:'There are 50 states. You can find them all in the USA Map game!'},
+    {q:'Which bird is a symbol of America?',a:'🦅 Bald eagle',c:['🦅 Bald eagle','🦜 Parrot','🐧 Penguin'],f:'The bald eagle is the national bird of the United States.'},
+    {q:'The Statue of Liberty is in which city?',show:'🗽',a:'New York',c:['New York','Chicago','Los Angeles'],f:'The Statue of Liberty stands in New York. It was a gift from France.'},
+    {q:'Who is the leader of the United States?',a:'The President',c:['The President','A king','A mayor'],f:'The President leads the country and lives in the White House.'},
+    {q:'What is the capital city of the United States?',show:'🏛️',a:'Washington, D.C.',c:['Washington, D.C.','New York','Texas'],f:'Washington, D.C. is the capital. The President lives there.'}]},
+  {id:'past',name:'Long ago and today',icon:'🕰️',qs:[
+    {q:'Long ago, before cars, how did people travel on land?',a:'🐴 By horse',c:['🐴 By horse','✈️ By airplane','🚀 By rocket'],f:'Long ago people rode horses, or rode in wagons pulled by horses.'},
+    {q:'Which one is from long ago?',a:'🕯️ Candle',c:['🕯️ Candle','💡 Light bulb'],f:'Before electric lights, people used candles to see at night.'},
+    {q:'Long ago, how did people send messages far away?',a:'✉️ Letters',c:['✉️ Letters','📱 Text messages','💻 Email'],f:'Long ago, people wrote letters. They took a long time to arrive.'},
+    {q:'Long ago, where did many people get water?',a:'🪣 From a well',c:['🪣 From a well','🚰 From a faucet'],f:'Long ago, many people pulled water up from a well with a bucket.'},
+    {q:'Which one is newer?',a:'🚗 Car',c:['🚗 Car','🐴 Horse and wagon'],f:'Cars were invented a little over 100 years ago.'},
+    {q:'Put these in order, from oldest to newest.',order:['🕯️ Candle','💡 Light bulb','📱 Phone flashlight'],f:'People used candles, then light bulbs, and now even phones can make light!'},
+    {q:'Put these from oldest to newest.',order:['🐴 Horse','🚂 Train','✈️ Airplane'],f:'Horses came first, then trains, then airplanes.'}]},
+  {id:'safety',name:'Rules and safety',icon:'🚦',qs:[
+    {q:'What does a red traffic light mean?',show:'🔴',a:'Stop',c:['Stop','Go','Slow down'],keep:1,f:'Red means stop.'},
+    {q:'What does a green traffic light mean?',show:'🟢',a:'Go',c:['Stop','Go','Slow down'],keep:1,f:'Green means go, but always look first.'},
+    {q:'What does a yellow traffic light mean?',show:'🟡',a:'Slow down',c:['Stop','Go','Slow down'],keep:1,f:'Yellow means slow down. The light will turn red soon.'},
+    {q:'What should you do before you cross the street?',show:'🚸',a:'👀 Look both ways',c:['👀 Look both ways','🏃 Run fast','🙈 Close your eyes'],f:'Stop, look left and right, and hold a grown-up’s hand.'},
+    {q:'What should you wear when you ride a bike?',show:'🚲',a:'🪖 A helmet',c:['🪖 A helmet','👑 A crown','🎩 A top hat'],f:'A helmet keeps your head safe.'},
+    {q:'What should you wear when you ride in a car?',show:'🚗',a:'A seat belt',c:['A seat belt','A swimsuit','Roller skates'],f:'Always buckle your seat belt in the car.'},
+    {q:'What number do you call in an emergency?',a:'9 1 1',c:['9 1 1','1 2 3','5 5 5'],f:'Call 9 1 1 if someone is hurt or in danger.'},
+    {q:'If there is a fire, what should you do?',show:'🔥',a:'Get out and stay out',c:['Get out and stay out','Hide under the bed','Go back for your toys'],f:'Get out fast, and never go back inside.'}]},
+  {id:'world',name:'Our world',icon:'🌍',qs:[
+    {q:'Which is bigger, a city or a country?',a:'A country',c:['A country','A city'],f:'A country has many cities and towns in it.'},
+    {q:'How many continents are there?',a:'7',c:['7','3','50'],f:'There are 7 continents. We live in North America.'},
+    {q:'Which continent do we live on?',a:'North America',c:['North America','Africa','Antarctica'],f:'The United States is in North America.'},
+    {q:'Which continent is covered in ice?',show:'🐧',a:'Antarctica',c:['Antarctica','Africa','Australia'],f:'Antarctica is the coldest place on Earth. Penguins live there.'},
+    {q:'Where do kangaroos come from?',show:'🦘',a:'Australia',c:['Australia','Europe','Antarctica'],f:'Kangaroos live in Australia. They carry their babies in a pouch.'},
+    {q:'What covers most of the Earth?',show:'🌍',a:'🌊 Water',c:['🌊 Water','🏜️ Sand','🌲 Trees'],f:'Oceans cover most of our planet.'},
+    {q:'What is the biggest ocean?',show:'🌊',a:'Pacific Ocean',c:['Pacific Ocean','Atlantic Ocean','Indian Ocean'],f:'The Pacific Ocean is the biggest and deepest ocean.'}]}]}};
+const learnLines=()=>['Try again!','Look at the map.',...Object.values(LEARN).flatMap(s=>s.topics.flatMap(t=>t.qs.flatMap(q=>[q.q,q.f])))];
+let learnPackLoaded=false;
+function loadLearnPack(){if(learnPackLoaded)return;learnPackLoaded=true;try{fetch('voice-learn.json').then(r=>r.ok?r.json():{}).then(j=>{Object.assign(pack,j||{})}).catch(()=>{learnPackLoaded=false})}catch(e){}}
+let learnSub='sci';
+function openLearn(sub){leaveGame();if(sub)learnSub=sub;loadLearnPack();const L=LEARN[learnSub];show('learn');$('#learnTitle').textContent=L.icon+' '+L.name;$('#starCount7').textContent='⭐ '+avail();
+  const A=$('#learnArea');A.innerHTML='';A.className='scroll';const g=el('div','mlev');
+  L.topics.forEach(t=>{const b=el('button',S.learn.includes(learnSub+':'+t.id)?'done':'');b.append(el('span','ltico',t.icon),document.createTextNode(t.name),el('small','',S.learn.includes(learnSub+':'+t.id)?'⭐ Done':t.qs.length+' questions'));
+    b.onclick=()=>{sfx.tap();learnPlay(t)};g.append(b)});A.append(g)}
+function learnPlay(t){leaveGame();const me=gen,A=$('#learnArea');A.innerHTML='';A.className='area';
+  const qs=shuffle(t.qs).slice(0,5);let i=0;const dots=el('div','dots'),box=el('div','box lbox');qs.forEach(()=>dots.append(el('i')));
+  const back=el('button','btn','← Topics');back.onclick=()=>{sfx.tap();openLearn()};A.append(dots,box,back);
+  const next=()=>{dots.children[i].className='on';i++;if(i<qs.length)ask();else done()};
+  const fact=q=>{const f=el('div','lfact',q.f),nx=el('button','btn go',i<qs.length-1?'Next ➜':'Finish ⭐');nx.onclick=()=>{sfx.tap();next()};box.append(f,nx);say(q.f)};
+  const ask=()=>{if(me!==gen)return;const q=qs[i];box.innerHTML='';box.append(el('div','lq',q.q));
+    if(q.show)box.append(el('div','lshow',q.show));
+    if(q.grid){const g=el('div','lgrid'),cells=['🌳','🏞️','🌳','🏠','🏫','🏥','🌳','🏪','🌳'],names=[0,'Park',0,'House','School','Hospital',0,'Store',0];
+      cells.forEach((c,k)=>{const d=el('div','',c);if(names[k])d.append(el('small','',names[k]));g.append(d)});
+      const w=el('div','lcompass');w.append(el('b','n','N'),g,el('b','s','S'));const wrap=el('div','lgridwrap');wrap.append(el('b','w','W'),w,el('b','e','E'));box.append(wrap)}
+    if(q.order){const slots=el('div','lslots'),pool=el('div','pick');let k=0;q.order.forEach((_,n)=>slots.append(el('div','lslot',String(n+1))));
+      shuffle(q.order).forEach(o=>{const b=el('button','btn lopt',o);b.onclick=()=>{if(o===q.order[k]){sfx.note(k);slots.children[k].textContent=o;slots.children[k].classList.add('ok');b.remove();k++;
+          if(k===q.order.length){sfx.good();fact(q)}}else{wobble(b);sfx.oops()}};pool.append(b)});
+      box.append(slots,pool);say(q.q);return}
+    const row=el('div','pick'),opts=q.keep?q.c:(q.c.length>3?two(q.c,q.a):shuffle(q.c));let miss=0,over=false;
+    opts.forEach(o=>{const b=el('button','btn lopt'+(o.length<=3?' big':''),o);b.onclick=()=>{if(over)return;
+      if(o===q.a){over=true;b.classList.add('ok');[...row.children].forEach(x=>x.disabled=x!==b);sfx.good();fact(q)}
+      else{wobble(b);sfx.oops();say('Try again!');if(++miss>=2)[...row.children].forEach(x=>{if(x.textContent===q.a)x.classList.add('hintq')})}};row.append(b)});
+    box.append(row);say(q.q)};
+  const done=()=>{const id=learnSub+':'+t.id,first=!S.learn.includes(id);if(first){S.learn.push(id);S.stars++;save()}$('#starCount7').textContent='⭐ '+avail();sfx.win();const c=pick(CHEERS);say(c);
+    box.innerHTML='';const row=el('div','pick'),tp=el('button','btn','Topics'),ag=el('button','btn','Again'),T=LEARN[learnSub].topics,k=T.indexOf(t),nx=el('button','btn go','Next topic');row.append(tp,ag);if(k<T.length-1)row.append(nx);
+    box.append(el('div','bigl',first?'⭐':'👏'),el('div','msg',c+(first?' You earned a star!':'')),row);back.remove();
+    tp.onclick=()=>{sfx.tap();openLearn()};ag.onclick=()=>{sfx.tap();learnPlay(t)};nx.onclick=()=>{sfx.tap();learnPlay(T[k+1])}};
+  ask()}
+$('#goSci').onclick=()=>{sfx.tap();openLearn('sci')};$('#goSoc').onclick=()=>{sfx.tap();openLearn('soc')};
+
 function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':(c%PER===0?'Start the '+TRAILS[trailOf(c)].name:'Keep going · '+TRAILS[trailOf(c)].name.replace(' Trail','')+' stop '+(c%PER+1))}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setExport').hidden=!(window.claude&&window.claude.use);
@@ -1245,7 +1485,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='3e896159d9',last=0;
+  var MINE='99b107020e',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){

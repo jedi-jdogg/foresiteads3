@@ -15,7 +15,7 @@ const head = src.slice(0, cut), body = src.slice(cut);
 let syncUrl = '';
 try { syncUrl = String(JSON.parse(fs.readFileSync(path.join(__dirname, 'sync-config.json'), 'utf8')).url || ''); } catch (e) {}
 /* the version changes whenever the page, the voice clips or the map change, so devices pick up any of them */
-const extra = ['voice.json', 'states.json'].map(f => { try { return fs.readFileSync(path.join(__dirname, f)); } catch (e) { return ''; } }).join('');
+const extra = ['voice.json', 'voice-learn.json', 'states.json'].map(f => { try { return fs.readFileSync(path.join(__dirname, f)); } catch (e) { return ''; } }).join('');
 const version = crypto.createHash('sha256').update(src + syncUrl + extra).digest('hex').slice(0, 10);
 
 const updater = `
@@ -79,7 +79,7 @@ const manifest = {
 
 const sw = `/* Baby Cheetah offline support. Game files: newest from the internet first, saved copy when offline. */
 const CACHE='cbt-cache-v1';
-const SHELL=['./','voice.json','states.json','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
+const SHELL=['./','voice.json','voice-learn.json','states.json','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).catch(()=>{}))});
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 const keep=(req,res)=>{if(res&&(res.ok||res.type==='opaque')){const cp=res.clone();caches.open(CACHE).then(c=>c.put(req,cp)).catch(()=>{})}return res};
@@ -99,6 +99,8 @@ self.addEventListener('fetch',e=>{
 `;
 
 /* the map of the 50 states */
+/* the voice clips for Science and Social Studies, loaded when one of them opens */
+if (fs.existsSync(path.join(__dirname, 'voice-learn.json'))) fs.copyFileSync(path.join(__dirname, 'voice-learn.json'), path.join(out, 'voice-learn.json'));
 if (fs.existsSync(path.join(__dirname, 'states.json'))) fs.copyFileSync(path.join(__dirname, 'states.json'), path.join(out, 'states.json'));
 /* the built-in voice clips, one file beside the page */
 if (fs.existsSync(path.join(__dirname, 'voice.json'))) fs.copyFileSync(path.join(__dirname, 'voice.json'), path.join(out, 'voice.json'));
