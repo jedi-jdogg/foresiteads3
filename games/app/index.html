@@ -291,6 +291,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;font-weight:800}
 .setrow{width:100%}
+.logtext{width:100%;text-align:left;font:600 .8rem/1.35 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;background:var(--sky);border-radius:12px;padding:10px;max-height:40vh;overflow:auto;-webkit-user-select:text;user-select:text}
 .vrow{display:flex;align-items:center;gap:8px;background:var(--paper);border-radius:16px;padding:10px 12px;margin-bottom:8px}
 .vrow p{flex:1;min-width:0;margin:0}
 .vrow .round{width:46px;min-height:46px;font-size:1.1rem}
@@ -417,6 +418,8 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <button class="btn setrow" id="setCap"></button>
   <button class="btn setrow" id="setPay"></button>
   <button class="btn setrow" id="setReset">Start the trail over</button>
+  <button class="btn setrow" id="setLog">Problem log</button>
+  <div id="logText" class="logtext" hidden></div>
   <button class="btn go setrow" id="setClose">Done</button>
 </div></div>
 
@@ -687,7 +690,15 @@ const nextLevel=()=>{for(let i=0;i<N;i++)if(!S.done.includes(i))return i;return 
 const area=$('#area');
 let gen=0,refit=null,cleanup=null,curHint='',curLevel=0;
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id)}
-function leaveGame(){gen++;refit=null;if(cleanup){cleanup();cleanup=null}hush()}
+/* Leaving a screen must always work: an error while tidying up used to leave `cleanup` set, so every later button failed too. */
+function leaveGame(){gen++;refit=null;const c=cleanup;cleanup=null;try{c&&c()}catch(e){logErr(e)}try{hush()}catch(e){}}
+/* iPad Safari has a small total budget for drawing canvases; shrinking a canvas to 0 gives its memory back right away. */
+const freeCanvas=c=>{try{c.width=c.height=0}catch(e){}};
+const addCleanup=fn=>{const prev=cleanup;cleanup=()=>{try{fn()}finally{prev&&prev()}}};
+/* a short problem log the grown-ups can show (Settings → Problem log) */
+const ERRS=[];function logErr(e){try{const m=String(e&&(e.stack||e.message)||e).split('\n').slice(0,3).join(' | ').slice(0,300);ERRS.unshift(new Date().toLocaleString()+' — '+m);ERRS.length=Math.min(ERRS.length,8);localStorage.setItem(KEY+'-errors',JSON.stringify(ERRS))}catch(_){}}
+try{ERRS.push(...JSON.parse(localStorage.getItem(KEY+'-errors')||'[]'))}catch(e){}
+addEventListener('error',e=>logErr(e.error||e.message));addEventListener('unhandledrejection',e=>logErr(e.reason));
 function fit(cols,rows,max=120,gap=8){refit=()=>{const c=Math.floor(Math.min((area.clientWidth-(cols-1)*gap)/cols,(area.clientHeight-(rows-1)*gap)/rows,max));area.style.setProperty('--c',Math.max(22,c)+'px')};refit()}
 addEventListener('resize',()=>refit&&refit());
 function wobble(n){n.classList.remove('no');void n.offsetWidth;n.classList.add('no')}
@@ -800,7 +811,7 @@ maze(a,d,w,win){const n=[5,6,7,8,9][d],DX=[0,1,0,-1],DY=[-1,0,1,0],open=[...Arra
   const at=e=>{const r=cv.getBoundingClientRect(),cx=Math.floor((e.clientX-r.left)/r.width*n),cy=Math.floor((e.clientY-r.top)/r.height*n);if(cx>=0&&cy>=0&&cx<n&&cy<n)go(cy*n+cx)};
   let down=false;cv.onpointerdown=e=>{down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}at(e)};cv.onpointermove=e=>down&&at(e);cv.onpointerup=cv.onpointercancel=()=>down=false;
   const key=e=>{const k=['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].indexOf(e.key);if(k>=0&&open[pos][k]){e.preventDefault();go(pos+DX[k]+DY[k]*n)}};
-  document.addEventListener('keydown',key);cleanup=()=>document.removeEventListener('keydown',key);
+  document.addEventListener('keydown',key);addCleanup(()=>{document.removeEventListener('keydown',key);freeCanvas(cv)});
   a.append(cv);refit=()=>{size=Math.min(a.clientWidth,a.clientHeight,620);const r=Math.min(devicePixelRatio||1,2);cv.width=cv.height=size*r;cv.style.width=cv.style.height=size+'px';draw()};refit();
   return 'Help the baby cheetah find the big cheetah. Slide your finger along the path.'},
 
@@ -1053,7 +1064,7 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   const x=cv.getContext('2d'),dpr=Math.min(devicePixelRatio||1,1.5);let color='#1F3044',size=10,mode='pen',mirror=false,stamp='⭐',hue=0,undo=[],last=null,ready=false,marks=0;
   const resize=()=>{const r=sheet.getBoundingClientRect(),W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);if(!W||!H||(W===cv.width&&H===cv.height))return;
     const old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;if(ready)old.getContext('2d').drawImage(cv,0,0);
-    cv.width=W;cv.height=H;x.fillStyle='#fff';x.fillRect(0,0,W,H);if(ready)x.drawImage(old,0,0,W,H);ready=true;undo=[]};
+    cv.width=W;cv.height=H;x.fillStyle='#fff';x.fillRect(0,0,W,H);if(ready)x.drawImage(old,0,0,W,H);freeCanvas(old);ready=true;undo=[]};
   const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]};
   const seg=(p,q)=>{x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#fff':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
@@ -1061,8 +1072,8 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
   cv.onpointerdown=e=>{e.preventDefault();stampRow.hidden=colorRow.hidden=guideRow.hidden=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
     if(mode==='stamp'){put(p);sfx.tap()}else{last=p;seg(p,[p[0]+.1,p[1]+.1])}};
-  cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=()=>last=null;
-  const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);return t.toDataURL('image/jpeg',.8)};
+  cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=cv.onlostpointercapture=e=>{last=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}};
+  const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);const u=t.toDataURL('image/jpeg',.8);freeCanvas(t);return u};
   const tools=[];const tool=(label,html,on,cls)=>{const b=el('button','tool'+(cls?' '+cls:''));b.setAttribute('aria-label',label);if(typeof html==='string')b.textContent=html;else if(html)b.append(html);b.onclick=()=>{sfx.tap();on(b)};bar.append(b);tools.push(b);return b};
   const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)||(b.dataset.p==='1'&&mode==='pen')));
   ['#1F3044','#E8556D','#F28B30','#F7C948','#4CA774','#3F7FD1','#7A5CC2','#F28BB3','#8A5A3C','#6CC5E0'].forEach(c=>{const b=tool('Color','',()=>{color=c;mode='pen';stampRow.hidden=true;mark()},'col');b.style.background=c;b.dataset.m='pen';b.dataset.c=c});
@@ -1091,7 +1102,7 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   let doneBtn=null;
   if(studio){const b=el('button','btn green','Save');b.onclick=()=>{saveArt(thumb());sfx.good();toast('Saved to My Pictures')};bar.append(b)}
   else{doneBtn=el('button','btn green','I’m done');doneBtn.disabled=true;doneBtn.onclick=()=>{if(marks)done(thumb())};bar.append(doneBtn)}
-  mark();resize();const ro=()=>resize();addEventListener('resize',ro);const prev=cleanup;cleanup=()=>{removeEventListener('resize',ro);prev&&prev()};
+  mark();resize();const ro=()=>resize();addEventListener('resize',ro);addCleanup(()=>{removeEventListener('resize',ro);undo=[];freeCanvas(cv)});
   requestAnimationFrame(resize)}
 
 /* ---------- starting and finishing a mission ---------- */
@@ -1200,8 +1211,8 @@ function tracer(host,ch,onDone){const cv=el('canvas','tracecv'),x=cv.getContext(
     if(l){const n=Math.max(1,Math.ceil(Math.hypot(p[0]-l[0],p[1]-l[1])/.03));for(let k=1;k<=n;k++)tick(l[0]+(p[0]-l[0])*k/n,l[1]+(p[1]-l[1])*k/n)}else tick(p[0],p[1]);
     cur.push(p);if(pts.length&&hit/pts.length>=.92){done=true;cur=null;draw();onDone()}else draw()};
   cv.onpointerdown=e=>{if(done)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}cur=[];strokes.push(cur);add(e)};
-  cv.onpointermove=e=>{if(cur&&!done)add(e)};cv.onpointerup=cv.onpointercancel=()=>cur=null;
-  refit=draw;draw();const go=()=>{if(me===gen)build()};
+  cv.onpointermove=e=>{if(cur&&!done)add(e)};cv.onpointerup=cv.onpointercancel=e=>{cur=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}};
+  refit=draw;draw();addCleanup(()=>freeCanvas(cv));const go=()=>{if(me===gen)build()};
   if(document.fonts&&document.fonts.load)document.fonts.load('700 100px Andika').then(go,go);else go();
   return{clear(){if(done)return;strokes=[];cur=null;hit=0;pts.forEach(p=>p[2]=0);draw()}}}
 function abcEarn(id){if(S.abc.includes(id))return false;S.abc.push(id);S.stars++;save();$('#starCount4').textContent='⭐ '+avail();return true}
@@ -1663,7 +1674,7 @@ function learnPlay(t){leaveGame();const me=gen,A=$('#learnArea');A.innerHTML='';
   ask()}
 $('#goSci').onclick=()=>{sfx.tap();openLearn('sci')};$('#goSoc').onclick=()=>{sfx.tap();openLearn('soc')};
 
-function openHome(){stopMic();leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':(c%PER===0?'Start the '+TRAILS[trailOf(c)].name:'Keep going · '+TRAILS[trailOf(c)].name.replace(' Trail','')+' stop '+(c%PER+1))}
+function openHome(){try{stopMic()}catch(e){}leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':(c%PER===0?'Start the '+TRAILS[trailOf(c)].name:'Keep going · '+TRAILS[trailOf(c)].name.replace(' Trail','')+' stop '+(c%PER+1))}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
   $('#setExport').hidden=!(window.claude&&window.claude.use);
   {const y=$('#setSync');y.hidden=!SYNC_URL;y.textContent=familyCode?'Saving to the family server: on':'Save on every device: off'}
@@ -1696,6 +1707,7 @@ $('#importFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';
     for(const a of(Array.isArray(j.art)?j.art:[]))if(a&&typeof a.u==='string'&&a.u.startsWith('data:image/')&&/^[A-Za-z0-9]{3,40}$/.test(String(a.id))&&!S.artGone.includes(a.id)&&!ART_SAVED.some(x=>x.id===a.id)){ART_SAVED.push({id:a.id,u:a.u,t:+a.t||0});n++}
     trimArt();artStore();save();drawSettings();toast('Loaded: '+S.stars+' stars and '+n+' new pictures');if(remote)syncNow()}
   catch(err){toast('That file is not a Baby Cheetah saved game')}};
+$('#setLog').onclick=()=>{const t=$('#logText');t.hidden=!t.hidden;t.textContent=ERRS.length?ERRS.join('\n\n'):'No problems recorded.'};
 let gateAns=0;
 $('#gateNo').onclick=()=>$('#gate').hidden=true;
 $('#gateOk').onclick=()=>{if(+$('#gateA').value===gateAns){$('#gate').hidden=true;drawSettings();$('#grown').hidden=false}else{wobble($('#gateA'));$('#gateA').value=''}};
@@ -1743,7 +1755,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='3e6ac14d25',last=0;
+  var MINE='66b2fd6a8c',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
