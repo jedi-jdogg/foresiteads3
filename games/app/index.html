@@ -1108,7 +1108,8 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   if(startGuide){const t=TRACE.find(x=>x[0]===startGuide);if(t)setGuide(t,true)}
   [5,10,22].forEach(s=>{const dot=el('span','dot');dot.style.width=dot.style.height=(s*.9+6)+'px';tool('Brush size',dot,()=>{size=s;mark()}).dataset.s=s});
   tool('Pencil','✏️',()=>{mode='pen';stampRow.hidden=colorRow.hidden=true;mark()}).dataset.p='1';
-  tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()}).dataset.m='rainbow';
+  /* the rainbow brush sits right after More colors, on the colours line */
+  {const rb=tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()});rb.dataset.m='rainbow';moreBtn.after(rb)}
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=guideRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
@@ -1786,7 +1787,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='72656f409f',last=0;
+  var MINE='8e52a9d042',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
