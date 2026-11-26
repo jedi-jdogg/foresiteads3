@@ -1061,19 +1061,21 @@ const DRAW_GUIDE={'Draw a garden for the bee.':'a bee garden','Draw a cozy home 
 function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel'),sheet=el('div','sheet'),cv=el('canvas'),bar=el('div','tools'),stampRow=el('div','pop'),colorRow=el('div','pop'),guideRow=el('div','pop tall'),SVGNS='http://www.w3.org/2000/svg',guide=document.createElementNS(SVGNS,'svg'),gpath=document.createElementNS(SVGNS,'path');
   guide.setAttribute('viewBox','0 0 100 100');guide.setAttribute('class','guide');guide.append(gpath);guide.style.display='none';guideRow.hidden=true;
   sheet.append(cv,guide,stampRow,colorRow,guideRow);wrap.append(sheet,bar);host.append(wrap);stampRow.hidden=colorRow.hidden=true;
-  const x=cv.getContext('2d'),dpr=Math.min(devicePixelRatio||1,1.5);let color='#1F3044',size=10,mode='pen',mirror=false,stamp='⭐',hue=0,undo=[],last=null,ready=false,marks=0;
+  const x=cv.getContext('2d'),dpr=Math.min(devicePixelRatio||1,1.5);let color='#1F3044',size=10,mode='pen',mirror=false,stamp='⭐',hue=0,undo=[],last=null,ready=false,marks=0,bg='#ffffff',dirty=false;
+  /* The picture is drawn on a see-through layer with the background colour behind it, so the background can change at any time. */
+  const setBg=c=>{bg=c;sheet.style.background=c;if(marks)dirty=true};setBg('#ffffff');dirty=false;
   const resize=()=>{const r=sheet.getBoundingClientRect(),W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);if(!W||!H||(W===cv.width&&H===cv.height))return;
     const old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;if(ready)old.getContext('2d').drawImage(cv,0,0);
-    cv.width=W;cv.height=H;x.fillStyle='#fff';x.fillRect(0,0,W,H);if(ready)x.drawImage(old,0,0,W,H);freeCanvas(old);ready=true;undo=[]};
+    cv.width=W;cv.height=H;x.clearRect(0,0,W,H);if(ready)x.drawImage(old,0,0,W,H);freeCanvas(old);ready=true;undo=[]};
   const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]};
-  const seg=(p,q)=>{x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#fff':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
+  const seg=(p,q)=>{x.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#000':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
-  const put=p=>{x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>FACES[stamp]?drawFace(x,stamp,u,v,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
+  const put=p=>{x.globalCompositeOperation='source-over';x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>FACES[stamp]?drawFace(x,stamp,u,v,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
-  cv.onpointerdown=e=>{e.preventDefault();stampRow.hidden=colorRow.hidden=guideRow.hidden=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
+  cv.onpointerdown=e=>{e.preventDefault();stampRow.hidden=colorRow.hidden=guideRow.hidden=true;bgRow.hidden=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}snap();marks++;dirty=true;if(doneBtn)doneBtn.disabled=false;const p=pt(e);
     if(mode==='stamp'){put(p);sfx.tap()}else{last=p;seg(p,[p[0]+.1,p[1]+.1])}};
   cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=cv.onlostpointercapture=e=>{last=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}};
-  const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);t.getContext('2d').drawImage(cv,0,0,t.width,t.height);const u=t.toDataURL('image/jpeg',.8);freeCanvas(t);return u};
+  const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);const tx=t.getContext('2d');tx.fillStyle=bg;tx.fillRect(0,0,t.width,t.height);tx.drawImage(cv,0,0,t.width,t.height);const u=t.toDataURL('image/jpeg',.8);freeCanvas(t);return u};
   const tools=[];const tool=(label,html,on,cls)=>{const b=el('button','tool'+(cls?' '+cls:''));b.setAttribute('aria-label',label);if(typeof html==='string')b.textContent=html;else if(html)b.append(html);b.onclick=()=>{sfx.tap();on(b)};bar.append(b);tools.push(b);return b};
   const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)||(b.dataset.p==='1'&&mode==='pen')));
   ['#1F3044','#E8556D','#F28B30','#F7C948','#4CA774','#3F7FD1','#7A5CC2','#F28BB3','#8A5A3C','#6CC5E0'].forEach(c=>{const b=tool('Color','',()=>{color=c;mode='pen';stampRow.hidden=true;mark()},'col');b.style.background=c;b.dataset.m='pen';b.dataset.c=c});
@@ -1084,6 +1086,12 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   [32,48,64,80].forEach(l=>[0,22,40,55,90,140,172,198,222,262,292,328].forEach(h=>shades.push(`hsl(${h} 82% ${l}%)`)));
   shades.forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Color');b.onclick=()=>{sfx.tap();pickColor(c)};colorRow.append(b)});
   const any=el('input','anycol');any.type='color';any.id='anyColor';any.value='#3F7FD1';any.setAttribute('aria-label','Pick any color');any.oninput=()=>pickColor(any.value);colorRow.append(any);
+  /* Background: pick a colour for the whole page */
+  const bgRow=el('div','pop');bgRow.hidden=true;sheet.append(bgRow);
+  const bgBtn=el('button','btn morecol','🪣 Background');bgBtn.onclick=()=>{sfx.tap();bgRow.hidden=!bgRow.hidden;colorRow.hidden=stampRow.hidden=guideRow.hidden=true};bar.append(bgBtn);
+  ['#ffffff','#FFF6E0','#FDE2E4','#FFE5B4','#FFF3B0','#DFF5D8','#D6F0FA','#E3E0FA','#F2F2F2',...shades.slice(11)].forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Background color');
+    b.onclick=()=>{sfx.tap();setBg(c);bgRow.hidden=true};bgRow.append(b)});
+  const bgAny=el('input','anycol');bgAny.type='color';bgAny.id='bgColor';bgAny.value='#D6F0FA';bgAny.setAttribute('aria-label','Pick any background color');bgAny.oninput=()=>setBg(bgAny.value);bgRow.append(bgAny);
   /* Things to draw: a pale dashed picture to trace over. It is only a guide and is not part of the saved drawing. */
   const drawBtn=el('button','btn morecol','✏️ Things to draw');drawBtn.onclick=()=>{sfx.tap();guideRow.hidden=!guideRow.hidden;stampRow.hidden=colorRow.hidden=true};bar.append(drawBtn);
   const setGuide=(t,quiet)=>{gpath.setAttribute('d',t?t[1]:'');guide.style.display=t?'':'none';guideRow.hidden=true;drawBtn.classList.toggle('sel',!!t);if(t&&!quiet)say('Let’s draw '+t[0]+'!')};
@@ -1097,12 +1105,15 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=guideRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
   [...new Set(['⭐','❤️',CHEETAH,'baby',...S.done.map(stickerOf)])].forEach(e=>{const b=icon(el('button','tool'),e);b.onclick=()=>{stamp=e;icon(stampBtn,e);mode='stamp';stampRow.hidden=true;sfx.tap();mark()};stampRow.append(b)});
-  tool('Undo','↩️',()=>{const u=undo.pop();if(u)x.putImageData(u,0,0)});
-  tool('Clear the page','🗑️',()=>{snap();x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height)});
+  tool('Undo','↩️',()=>{const u=undo.pop();if(u){x.putImageData(u,0,0);dirty=true}});
+  tool('Clear the page','🗑️',()=>{snap();x.clearRect(0,0,cv.width,cv.height);dirty=true});
   let doneBtn=null;
-  if(studio){const b=el('button','btn green','Save');b.onclick=()=>{saveArt(thumb());sfx.good();toast('Saved to My Pictures')};bar.append(b)}
+  if(studio){const b=el('button','btn green','Save');b.onclick=()=>{saveArt(thumb());dirty=false;sfx.good();toast('Saved to My Pictures')};bar.append(b)}
   else{doneBtn=el('button','btn green','I’m done');doneBtn.disabled=true;doneBtn.onclick=()=>{if(marks)done(thumb())};bar.append(doneBtn)}
-  mark();resize();const ro=()=>resize();addEventListener('resize',ro);addCleanup(()=>{removeEventListener('resize',ro);undo=[];freeCanvas(cv)});
+  const autoSave=()=>{if(studio&&dirty&&marks&&cv.width){try{saveArt(thumb());dirty=false;toast('Your picture was saved to My Pictures')}catch(e){logErr(e)}}};
+  const onHide=()=>{if(document.hidden)autoSave()};document.addEventListener('visibilitychange',onHide);addEventListener('pagehide',autoSave);
+  mark();resize();const ro=()=>resize();addEventListener('resize',ro);
+  addCleanup(()=>{autoSave();document.removeEventListener('visibilitychange',onHide);removeEventListener('pagehide',autoSave);removeEventListener('resize',ro);undo=[];freeCanvas(cv)});
   requestAnimationFrame(resize)}
 
 /* ---------- starting and finishing a mission ---------- */
@@ -1755,7 +1766,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='66b2fd6a8c',last=0;
+  var MINE='66c2feedd7',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
