@@ -889,9 +889,11 @@ const MAGIC=[['Pink',['#FFD1DC','#FFB6C1','#FF85B3','#FF69B4','#F7429A','#E0218A
   ['Ocean',['#0077B6','#00B4D8','#48CAE4','#90E0EF','#2EC4B6','#3A86FF']],
   ['Galaxy',['#3A0CA3','#7209B7','#B5179E','#F72585','#4361EE','#4CC9F0']]];
 /* gradient backgrounds for the Art Studio, top to bottom */
-const BG_GRADS={'Rainbow':['#FF9AA2','#FFC48A','#FFF07C','#B5EAD7','#9AD0F5','#C3B1E1'],'Bright rainbow':['#FF4D4D','#FF9F1C','#FFE066','#4CD964','#4DA3FF','#9B5DE5'],
-  'Pink':['#FFE4EC','#FFB6C1','#FF85B3'],'Cotton candy':['#FFC6E7','#D7C6FF','#B8ECFF'],'Sunset':['#FFB88C','#FF8FB1','#C77DFF'],'Ocean':['#CAF0F8','#48CAE4','#0077B6'],
-  'Galaxy':['#1B0B3A','#3A0CA3','#7209B7','#B5179E'],'Sky':['#B8E4FF','#E8F7FF'],'Grass and sky':['#BDE7FF','#E8F7FF','#C9EFA8','#7CCB6B']};
+const BG_GRADS={'Rainbow':['#FF9AA2','#FFC48A','#FFF07C','#B5EAD7','#9AD0F5','#C3B1E1','#FFB6D9'],
+  'Bright rainbow':['#FF4D4D','#FF9F1C','#FFE066','#4CD964','#4DA3FF','#9B5DE5','#FF5FB0'],
+  /* every magic brush is also a background, in exactly the same colours */
+  ...Object.fromEntries(MAGIC),
+  'Sky':['#B8E4FF','#E8F7FF'],'Grass and sky':['#BDE7FF','#E8F7FF','#C9EFA8','#7CCB6B']};
 const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 0 1 0 ${2*a} 0a${a} ${b} 0 1 0 ${-2*a} 0Z`,C=(x,y,r)=>E(x,y,r,r),PL=p=>'M'+p.map(q=>q.join(' ')).join('L')+'Z',
   ring=(k,x,y,r,f)=>[...Array(k)].map((_,i)=>f(n(x+r*Math.cos(i*2*Math.PI/k)),n(y+r*Math.sin(i*2*Math.PI/k)),i*2*Math.PI/k)).join('');
   const all=[
@@ -1812,7 +1814,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='a6ab70e239',last=0;
+  var MINE='f6a6d54d93',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
