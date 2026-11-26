@@ -162,6 +162,7 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .pop{position:absolute;left:8px;right:8px;bottom:8px;z-index:2;background:var(--paper);border-radius:16px;padding:8px;box-shadow:0 4px 14px rgba(31,48,68,.3);display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:62%;overflow-y:auto;touch-action:pan-y}
 .pop.tall{max-height:calc(100% - 16px)}
 .tool.sm{width:34px;height:34px}
+.tool.magicb{border:3px solid #fff}
 .guide{position:absolute;left:6%;top:6%;width:88%;height:88%;pointer-events:none;z-index:1}
 .guide path{fill:none;stroke:#6F8796;stroke-width:1.1;stroke-dasharray:2.4 2;stroke-linecap:round;stroke-linejoin:round;opacity:.65}
 .gpick{width:60px;height:60px;border-radius:14px}
@@ -880,6 +881,12 @@ function scene(w,cols,rows){const c=document.createElement('canvas'),W=c.width=7
 /* ---------- drawing board, shared by drawing missions and the Art Studio ---------- */
 /* Pictures to trace in the Art Studio, each drawn on a 100 x 100 sheet: [what the buddy calls it, outline, level].
    Level 1 is one simple shape, level 2 has a few parts, level 3 has many parts and small details, level 4 is a whole scene. */
+/* the magic brushes: each slides through its colours as he draws */
+const MAGIC=[['Pink',['#FFD1DC','#FFB6C1','#FF85B3','#FF69B4','#F7429A','#E0218A','#C71585','#FF4FA0']],
+  ['Cotton candy',['#FFB6D9','#C9B6FF','#A0E7FF','#FFC6E7','#B5F2EA','#F9A8D4']],
+  ['Sunset',['#FF5E62','#FF7E5F','#FF9966','#FFC371','#FF8FB1','#E0218A']],
+  ['Ocean',['#0077B6','#00B4D8','#48CAE4','#90E0EF','#2EC4B6','#3A86FF']],
+  ['Galaxy',['#3A0CA3','#7209B7','#B5179E','#F72585','#4361EE','#4CC9F0']]];
 const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 0 1 0 ${2*a} 0a${a} ${b} 0 1 0 ${-2*a} 0Z`,C=(x,y,r)=>E(x,y,r,r),PL=p=>'M'+p.map(q=>q.join(' ')).join('L')+'Z',
   ring=(k,x,y,r,f)=>[...Array(k)].map((_,i)=>f(n(x+r*Math.cos(i*2*Math.PI/k)),n(y+r*Math.sin(i*2*Math.PI/k)),i*2*Math.PI/k)).join('');
   const all=[
@@ -1076,7 +1083,11 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
     const old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;if(ready)old.getContext('2d').drawImage(cv,0,0);
     cv.width=W;cv.height=H;x.clearRect(0,0,W,H);if(ready)x.drawImage(old,0,0,W,H);freeCanvas(old);ready=true;undo=[]};
   const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]};
-  const seg=(p,q)=>{x.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#000':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:color;
+  let magic=null,magicPos=0,magicName='';
+  /* walks smoothly through the brush's colours, blending from one to the next */
+  const magicColor=()=>{const L=magic.length,f=magicPos%L,i=Math.floor(f),t=f-i;magicPos+=.08;
+    const h=c=>[1,3,5].map(k=>parseInt(c.slice(k,k+2),16)),a=h(magic[i]),b=h(magic[(i+1)%L]);return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*t)).join(',')})`};
+  const seg=(p,q)=>{x.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';x.lineCap=x.lineJoin='round';x.lineWidth=size*dpr*(mode==='erase'?2:1);x.strokeStyle=mode==='erase'?'#000':mode==='rainbow'?`hsl(${hue=(hue+4)%360} 85% 55%)`:mode==='magic'?magicColor():color;
     const ln=(u,v)=>{x.beginPath();x.moveTo(u[0],u[1]);x.lineTo(v[0],v[1]);x.stroke()};ln(p,q);if(mirror)ln([cv.width-p[0],p[1]],[cv.width-q[0],q[1]])};
   const put=p=>{x.globalCompositeOperation='source-over';x.font=`${size*5*dpr}px serif`;x.textAlign='center';x.textBaseline='middle';const z=size*5*dpr,one=(u,v)=>FACES[stamp]?drawFace(x,stamp,u,v,z):x.fillText(stamp,u,v);one(p[0],p[1]);if(mirror)one(cv.width-p[0],p[1])};
   const snap=()=>{try{undo.push(x.getImageData(0,0,cv.width,cv.height));if(undo.length>5)undo.shift()}catch(e){}};
@@ -1085,12 +1096,13 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   cv.onpointermove=e=>{if(!last)return;const p=pt(e);seg(last,p);last=p};cv.onpointerup=cv.onpointercancel=cv.onlostpointercapture=e=>{last=null;try{cv.releasePointerCapture(e.pointerId)}catch(_){}};
   const thumb=()=>{const t=document.createElement('canvas');t.width=720;t.height=Math.round(720*cv.height/cv.width);const tx=t.getContext('2d');tx.fillStyle=bg;tx.fillRect(0,0,t.width,t.height);tx.drawImage(cv,0,0,t.width,t.height);const u=t.toDataURL('image/jpeg',.8);freeCanvas(t);return u};
   const tools=[];const tool=(label,html,on,cls)=>{const b=el('button','tool'+(cls?' '+cls:''));b.setAttribute('aria-label',label);if(typeof html==='string')b.textContent=html;else if(html)b.append(html);b.onclick=()=>{sfx.tap();on(b)};bar.append(b);tools.push(b);return b};
-  const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)||(b.dataset.p==='1'&&mode==='pen')));
+  const mark=()=>tools.forEach(b=>b.classList.toggle('sel',b.dataset.m===mode&&(mode!=='pen'||b.dataset.c===color)&&(mode!=='magic'||b.dataset.g===magicName)||b.dataset.s==size||(b.dataset.m==='mirror'&&mirror)||(b.dataset.p==='1'&&mode==='pen')));
   ['#1F3044','#E8556D','#F28B30','#F7C948','#4CA774','#3F7FD1','#7A5CC2','#F28BB3','#8A5A3C','#6CC5E0'].forEach(c=>{const b=tool('Color','',()=>{color=c;mode='pen';stampRow.hidden=true;mark()},'col');b.style.background=c;b.dataset.m='pen';b.dataset.c=c});
   /* More colors: greys, skin tones, four shades of twelve hues, and a free color picker */
   const moreBtn=tool('More colors','🎨',()=>{colorRow.hidden=!colorRow.hidden;stampRow.hidden=guideRow.hidden=true},'col');moreBtn.dataset.m='pen';moreBtn.dataset.c='-';moreBtn.className='btn morecol';moreBtn.textContent='🎨 More colors';
   const pickColor=c=>{color=c;mode='pen';moreBtn.dataset.c=c;moreBtn.style.boxShadow='0 0 0 5px '+c+' inset';mark()};
-  const shades=['#000000','#4A4A4A','#8C8C8C','#C4C4C4','#FFFFFF','#FFE0C2','#F5C9A0','#D9A06B','#A9713F','#7A4B28','#4E2E17'];
+  const PINKS=['#FFE4EC','#FFD1DC','#FFC0CB','#FFB6C1','#FC8EAC','#FF85B3','#FF69B4','#FF4FA0','#F7429A','#E75480','#E0218A','#DB7093','#C71585','#B0306A','#F49AC2','#FFA6C9'];
+  const shades=['#000000','#4A4A4A','#8C8C8C','#C4C4C4','#FFFFFF','#FFE0C2','#F5C9A0','#D9A06B','#A9713F','#7A4B28','#4E2E17',...PINKS];
   [32,48,64,80].forEach(l=>[0,22,40,55,90,140,172,198,222,262,292,328].forEach(h=>shades.push(`hsl(${h} 82% ${l}%)`)));
   shades.forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Color');b.onclick=()=>{sfx.tap();pickColor(c)};colorRow.append(b)});
   const any=el('input','anycol');any.type='color';any.id='anyColor';any.value='#3F7FD1';any.setAttribute('aria-label','Pick any color');any.oninput=()=>pickColor(any.value);colorRow.append(any);
@@ -1109,7 +1121,10 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   [5,10,22].forEach(s=>{const dot=el('span','dot');dot.style.width=dot.style.height=(s*.9+6)+'px';tool('Brush size',dot,()=>{size=s;mark()}).dataset.s=s});
   tool('Pencil','✏️',()=>{mode='pen';stampRow.hidden=colorRow.hidden=true;mark()}).dataset.p='1';
   /* the rainbow brush sits right after More colors, on the colours line */
-  {const rb=tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()});rb.dataset.m='rainbow';moreBtn.after(rb)}
+  {const rb=tool('Rainbow brush','🌈',()=>{mode='rainbow';stampRow.hidden=true;mark()});rb.dataset.m='rainbow';moreBtn.after(rb);
+   /* five more magic brushes after the rainbow */
+   let after=rb;MAGIC.forEach(([name,cols])=>{const b=tool(name+' brush','',()=>{mode='magic';magic=cols;magicPos=0;magicName=name;stampRow.hidden=true;mark()},'magicb');
+     b.dataset.m='magic';b.dataset.g=name;b.style.background=`conic-gradient(${[...cols,cols[0]].join(',')})`;after.after(b);after=b})}
   tool('Eraser','🧽',()=>{mode='erase';stampRow.hidden=true;mark()}).dataset.m='erase';
   tool('Mirror drawing','🦋',()=>{mirror=!mirror;mark()}).dataset.m='mirror';
   const stampBtn=tool('Stickers',stamp,()=>{if(mode==='stamp'&&stampRow.hidden){mode='pen'}else if(mode==='stamp'){stampRow.hidden=true}else{mode='stamp';stampRow.hidden=false}colorRow.hidden=guideRow.hidden=true;mark()});stampBtn.dataset.m='stamp';
@@ -1787,7 +1802,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='8e52a9d042',last=0;
+  var MINE='1ca258e3a1',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
