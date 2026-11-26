@@ -1096,7 +1096,7 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   const any=el('input','anycol');any.type='color';any.id='anyColor';any.value='#3F7FD1';any.setAttribute('aria-label','Pick any color');any.oninput=()=>pickColor(any.value);colorRow.append(any);
   /* Background: pick a colour for the whole page */
   const bgRow=el('div','pop');bgRow.hidden=true;sheet.append(bgRow);
-  const bgBtn=el('button','btn morecol','🪣 Background');bgBtn.onclick=()=>{sfx.tap();bgRow.hidden=!bgRow.hidden;colorRow.hidden=stampRow.hidden=guideRow.hidden=true};bar.append(bgBtn);
+  const bgBtn=el('button','btn morecol','🪣 Background');bgBtn.onclick=()=>{sfx.tap();bgRow.hidden=!bgRow.hidden;colorRow.hidden=stampRow.hidden=guideRow.hidden=true};
   ['#ffffff','#FFF6E0','#FDE2E4','#FFE5B4','#FFF3B0','#DFF5D8','#D6F0FA','#E3E0FA','#F2F2F2',...shades.slice(11)].forEach(c=>{const b=el('button','tool col sm');b.style.background=c;b.setAttribute('aria-label','Background color');
     b.onclick=()=>{sfx.tap();setBg(c);bgRow.hidden=true};bgRow.append(b)});
   const bgAny=el('input','anycol');bgAny.type='color';bgAny.id='bgColor';bgAny.value='#D6F0FA';bgAny.setAttribute('aria-label','Pick any background color');bgAny.oninput=()=>setBg(bgAny.value);bgRow.append(bgAny);
@@ -1123,6 +1123,8 @@ function easel(host,{done,studio,guide:startGuide}){const wrap=el('div','easel')
   if(studio){const nb=el('button','btn','✨ New picture');nb.onclick=()=>{sfx.tap();if(dirty&&marks){saveNow();toast('Saved to My Pictures. Here is a new page!')}
     x.clearRect(0,0,cv.width,cv.height);undo=[];picId=null;dirty=false;marks=0;setBg('#ffffff');dirty=false;keepDraft(null)};bar.append(nb)}
   else{doneBtn=el('button','btn green','I’m done');doneBtn.disabled=true;doneBtn.onclick=()=>{if(marks)done(thumb())};bar.append(doneBtn)}
+  /* the Background button sits at the end, next to New picture */
+  bar.append(bgBtn);
   /* leaving: save the drawing to My Pictures (same picture each time) and keep it on the page for next time */
   const autoSave=()=>{if(!studio||!cv.width)return;try{if(dirty&&marks){saveNow();toast('Your picture was saved to My Pictures')}
     keepDraft(marks?{u:cv.toDataURL('image/png'),bg,picId}:null)}catch(e){logErr(e)}};
@@ -1784,7 +1786,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='3499bd5c4f',last=0;
+  var MINE='72656f409f',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
