@@ -45,7 +45,8 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 #home p{margin:0;color:var(--soft);max-width:24ch}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,400px)}
 .menu .btn{width:100%;font-size:1.08rem;min-height:56px;padding:6px 8px}
-.menu #goMap{grid-column:1/-1;font-size:1.3rem}
+.menu #goMap,.menu #goBank{grid-column:1/-1;font-size:1.3rem}
+.btn.nat{background:#C98A2E;color:#fff;box-shadow:0 5px 0 #96661F}
 .btn.sci{background:#5BAE5B;color:#fff;box-shadow:0 5px 0 #3E8540}
 .btn.soc{background:#D9774A;color:#fff;box-shadow:0 5px 0 #A9542E}
 /* science and social studies */
@@ -62,6 +63,18 @@ h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.05;text-
 .lslots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .lslot{min-width:110px;min-height:56px;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font:800 1.1rem var(--display);color:var(--soft);padding:4px 8px}
 .lslot.ok{border-style:solid;border-color:var(--leaf);background:#E3F4DC;color:var(--ink)}
+.gtop{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.gtop b{font:800 1.1rem var(--display)}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:6px 2px 14px}
+.gcard{position:relative;border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--line);padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.gcard span{font:56px/1.1 var(--emoji)}
+.gcard b{font:800 1rem/1.15 var(--display);text-align:center}
+.gcard.seen{box-shadow:0 0 0 3px var(--leaf) inset,0 4px 0 var(--line)}
+.gnew{position:absolute;top:6px;right:8px;font:800 .75rem var(--display);font-style:normal;background:var(--sun);border-radius:99px;padding:2px 8px}
+.crit .crE{font:120px/1 var(--emoji)}
+.crit p{font:700 1.2rem/1.4 var(--body)}
+.crT{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.crT span{background:var(--sky);border-radius:99px;padding:4px 12px;font:800 .95rem var(--display)}
 .quizbtn{width:100%;min-height:68px;margin-bottom:12px;display:flex;flex-direction:column;gap:2px;font-size:1.3rem}
 .quizbtn small{font:600 .95rem var(--body);color:#fff;opacity:.9}
 .lsortitem{font:800 clamp(1.6rem,7vw,2.4rem)/1.2 var(--display);background:var(--paper);border-radius:20px;padding:12px 22px;box-shadow:0 4px 0 var(--line);text-align:center}
@@ -311,6 +324,7 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
     <button class="btn teal" id="goUsa">🗺️ USA Map</button>
     <button class="btn sci" id="goSci">🔬 Science</button>
     <button class="btn soc" id="goSoc">🌎 Social Studies</button>
+    <button class="btn nat" id="goNat">🦁 Animals &amp; Plants</button>
     <button class="btn green" id="goBook">⭐ Sticker Book</button>
     <button class="btn" id="goBank">🐷 Piggy Bank</button>
   </div>
@@ -427,6 +441,11 @@ img.bear,img.cheetah,img.deer,img.baby{width:1em;height:1em;vertical-align:-.14e
   <button class="btn setrow" id="syncClose">Done</button>
 </div></div>
 
+<div class="over" id="critter" hidden><div class="panel crit">
+  <div class="crE" id="crE"></div><h2 id="crN"></h2><p id="crC"></p><div class="crT" id="crT"></div>
+  <div style="display:flex;gap:12px"><button class="btn" id="crSay">🔊 Again</button><button class="btn go" id="crClose">Done</button></div>
+</div></div>
+
 <div class="over" id="picView" hidden><div class="panel">
   <img id="picBig" alt="A saved drawing">
   <div style="display:flex;gap:12px"><button class="btn" id="picDel">Remove</button><button class="btn green" id="picShare">Share</button><button class="btn go" id="picClose">Close</button></div>
@@ -492,7 +511,7 @@ let S={done:[],sound:true,voice:true,open:false};
 let ART_SAVED=[];
 try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 /* stars are earned at stops and traded for dollars in the Piggy Bank; cash and paidOut are in cents */
-function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(!Array.isArray(S.geo))S.geo=[];if(!Array.isArray(S.learn))S.learn=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
+function norm(){if(!Array.isArray(S.done))S.done=[];if(!Array.isArray(S.abc))S.abc=[];if(!Array.isArray(S.artGone))S.artGone=[];if(!Array.isArray(S.math))S.math=[];if(!Array.isArray(S.geo))S.geo=[];if(!Array.isArray(S.learn))S.learn=[];if(!Array.isArray(S.seen))S.seen=[];if(typeof S.stars!=='number')S.stars=S.done.length;for(const k of['spent','cash','paidOut'])S[k]=S[k]||0;S.rate=S.rate||10;if(S.replayCap==null)S.replayCap=5}
 norm();
 const avail=()=>Math.max(0,S.stars-S.spent),usd=c=>'$'+Math.round(c/100);
 try{ART_SAVED=JSON.parse(localStorage.getItem(KEY+'-art')||'[]')}catch(e){}
@@ -544,7 +563,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushRe
 function mergeRemote(c){if(!c||!Array.isArray(c.done))return false;const merged=[...new Set([...c.done,...S.done])].filter(n=>Number.isInteger(n)&&n>=0&&n<N);let grew=merged.length>S.done.length;S.done=merged;
   for(const k of['stars','spent','cash','paidOut']){const m=Math.max(S[k]||0,+c[k]||0);if(m!==S[k]){S[k]=m;grew=true}}
   if(c.stars==null&&S.stars<merged.length){S.stars=merged.length;grew=true}
-  for(const k of['abc','math','geo','learn','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
+  for(const k of['abc','math','geo','learn','seen','artGone'])if(Array.isArray(c[k])){const u=[...new Set([...c[k],...S[k]])];if(u.length>S[k].length){S[k]=u;grew=true}}
   if(c.rate&&c.rate!==S.rate){S.rate=c.rate;grew=true}if(c.replayCap!=null)S.replayCap=c.replayCap;return grew}
 async function syncNow(){if(!remote)return false;try{const c=await remote.getP();
     if(mergeRemote(c)){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!$('#home').hidden)openHome();else if(!$('#map').hidden)openMap();else if(!$('#book').hidden)openBook();else if(!$('#bank').hidden)openBank()}
@@ -1666,7 +1685,7 @@ LEARN.soc.topics.push(
    {q:'Which country is our neighbor to the north?',a:'Canada',c:['Canada','Mexico','Brazil'],f:'Canada is north of the United States.'},
    {q:'Match the country to its famous place.',match:[['🇫🇷','Eiffel Tower'],['🇨🇳','Great Wall'],['🇪🇬','Pyramids'],['🇺🇸','Statue of Liberty']],f:'These are famous places around the world.'}]});
 
-const learnLines=()=>['Try again!','Look at the map.',...Object.values(LEARN).flatMap(s=>s.topics.flatMap(t=>t.qs.flatMap(q=>[q.q,q.f])))];
+const learnLines=()=>['Try again!','Look at the map.','This is','Who am I?',...Object.values(LEARN).flatMap(s=>s.topics.flatMap(t=>t.qs.flatMap(q=>[...(q.parts||[q.q]),...(q.fs||[q.f])]))),...natAll().flatMap(a=>[a.say,a.clue])];
 let learnPackLoaded=false;
 function loadLearnPack(){if(learnPackLoaded)return;learnPackLoaded=true;try{fetch('voice-learn.json').then(r=>r.ok?r.json():{}).then(j=>{Object.assign(pack,j||{})}).catch(()=>{learnPackLoaded=false})}catch(e){}}
 let learnSub='sci';
@@ -1674,7 +1693,9 @@ function openLearn(sub){leaveGame();if(sub)learnSub=sub;loadLearnPack();const L=
   const A=$('#learnArea');A.innerHTML='';A.className='scroll';
   /* Quiz Show: 10 questions mixed from every topic, with a score */
   const qz=el('button','btn go quizbtn');qz.append(el('span','ltico','🎤'),document.createTextNode(' Quiz Show'),el('small','',S.learn.includes(learnSub+':quiz')?'⭐ 10 questions from every topic':'10 questions from every topic'));
-  qz.onclick=()=>{sfx.tap();learnPlay({id:'quiz',name:'Quiz Show',n:10,qs:L.topics.flatMap(t=>t.qs.filter(q=>!q.sort&&!q.match))})};A.append(qz);
+  qz.onclick=()=>{sfx.tap();learnPlay({id:'quiz',name:'Quiz Show',n:10,qs:L.topics.flatMap(t=>t.qs.filter(q=>!q.sort&&!q.match))})};
+  if(learnSub==='nat'){const fg=el('button','btn sci quizbtn');const met=natAll().filter(a=>S.seen.includes(a.e+a.n)).length;fg.append(el('span','ltico','📖'),document.createTextNode(' Field guide'),el('small','','Meet '+natAll().length+' animals and plants · you have met '+met));fg.onclick=()=>{sfx.tap();openGuide()};A.append(fg)}
+  A.append(qz);
   const g=el('div','mlev');
   L.topics.forEach(t=>{const b=el('button',S.learn.includes(learnSub+':'+t.id)?'done':'');b.append(el('span','ltico',t.icon),document.createTextNode(t.name),el('small','',S.learn.includes(learnSub+':'+t.id)?'⭐ Done':t.qs.length+' activities'));
     b.onclick=()=>{sfx.tap();learnPlay(t)};g.append(b)});A.append(g)}
@@ -1683,7 +1704,7 @@ function learnPlay(t){leaveGame();const me=gen,A=$('#learnArea');A.innerHTML='';
   const back=el('button','btn','← Topics');back.onclick=()=>{sfx.tap();openLearn()};A.append(dots,box,back);
   const next=()=>{dots.children[i].className='on';i++;if(i<qs.length)ask();else done()};
   const slip=()=>{clean=false;sfx.oops()};
-  const fact=q=>{if(clean)score++;const f=el('div','lfact',q.f),nx=el('button','btn go',i<qs.length-1?'Next ➜':'Finish ⭐');nx.onclick=()=>{sfx.tap();next()};box.append(f,nx);say(q.f);nx.scrollIntoView({block:'nearest'})};
+  const fact=q=>{if(clean)score++;const f=el('div','lfact',q.f),nx=el('button','btn go',i<qs.length-1?'Next ➜':'Finish ⭐');nx.onclick=()=>{sfx.tap();next()};box.append(f,nx);say(...(q.fs||[q.f]));nx.scrollIntoView({block:'nearest'})};
   const ask=()=>{if(me!==gen)return;clean=true;const q=qs[i];box.innerHTML='';box.scrollTop=0;box.append(el('div','lq',q.q));
     if(q.show)box.append(el('div','lshow',q.show));
     if(q.grid){const g=el('div','lgrid'),cells=['🌳','🏞️','🌳','🏠','🏫','🏥','🌳','🏪','🌳'],names=[0,'Park',0,'House','School','Hospital',0,'Store',0];
@@ -1708,13 +1729,183 @@ function learnPlay(t){leaveGame();const me=gen,A=$('#learnArea');A.innerHTML='';
     opts.forEach(o=>{const b=el('button','btn lopt'+(o.length<=3?' big':''),o);b.onclick=()=>{if(over)return;
       if(o===q.a){over=true;b.classList.add('ok');[...row.children].forEach(x=>x.disabled=x!==b);sfx.good();fact(q)}
       else{wobble(b);slip();say('Try again!');if(++miss>=2)[...row.children].forEach(x=>{if(x.textContent===q.a)x.classList.add('hintq')})}};row.append(b)});
-    box.append(row);say(q.q)};
+    box.append(row);say(...(q.parts||[q.q]))};
   const done=()=>{const id=learnSub+':'+t.id,first=!S.learn.includes(id);if(first){S.learn.push(id);S.stars++;save()}$('#starCount7').textContent='⭐ '+avail();sfx.win();const c=pick(CHEERS);say(c);
     box.innerHTML='';const row=el('div','pick'),tp=el('button','btn','Topics'),ag=el('button','btn','Again'),T=LEARN[learnSub].topics,k=T.indexOf(t),nx=el('button','btn go','Next topic');row.append(tp,ag);if(k>=0&&k<T.length-1)row.append(nx);
     box.append(el('div','bigl',first?'⭐':'👏'),el('div','msg',t.id==='quiz'?'You got '+score+' of '+qs.length+' right on the first try!':c+(first?' You earned a star!':'')),row);if(t.id==='quiz'&&first)box.append(el('div','msg','You earned a star!'));back.remove();
     tp.onclick=()=>{sfx.tap();openLearn()};ag.onclick=()=>{sfx.tap();learnPlay(t)};nx.onclick=()=>{sfx.tap();learnPlay(T[k+1])}};
   ask()}
-$('#goSci').onclick=()=>{sfx.tap();openLearn('sci')};$('#goSoc').onclick=()=>{sfx.tap();openLearn('soc')};
+$('#goSci').onclick=()=>{sfx.tap();openLearn('sci')};
+
+/* ---------- Animals & Plants ----------
+   NATURE holds every animal and plant: [emoji, name, how the buddy says it, a first-person clue, eats, group].
+   eats: P plants, M meat, B both. The field guide shows them as cards; the quiz topics are built from the same list. */
+const NAT_GROUPS={mammal:'🐾 Mammal',bird:'🐦 Bird',fish:'🐟 Fish',reptile:'🦎 Reptile',amphibian:'🐸 Amphibian',insect:'🐜 Insect',other:'🌊 Other animal'};
+const NAT_EATS={P:'🌿 Eats plants',M:'🍖 Eats meat',B:'🍽️ Eats plants and meat'};
+const NATURE=[
+ {id:'farm',name:'Farm animals',icon:'🚜',kind:'animal',items:[
+  ['🐄','Cow','a cow','My tummy has four parts to help me eat grass, and I give milk.','P','mammal'],
+  ['🐖','Pig','a pig','I am very smart, and I roll in mud to stay cool.','B','mammal'],
+  ['🐑','Sheep','a sheep','My fluffy wool is used to make warm sweaters.','P','mammal'],
+  ['🐐','Goat','a goat','I love to climb, and my babies are called kids.','P','mammal'],
+  ['🐴','Horse','a horse','I can sleep standing up.','P','mammal'],
+  ['🐔','Chicken','a chicken','I lay eggs, and I scratch the ground looking for seeds and bugs.','B','bird'],
+  ['🐓','Rooster','a rooster','I am a boy chicken, and I crow cock-a-doodle-doo in the morning.','B','bird'],
+  ['🦆','Duck','a duck','I have waterproof feathers and webbed feet for swimming.','B','bird'],
+  ['🦃','Turkey','a turkey','I gobble, and I have a red wattle under my beak.','B','bird'],
+  ['🦙','Llama','a llama','I live in the mountains, and I can carry heavy bags.','P','mammal'],
+  ['🐇','Rabbit','a rabbit','I have long ears, and my teeth never stop growing.','P','mammal']]},
+ {id:'wild',name:'Wild animals',icon:'🦁',kind:'animal',items:[
+  ['🦁','Lion','a lion','I live in a family called a pride, and my roar is very loud.','M','mammal'],
+  ['🐯','Tiger','a tiger','I am the biggest wild cat, and no two of us have the same stripes.','M','mammal'],
+  ['🐘','Elephant','an elephant','I am the biggest animal on land, and I use my trunk like a hand.','P','mammal'],
+  ['🦒','Giraffe','a giraffe','I am the tallest animal on land, and my tongue is dark purple.','P','mammal'],
+  ['🦓','Zebra','a zebra','I have black and white stripes, and no two of us look the same.','P','mammal'],
+  ['🦛','Hippo','a hippo','I spend my days in the water to keep cool.','P','mammal'],
+  ['🦏','Rhino','a rhino','I have one or two big horns on my nose.','P','mammal'],
+  ['🦍','Gorilla','a gorilla','I am the biggest ape, and I eat lots of leaves and fruit.','P','mammal'],
+  ['🐒','Monkey','a monkey','I swing through the trees, and I love fruit.','B','mammal'],
+  ['🐆','Cheetah','a cheetah','I am the fastest runner on land.','M','mammal'],
+  ['🐻','Bear','a bear','I sleep through much of the winter, and I love berries and fish.','B','mammal'],
+  ['🐼','Panda','a panda','I eat bamboo almost all day long.','P','mammal'],
+  ['🦘','Kangaroo','a kangaroo','I hop on my strong back legs and carry my baby in a pouch.','P','mammal'],
+  ['🐨','Koala','a koala','I sleep most of the day and eat eucalyptus leaves.','P','mammal'],
+  ['🐺','Wolf','a wolf','I live in a family called a pack, and I howl to talk to it.','M','mammal'],
+  ['🦊','Fox','a fox','I have a big bushy tail and very good hearing.','B','mammal'],
+  ['🦌','Deer','a deer','My antlers fall off and grow back every year.','P','mammal'],
+  ['🦝','Raccoon','a raccoon','I have a mask on my face and clever little hands.','B','mammal'],
+  ['🦥','Sloth','a sloth','I move very slowly and hang upside down in the trees.','P','mammal'],
+  ['🐫','Camel','a camel','My humps store fat, so I can go a long time without food.','P','mammal'],
+  ['🦔','Hedgehog','a hedgehog','I am covered in spines, and I roll into a ball to stay safe.','B','mammal']]},
+ {id:'ocean',name:'Ocean animals',icon:'🌊',kind:'animal',items:[
+  ['🐳','Whale','a whale','I am a mammal, so I swim up to breathe air through my blowhole.','M','mammal'],
+  ['🐬','Dolphin','a dolphin','I am very smart, and I talk with clicks and whistles.','M','mammal'],
+  ['🦈','Shark','a shark','I have rows and rows of teeth, and new ones keep growing.','M','fish'],
+  ['🐙','Octopus','an octopus','I have eight arms and three hearts.','M','other'],
+  ['🦑','Squid','a squid','I squirt ink to hide from danger.','M','other'],
+  ['🦀','Crab','a crab','I walk sideways, and my skeleton is on the outside.','B','other'],
+  ['🦞','Lobster','a lobster','I have two big claws, and I live on the ocean floor.','B','other'],
+  ['🦐','Shrimp','a shrimp','I am small, and I swim backward to get away.','B','other'],
+  ['🐢','Sea turtle','a sea turtle','I swim across the ocean and lay my eggs on the beach.','B','reptile'],
+  ['🦭','Seal','a seal','I am a great swimmer, and I rest on ice and beaches.','M','mammal'],
+  ['🐡','Pufferfish','a pufferfish','I puff up like a balloon when I am scared.','B','fish'],
+  ['🐠','Clownfish','a clownfish','I live in a sea anemone, and its sting does not hurt me.','B','fish'],
+  ['🦦','Otter','an otter','Sea otters hold hands while they sleep, so they do not float apart.','M','mammal']]},
+ {id:'birds',name:'Birds',icon:'🐦',kind:'animal',items:[
+  ['🦅','Eagle','an eagle','I can see tiny things from very high in the sky.','M','bird'],
+  ['🦉','Owl','an owl','I can turn my head almost all the way around, and I hunt at night.','M','bird'],
+  ['🦜','Parrot','a parrot','I have bright feathers, and some of us can copy words.','P','bird'],
+  ['🐧','Penguin','a penguin','I cannot fly, but I am a super swimmer.','M','bird'],
+  ['🦩','Flamingo','a flamingo','I am pink because of the food I eat, and I often stand on one leg.','B','bird'],
+  ['🦚','Peacock','a peacock','I spread my beautiful tail feathers like a fan.','B','bird'],
+  ['🦢','Swan','a swan','I have a long curvy neck, and I glide across lakes.','P','bird'],
+  ['🕊️','Dove','a dove','I coo softly, and I am a symbol of peace.','P','bird'],
+  ['🐦','Robin','a robin','I have a red chest, and I pull worms out of the ground.','B','bird'],
+  ['🐥','Chick','a chick','I am a baby chicken, and I say peep peep.','B','bird']]},
+ {id:'bugs',name:'Bugs and crawlers',icon:'🐞',kind:'animal',items:[
+  ['🐝','Bee','a bee','I make honey, and I help flowers make seeds.','P','insect'],
+  ['🦋','Butterfly','a butterfly','I started life as a caterpillar, and I taste with my feet.','P','insect'],
+  ['🐞','Ladybug','a ladybug','I have spots, and I eat tiny bugs called aphids.','M','insect'],
+  ['🐜','Ant','an ant','I can carry things much heavier than me, and I live in a colony.','B','insect'],
+  ['🐛','Caterpillar','a caterpillar','I eat and eat, and then I turn into a butterfly or a moth.','P','insect'],
+  ['🕷️','Spider','a spider','I have eight legs, and I spin silky webs.','M','other'],
+  ['🐌','Snail','a snail','I carry my house on my back and move very slowly.','P','other'],
+  ['🦗','Cricket','a cricket','I chirp by rubbing my wings together.','B','insect'],
+  ['🪲','Beetle','a beetle','I have a hard shell that covers my wings.','B','insect'],
+  ['🪱','Worm','a worm','I live in the soil and help plants grow.','P','other']]},
+ {id:'reptiles',name:'Reptiles and frogs',icon:'🦎',kind:'animal',items:[
+  ['🐍','Snake','a snake','I have no legs, and I smell with my tongue.','M','reptile'],
+  ['🦎','Lizard','a lizard','I warm up by lying in the sun.','B','reptile'],
+  ['🐢','Tortoise','a tortoise','I live on land, and some of us live for more than 100 years.','P','reptile'],
+  ['🐊','Crocodile','a crocodile','I have a very strong bite, and I can stay still in the water for a long time.','M','reptile'],
+  ['🐸','Frog','a frog','I start life as a tadpole, and I catch bugs with my sticky tongue.','M','amphibian'],
+  ['🦖','T. rex','a T. rex','I lived long ago, and I had huge teeth and tiny arms.','M','reptile'],
+  ['🦕','Long-neck dinosaur','a long-neck dinosaur','I lived long ago, and I ate leaves from the tops of trees.','P','reptile']]},
+ {id:'pets',name:'Pets',icon:'🐶',kind:'animal',items:[
+  ['🐶','Dog','a dog','I have a super nose, and I wag my tail when I am happy.','B','mammal'],
+  ['🐱','Cat','a cat','I purr when I am happy, and I usually land on my feet.','M','mammal'],
+  ['🐹','Hamster','a hamster','I stuff food in my cheeks to save it for later.','B','mammal'],
+  ['🐭','Mouse','a mouse','I am small and quick, and I squeak.','B','mammal'],
+  ['🐟','Goldfish','a goldfish','I live in a tank, and I breathe with gills.','B','fish'],
+  ['🐩','Poodle','a poodle','I am a dog with curly fur.','B','mammal'],
+  ['🦮','Guide dog','a guide dog','I help people who cannot see get around safely.','B','mammal']]},
+ {id:'plants',name:'Plants and flowers',icon:'🌻',kind:'plant',items:[
+  ['🌻','Sunflower','a sunflower','I turn to face the sun, and my seeds are a yummy snack.'],
+  ['🌹','Rose','a rose','I smell sweet, but my stem has sharp thorns.'],
+  ['🌷','Tulip','a tulip','I grow from a bulb, and I bloom in the spring.'],
+  ['🌸','Cherry blossom','a cherry blossom','I am a pretty pink flower that blooms on trees in the spring.'],
+  ['🌺','Hibiscus','a hibiscus','I am a big tropical flower, and hummingbirds love me.'],
+  ['🌼','Daisy','a daisy','I have lots of petals around a yellow middle.'],
+  ['🌵','Cactus','a cactus','I store water inside me, so I can live in the dry desert.'],
+  ['🌴','Palm tree','a palm tree','I grow where it is warm, and coconuts grow on some of us.'],
+  ['🌲','Pine tree','a pine tree','I stay green all winter, and I grow pine cones.'],
+  ['🌳','Oak tree','an oak tree','I can live for hundreds of years, and acorns grow on me.'],
+  ['🍀','Clover','a clover','Most of us have three leaves. Finding one with four is rare!'],
+  ['🍄','Mushroom','a mushroom','I am not really a plant. I am a fungus!'],
+  ['🌱','Seedling','a seedling','I am a baby plant that just sprouted from a seed.'],
+  ['🌿','Herb','an herb','People use my leaves to add flavor to food.'],
+  ['🪴','Potted plant','a potted plant','I live in a pot, and I need water and sunlight.']]},
+ {id:'food',name:'Fruits and veggies',icon:'🍎',kind:'plant',items:[
+  ['🍎','Apple','an apple','I grow on trees, and I can be red, green or yellow.'],
+  ['🍌','Banana','a banana','I grow in bunches, and my peel turns yellow when I am ripe.'],
+  ['🍓','Strawberry','a strawberry','I wear my seeds on the outside.'],
+  ['🍇','Grapes','a bunch of grapes','We grow in bunches on vines.'],
+  ['🍊','Orange','an orange','I am full of juice and vitamin C.'],
+  ['🍉','Watermelon','a watermelon','I am mostly water, so I am very juicy.'],
+  ['🥕','Carrot','a carrot','I grow under the ground, and I am crunchy.'],
+  ['🥦','Broccoli','some broccoli','I look like a little green tree.'],
+  ['🌽','Corn','an ear of corn','I grow on tall stalks, and I have rows of yellow kernels.'],
+  ['🍅','Tomato','a tomato','I am really a fruit, even though people often call me a vegetable!'],
+  ['🥑','Avocado','an avocado','I have one big seed in my middle.'],
+  ['🍍','Pineapple','a pineapple','I have a spiky crown of leaves on top.'],
+  ['🍒','Cherries','some cherries','We grow in pairs on long stems.'],
+  ['🥔','Potato','a potato','I grow under the ground, and I can become french fries.'],
+  ['🍋','Lemon','a lemon','I am yellow and very sour.'],
+  ['🫐','Blueberries','some blueberries','We are small, round and blue.']]}];
+const natAll=()=>NATURE.flatMap(c=>c.items.map(i=>({e:i[0],n:i[1],say:i[2],clue:i[3],eats:i[4],grp:i[5],cat:c})));
+/* quiz topics built from the list */
+(()=>{const asked=new Set();const others=(list,i)=>list.filter(x=>x!==i);
+ const topics=NATURE.map(c=>{const items=c.items.map(i=>({e:i[0],n:i[1],say:i[2],clue:i[3]})),what=c.kind==='plant'?'What is this?':'What animal is this?',qs=[];
+  for(const it of items){qs.push({q:what,show:it.e,a:it.n,c:[it.n,...sample(others(items,it),2).map(o=>o.n)],keep:0,f:it.clue,fs:['This is',it.say,it.clue]});
+    qs.push({q:'Who am I? '+it.clue,parts:['Who am I?',it.clue],a:it.e+' '+it.n,c:[it.e+' '+it.n,...sample(others(items,it),2).map(o=>o.e+' '+o.n)],f:'I am '+it.say+'!',fs:['This is',it.say]})}
+  return{id:c.id,name:c.name,icon:c.icon,qs}});
+ const animals=natAll().filter(a=>a.eats);
+ const eatSort=()=>({q:'What does it eat? Plants, meat, or both?',sort:{bins:['🌿 Plants','🍖 Meat','🍽️ Both'],items:sample(animals,6).map(a=>[a.e+' '+a.n,'PMB'.indexOf(a.eats)])},f:'Plant-eaters are called herbivores. Meat-eaters are carnivores. Animals that eat both are omnivores.'});
+ const grpSort=()=>{const g=['mammal','bird','fish','reptile'],pool=animals.filter(a=>g.includes(a.grp));return{q:'Sort them: mammal, bird, fish or reptile?',sort:{bins:g.map(k=>NAT_GROUPS[k]),items:[...g.flatMap(k=>sample(pool.filter(a=>a.grp===k),k==='fish'||k==='reptile'?1:2))].map(a=>[a.e+' '+a.n,g.indexOf(a.grp)])},f:'Mammals have fur. Birds have feathers. Fish have fins and gills. Reptiles have scaly skin.'}};
+ const plantSort=()=>{const pl=NATURE.find(c=>c.id==='plants').items.filter(i=>i[1]!=='Mushroom'),fd=NATURE.find(c=>c.id==='food').items;
+  return{q:'Is it a flower or plant, or is it something we eat?',sort:{bins:['🌸 Flower or plant','🍽️ We eat it'],items:[...sample(pl,3).map(i=>[i[0]+' '+i[1],0]),...sample(fd,3).map(i=>[i[0]+' '+i[1],1])]},f:'All of these grow from plants, and some of them make yummy food!'}};
+ topics.push({id:'eats',name:'Who eats what?',icon:'🍽️',qs:[eatSort(),eatSort(),eatSort(),
+   ...animals.filter(a=>a.eats==='P').slice(0,4).map(a=>({q:'What does '+a.say+' eat?',show:a.e,a:'🌿 Plants',c:['🌿 Plants','🍖 Meat','🍽️ Both'],keep:1,f:a.clue})),
+   ...animals.filter(a=>a.eats==='M').slice(0,4).map(a=>({q:'What does '+a.say+' eat?',show:a.e,a:'🍖 Meat',c:['🌿 Plants','🍖 Meat','🍽️ Both'],keep:1,f:a.clue}))]});
+ topics.push({id:'groups',name:'Animal groups',icon:'🐾',qs:[grpSort(),grpSort(),grpSort(),
+   {q:'Which one is a mammal?',a:'🐬 Dolphin',c:['🐬 Dolphin','🦈 Shark','🐠 Clownfish'],f:'A dolphin is a mammal. It breathes air and feeds its babies milk.'},
+   {q:'Which one is a bird?',a:'🐧 Penguin',c:['🐧 Penguin','🦇 Bat','🦋 Butterfly'],f:'Penguins have feathers, so they are birds, even though they cannot fly.'},
+   {q:'Which one is a reptile?',a:'🐊 Crocodile',c:['🐊 Crocodile','🐸 Frog','🐟 Goldfish'],f:'Crocodiles have scaly skin, so they are reptiles.'},
+   {q:'Which one is an insect?',a:'🐝 Bee',c:['🐝 Bee','🕷️ Spider','🐌 Snail'],f:'Insects have six legs. Spiders have eight, so they are not insects.'},
+   {q:'Which one is an amphibian?',a:'🐸 Frog',c:['🐸 Frog','🐍 Snake','🦎 Lizard'],f:'Frogs start life in the water and then live on land too. That makes them amphibians.'}]});
+ topics.push({id:'plantmix',name:'Plant or food?',icon:'🌱',qs:[plantSort(),plantSort(),plantSort(),
+   {q:'Which one is not really a plant?',a:'🍄 Mushroom',c:['🍄 Mushroom','🌷 Tulip','🌳 Oak tree'],f:'A mushroom is a fungus, not a plant!'},
+   {q:'Which one is really a fruit?',a:'🍅 Tomato',c:['🍅 Tomato','🥕 Carrot','🥔 Potato'],f:'A tomato has seeds inside, so it is a fruit.'},
+   {q:'Which one grows under the ground?',a:'🥔 Potato',c:['🥔 Potato','🍎 Apple','🍌 Banana'],f:'Potatoes and carrots grow under the ground.'},
+   {q:'Which one stays green all winter?',a:'🌲 Pine tree',c:['🌲 Pine tree','🌸 Cherry blossom','🌻 Sunflower'],f:'Pine trees are evergreen. They keep their needles all year.'}]});
+ LEARN.nat={name:'Animals & Plants',icon:'🦁',topics}})();
+/* the field guide: tap a card to meet an animal or plant; meeting every one in a group earns a star */
+let guideCat='farm';
+function openGuide(){leaveGame();loadLearnPack();show('learn');learnSub='nat';$('#learnTitle').textContent='📖 Field guide';$('#starCount7').textContent='⭐ '+avail();
+  const A=$('#learnArea');A.innerHTML='';A.className='scroll';const met=natAll().filter(a=>S.seen.includes(a.e+a.n)).length,total=natAll().length;
+  const top=el('div','gtop'),bk=el('button','btn','← Back');bk.onclick=()=>{sfx.tap();openLearn('nat')};top.append(bk,el('b','',`You have met ${met} of ${total}`));A.append(top);
+  const tabs=el('div','abctabs');NATURE.forEach(c=>{const done=c.items.every(i=>S.seen.includes(i[0]+i[1])),b=el('button','btn tab'+(c.id===guideCat?' on':''),(done?'⭐ ':'')+c.icon+' '+c.name);b.onclick=()=>{sfx.tap();guideCat=c.id;openGuide()};tabs.append(b)});A.append(tabs);
+  requestAnimationFrame(()=>{const on=tabs.querySelector('.on');if(on)tabs.scrollLeft=on.offsetLeft-16});
+  const cat=NATURE.find(c=>c.id===guideCat),g=el('div','ggrid');
+  cat.items.forEach(i=>{const seen=S.seen.includes(i[0]+i[1]),b=el('button','gcard'+(seen?' seen':''));b.append(el('span','',i[0]),el('b','',i[1]));if(!seen)b.append(el('i','gnew','new'));b.onclick=()=>meet(cat,i,b);g.append(b)});A.append(g)}
+function meet(cat,i,card){sfx.tap();const P=$('#critter');$('#crE').textContent=i[0];$('#crN').textContent=i[1];$('#crC').textContent=i[3];
+  const tags=$('#crT');tags.innerHTML='';if(i[5])tags.append(el('span','',NAT_GROUPS[i[5]]));if(i[4])tags.append(el('span','',NAT_EATS[i[4]]));if(cat.kind==='plant')tags.append(el('span','',cat.id==='food'?'🍽️ Food':'🌱 Plant'));
+  P.hidden=false;const talk=()=>say('This is',i[2],i[3]);talk();$('#crSay').onclick=talk;
+  if(!S.seen.includes(i[0]+i[1])){S.seen.push(i[0]+i[1]);save();if(card){card.classList.add('seen');card.querySelector('.gnew')?.remove()}
+    if(cat.items.every(x=>S.seen.includes(x[0]+x[1]))){const id='nat:seen:'+cat.id;if(!S.learn.includes(id)){S.learn.push(id);S.stars++;save();setTimeout(()=>{sfx.win();toast('You met every one of the '+cat.name.toLowerCase()+'! ⭐')},900)}}}}
+$('#crClose').onclick=()=>{$('#critter').hidden=true;hush();if(learnSub==='nat'&&!$('#learn').hidden&&$('#learnTitle').textContent.includes('Field'))openGuide()};
+$('#goNat').onclick=()=>{sfx.tap();openLearn('nat')};
+$('#goSoc').onclick=()=>{sfx.tap();openLearn('soc')};
 
 function openHome(){try{stopMic()}catch(e){}leaveGame();show('home');const c=nextLevel();$('#goMap').textContent=c===0?'Start the trail':c>=N?'Play again':(c%PER===0?'Start the '+TRAILS[trailOf(c)].name:'Keep going · '+TRAILS[trailOf(c)].name.replace(' Trail','')+' stop '+(c%PER+1))}
 function drawSettings(){$('#setSound').textContent='Sounds: '+(S.sound?'On':'Off');$('#setVoice').textContent='Read aloud: '+(S.voice?'On':'Off');{const v=bestVoice();$('#setWho').textContent='Voice: '+(v?v.name.replace(/\s*\(.*/,''):'device default')+(voices().length>1?' · tap to change':'')}if(TTS)$('#setWho').textContent='Voice: '+(S.cv||'rounded')+' (natural) · tap to change';$('#setOpen').textContent='All stops open: '+(S.open?'Yes':'No');$('#setReset').textContent='Start the trail over';
