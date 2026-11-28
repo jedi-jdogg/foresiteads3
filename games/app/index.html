@@ -1075,6 +1075,7 @@ const TRACE=(()=>{const n=v=>+v.toFixed(1),E=(x,y,a,b)=>`M${x-a} ${y}a${a} ${b} 
   ['a camera','M10 30H34L40 22H60L66 30H90V80H10ZM18 38H28'+C(50,54,18)+C(50,54,10)+C(78,40,3),3],
   ['an astronaut',C(50,26,16)+'M38 24Q50 16 62 24Q62 36 50 36Q38 36 38 24ZM34 42H66V74H34ZM42 50H58V62H42ZM34 46L22 64M66 46L78 64M38 74V92H48V74M52 74V92H62V74'+C(20,66,4)+C(80,66,4),3],
   ['a hedgehog','M18 70L14 58L22 54L20 42L30 42L32 30L42 34L48 24L56 32L64 26L68 38L78 38L76 50L84 56L80 66M80 66Q92 66 94 72Q86 76 76 74H22Q14 74 18 70M34 74V80M64 74V80'+C(82,64,1.5)+C(94,72,1.8),3],
+  ['a seahorse','M68 17Q62 8 50 12Q38 16 42 30Q32 42 36 56Q40 68 52 74Q54 84 46 88Q38 90 38 82Q38 76 44 77M68 25Q70 34 62 40Q72 50 68 62Q66 70 60 74Q62 92 46 94Q32 94 32 82Q32 70 44 70M68 17L84 18Q88 21 84 24L68 25M38 40Q26 44 34 54M34 44L38 45M33 49L37 50M52 12L54 6L58 11M64 46L60 48M66 54L61 55M64 62L59 62'+C(60,18,2),3],
   ['a sea lion','M28 90Q20 66 34 48Q44 34 50 26Q54 14 64 14Q76 14 78 24Q78 32 70 34Q62 36 60 46Q58 62 66 90M58 64Q74 74 80 90H64M30 84L14 92H30M62 18L60 12M76 27L88 26M76 29L87 32M4 90Q50 84 96 90V98H4Z'+C(68,21,1.6)+C(78,24,1.4)+C(72,6,5),3],
   ['a seal','M10 80Q6 60 30 56Q50 52 60 40Q62 26 74 24Q86 24 86 36Q86 48 76 56Q70 70 56 80ZM10 80L4 72M10 80L4 88M50 74L46 88L58 80M84 42L94 40M84 44L94 46'+C(76,32,1.6)+C(85,38,1.6)+C(78,10,8),3],
   /* expert scenes */
@@ -2006,7 +2007,7 @@ if(hot&&hot.ready)hot.ready(boot);else boot((hot&&hot.data)||{});
 (function(){
   if(!('serviceWorker' in navigator)||!/^https?:/.test(location.protocol))return;
   navigator.serviceWorker.register('sw.js').catch(function(){});
-  var MINE='72e06dd4f3',last=0;
+  var MINE='d793c93ff9',last=0;
   function check(){
     if(Date.now()-last<60000)return;last=Date.now();
     fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
